@@ -1,0 +1,78 @@
+# compile
+
+avr-gcc -g -Os -std=gnu99 -mmcu=atmega328p -c blink.c
+avr-gcc -g -mmcu=atmega328p -o blink.elf blink.o
+avr-objcopy -j .text -j .data -O ihex blink.elf blink.hex
+
+avrdude -c usbasp -p atmega328p -U flash:w:blink.hex
+
+avr-size -A -x blink.elf
+avr-size -C --mcu=atmega328p blink.elf
+
+avr-objcopy -I ihex -O binary sketch.cpp.hex frimware.bin
+
+
+===============================================================================
+
+1. blink
+done
+
+2. button
+done
+
+3. compile to the address 00
+done
+
+4. compile as bootloader
+
+5. run from bootloader
+http://www.engbedded.com/fusecalc/
+current fuses Fuses            L:FF    H:DA        E:FD            BOOTSZ1 BOOTSZ0 Pages App st-end     bites
+0    words, address 0x0000             H:DF DD D9 DB                                                    0
+2048 words, address 0x3800   LOW=77 HIGH=D8 EXTENDED=FC LOCKBIT=FF       0       0    32 0x0000-0x37ff  4kb     -Ttext=0x7000
+1024 words, address 0x3c00   LOW=77 HIGH=DA EXTENDED=FC LOCKBIT=FF       0       1    16 0x0000-0x3bff  2kb     -Ttext=0x7800
+512  words, address 0x3e00   LOW=77 HIGH=DC EXTENDED=FC LOCKBIT=FF       1       0     8 0x0000-0x3dff  1kb     -Ttext=0x7c00
+256  words, address 0x3f00   LOW=77 HIGH=DE EXTENDED=FC LOCKBIT=FF       1       1     4 0x0000-0x3eff  512     -Ttext=0x7e00
+
+arduino fuses                LOW=FF HIGH=DE EXTENDED=05
+gamebuino                      0xff    0xda        0x05
+
+avrdude -c usbasp -p atmega328p -U lfuse:w:0xff:m -U hfuse:w:0xde:m -U efuse:w:0x05:m
+
+dump flash
+avrdude -c usbasp -p atmega328p -U flash:r:dump_flash.hex:i
+dump eeprom
+avrdude -c usbasp -p atmega328p -v -U eeprom:r:dump_eeprom.hex:i
+avrdude -c usbasp -p atmega328p -v -U eeprom:r:dump_eeprom.elf:r
+
+6. goto 00
+
+void* bl = (void *) 0x3c00;
+goto *bl;
+
+7. goto bootloader
+done
+
+9. read from sd cadr
+# TODO
+
+10. load programm from sd card
+
+11. load bootloader from sd card
+
+12 create bootloader
+
+13 file manager
+
+14 difune GAMEBUINO
+
+15 import gamebuino games
+
+16 add NRF24L01
+
+
+
+uint8_t   0 to 255
+int8_t    -128 to +127
+uint16_t  0 to 65535
+int16_t   -32768 to +32767
