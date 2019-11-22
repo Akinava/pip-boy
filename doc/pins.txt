@@ -24,7 +24,7 @@ N  pin
 22 GND  GND
 23 PC0  ? Battery level
 24 PC1  ? Microphone
-25 PC2  
+25 PC2  BibroMOTOR
 26 PC3  Button C
 27 PC4  SDA  Oled SDA
 28 PC5  SDL  Oled SDL
@@ -40,17 +40,17 @@ GND GND
 +   PD3
 
 === LED
-GND - resistor - LED - PD5
+GND - resistor(1kΩ) - LED - PD5
 
 === SD Card
 CS   - PB2
 SCK  - SCK
 MOSI - MOSI
-MISO - resistor - MISO
+MISO - resistor(200Ω) - MISO
 VCC  - VCC
 GND  - GND
 
 === Crystal
-GND + capacitor ----+----- OSC1
-    |            crystal
-    + capacitor ----+----- OSC2
+GND + capacitor(22pF) ----+----- OSC1
+    |                  crystal(16KHz)
+    + capacitor(22pF) ----+----- OSC2
