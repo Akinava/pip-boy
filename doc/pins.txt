@@ -42,14 +42,6 @@ GND GND
 === LED
 GND - resistor(1kΩ) - LED - PD5
 
-=== SD Card
-CS   - PB2
-SCK  - SCK
-MOSI - MOSI
-MISO - resistor(200Ω) - MISO
-VCC  - VCC
-GND  - GND
-
 === NRF24L01
 CE   - PD0
 CSN  - PD1
@@ -63,3 +55,22 @@ GND  - GND
 GND + capacitor(22pF) ----+----- OSC1
     |                  crystal(16KHz)
     + capacitor(22pF) ----+----- OSC2
+
+=== SD Card reader with LVC125A driver
+CS   - PB2
+SCK  - SCK
+MOSI - MOSI
+MISO - resistor(200Ω) - MISO
+VCC  - VCC
+GND  - GND
+
+=== SD Card adapter
+0 /
+1 - CS
+2 - MOSI
+3 - GND
+4 - VCC 3.3
+5 - SCK
+6 - GND
+7 - MISO
+8 - 
