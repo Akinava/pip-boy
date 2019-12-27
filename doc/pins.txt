@@ -1,33 +1,33 @@
 === Atmega328
-N  pin
-01 PC6  RESET
-02 PD0  ? NRF24L01
-03 PD1  ? NRF24L01
-04 PD2  Button B
-05 PD3  Buzzer
-06 PD4  Button A
-07 VCC  VCC
-08 GND  GND
-09 PB6  OSC1
-10 PB7  OSC2
-11 PD5  LED
-12 PD6  Button Down
-13 PD7  Button Right
-14 PB0  Button Left
-15 PB1  Button Up
-16 PB2  SD CS
-17 PB3  MOSI
-18 PB4  MISO
-19 PB5  SCK
-20 VCC  VCC
-21 AREF VCC
-22 GND  GND
-23 PC0  ? Battery level
-24 PC1  ? Microphone
-25 PC2  BibroMOTOR
-26 PC3  Button C
-27 PC4  SDA  Oled SDA
-28 PC5  SDL  Oled SDL
+N  ARD pin  descr
+01     PC6  RESET
+02   0 PD0  CE  NRF24L01
+03   1 PD1  CSN NRF24L01
+04   2 PD2  Button B
+05   3 PD3  Buzzer
+06   4 PD4  Button A
+07     VCC  VCC
+08     GND  GND
+09     PB6  OSC1
+10     PB7  OSC2
+11   5 PD5  LED
+12   6 PD6  Button Down
+13   7 PD7  Button Right
+14   8 PB0  Button Left
+15   9 PB1  Button Up
+16  10 PB2  SD CS
+17  11 PB3  MOSI
+18  12 PB4  MISO
+19  13 PB5  SCK
+20     VCC  VCC
+21     AREF VCC
+22     GND  GND
+23  14 PC0(ADC0) Battery level
+24  15 PC1(ADC1) Microphone
+25  16 PC2(ADC2) BibroMOTOR
+26  17 PC3(ADC3) Button C
+27  18 PC4(SDA)  Oled SDA
+28  19 PC5(SDL)  Oled SDL
 
 === Oled
 GND GND
@@ -42,11 +42,12 @@ GND GND
 === LED
 GND - resistor(1kΩ) - LED - PD5
 
-=== SD Card
-CS   - PB2
-SCK  - SCK
+=== NRF24L01
+CE   - PD0
+CSN  - PD1
+MISO - MISO
 MOSI - MOSI
-MISO - resistor(200Ω) - MISO
+SCK  - SCK
 VCC  - VCC
 GND  - GND
 
@@ -73,6 +74,24 @@ GND + capacitor(22pF) ----+----- OSC1
 0 - GND
 
 === JAMPER
-
 (IDC) JAMPER -- JAMPER -- PC6(RESET) SLAVE MODE
                  (OR)  -- PD5(LED)   MASTER MODE
+
+=== SD Card reader with LVC125A driver
+CS   - PB2
+SCK  - SCK
+MOSI - MOSI
+MISO - resistor(200Ω) - MISO
+VCC  - VCC
+GND  - GND
+
+=== SD Card adapter
+0 /
+1 - CS
+2 - MOSI
+3 - GND
+4 - VCC 3.3
+5 - SCK
+6 - GND
+7 - MISO
+8 - 
