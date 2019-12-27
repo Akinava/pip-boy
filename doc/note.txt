@@ -4,57 +4,128 @@ avr-gcc -g -Os -std=gnu99 -mmcu=atmega328p -c blink.c
 avr-gcc -g -mmcu=atmega328p -o blink.elf blink.o
 avr-objcopy -j .text -j .data -O ihex blink.elf blink.hex
 
+# upload blinck.hex to chip
 avrdude -c usbasp -p atmega328p -U flash:w:blink.hex
 
+# show memory size usage
 avr-size -A -x blink.elf
 avr-size -C --mcu=atmega328p blink.elf
 
+# convert hex to bin
 avr-objcopy -I ihex -O binary sketch.cpp.hex frimware.bin
 
+===============================================================================
+# compile bootloader
+# reating object file...
+avr-gcc -g -Wall -Os -mmcu=atmega328p -c boot.c
+
+#creating elf file...
+avr-gcc -g -Wall -Os -mmcu=atmega328p -Wl,-Ttext=0x7000 -o boot.elf boot.o
+
+#creating hex file...
+avr-objcopy -j .text -j .data -O ihex boot.elf boot.hex
+
+#write to device
+sudo avrdude -c avrisp2 -p m328 -P usb -U flash:w:boot.elf
+===============================================================================
+### serial read
+
+stty -F /dev/ttyUSB0 cs8 115200 ignbrk -brkint -icrnl -imaxbel -opost -onlcr -isig -icanon -iexten -echo -echoe -echok -echoctl -echoke noflsh -ixon -crtscts
+tail -f /dev/ttyUSB0
+echo -n "Hello" > /dev/ttyUSB0
 
 ===============================================================================
 
-1. blink
+01. blink
 done
 
-2. button
+02. button
 done
 
-3. compile to the address 00
+03. compile to the address 00
 done
 
-4. compile as bootloader
+04. compile as bootloader
 
-5. run from bootloader
+05. run from bootloader
 http://www.engbedded.com/fusecalc/
-current fuses Fuses            L:FF    H:DA        E:FD            BOOTSZ1 BOOTSZ0 Pages App st-end     bites
-0    words, address 0x0000             H:DF DD D9 DB                                                    0
-2048 words, address 0x3800   LOW=77 HIGH=D8 EXTENDED=FC LOCKBIT=FF       0       0    32 0x0000-0x37ff  4kb     -Ttext=0x7000
-1024 words, address 0x3c00   LOW=77 HIGH=DA EXTENDED=FC LOCKBIT=FF       0       1    16 0x0000-0x3bff  2kb     -Ttext=0x7800
-512  words, address 0x3e00   LOW=77 HIGH=DC EXTENDED=FC LOCKBIT=FF       1       0     8 0x0000-0x3dff  1kb     -Ttext=0x7c00
-256  words, address 0x3f00   LOW=77 HIGH=DE EXTENDED=FC LOCKBIT=FF       1       1     4 0x0000-0x3eff  512     -Ttext=0x7e00
+current fuses Fuses            L:FF    H:DA        E:FD            BOOTSZ1 BOOTSZ0 Pages App st-end     bites                  pages for app / bootloader
+0    words, address 0x0000             H:DF DD D9 DB                                     0x0000-0x4000  0              0x8000            256   0
+2048 words, address 0x3800   LOW=77 HIGH=D8 EXTENDED=FC LOCKBIT=FF       0       0    32 0x0000-0x37ff  4kb     -Ttext=0x7000            240   32
+1024 words, address 0x3c00   LOW=77 HIGH=DA EXTENDED=FC LOCKBIT=FF       0       1    16 0x0000-0x3bff  2kb     -Ttext=0x7800           ?240   8
+512  words, address 0x3e00   LOW=77 HIGH=DC EXTENDED=FC LOCKBIT=FF       1       0     8 0x0000-0x3dff  1kb     -Ttext=0x7c00           ?248   4
+256  words, address 0x3f00   LOW=77 HIGH=DE EXTENDED=FC LOCKBIT=FF       1       1     4 0x0000-0x3eff  512     -Ttext=0x7e00           ?252   2
+
+
+
+2<<14 32768
+loader                                             firmware
+bytes words pages start_address start_word_address    bytes words pages end_address end_word_adress
+    0     0     0                                     32768 16384   256      0x8000          0x4000 
+  512   256     4        0x7e00             0x3f00    32256 16128   252      0x7dff          0x3eff
+ 1024   512     8        0x7c00             0x3e00    31744 15872   248      0x7bff          0x3dff
+ 2048  1024    16        0x7800             0x3c00    30720 15360   240      0x77ff          0x3bff
+ 4096  2048    32        0x7000             0x3800    28672 14336   224      0x6fff          0x37ff
+
+
 
 arduino fuses                LOW=FF HIGH=DE EXTENDED=05
 gamebuino                      0xff    0xda        0x05
 
+# h.df l.ff 0
+avrdude -b 19200 -c usbasp -p atmega328p -v -e -U efuse:w:0xfd:m -U -U hfuse:w:0xdf:m lfuse:w:0xff:m
+# h.df l.ff 256 0x7e00
+avrdude -b 19200 -c usbasp -p atmega328p -v -e -U efuse:w:0xfd:m -U -U hfuse:w:0xde:m lfuse:w:0xff:m
+
+defiuls atmega328p fuses 
+avrdude -c usbasp -p atmega328p -U lfuse:w:0x62:m -U hfuse:w:0xd9:m -U efuse:w:0xff:m
+
+The Arduino (ATmega328p) has pages of 64 words
+
 avrdude -c usbasp -p atmega328p -U lfuse:w:0xff:m -U hfuse:w:0xde:m -U efuse:w:0x05:m
 
-dump flash
+# ext crystal, start from addr 0
+avrdude -c usbasp -p atmega328p -U lfuse:w:0xff:m -U hfuse:w:0xff:m -U efuse:w:0xfd:m
+
+# write only extended fuse
+avrdude -c usbasp -p atmega328p -U efuse:w:0x05:m
+
+# read fuses
+avrdude -c usbasp -p atmega328p -U efuse:r:-:h
+
+# read from flash / hex format
 avrdude -c usbasp -p atmega328p -U flash:r:dump_flash.hex:i
 dump eeprom
 avrdude -c usbasp -p atmega328p -v -U eeprom:r:dump_eeprom.hex:i
 avrdude -c usbasp -p atmega328p -v -U eeprom:r:dump_eeprom.elf:r
 
-6. goto 00
+
+# write to flash                                               
+avrdude -c usbasp -p atmega328p -U flash:w:blink.hex
+===============================================================================
+# Launching Games via Software
+
+#define load_game (*((void(*)(const char* filename))(0x7ffc/2)))
+load_game("BLINK");
+
+# Self-Flashing with the Bootloader
+#define write_flash_page (*((void(*)(prog_char * page, unsigned char * buffer))(0x7ffa/2)))
+
+===============================================================================
+
+06. goto 00
 
 void* bl = (void *) 0x3c00;
 goto *bl;
 
-7. goto bootloader
+07. goto bootloader
 done
 
-9. read from sd cadr
-# TODO
+09. read from sd cadr
+done
+
+10. add NRF24L01
+done
 
 10. load programm from sd card
 
@@ -67,8 +138,6 @@ done
 14 difune GAMEBUINO
 
 15 import gamebuino games
-
-16 add NRF24L01
 
 
 

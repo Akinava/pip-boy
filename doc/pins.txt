@@ -54,3 +54,25 @@ GND  - GND
 GND + capacitor(22pF) ----+----- OSC1
     |                  crystal(16KHz)
     + capacitor(22pF) ----+----- OSC2
+
+=== IDC connector
++-----+
+|24680|
+|13579|
++-- --+
+
+1 - MOSI
+2 - VCC
+3 - 
+4 - GND
+5 - JAMPER
+6 - GND
+7 - SCK
+8 - GND
+9 - MISO
+0 - GND
+
+=== JAMPER
+
+(IDC) JAMPER -- JAMPER -- PC6(RESET) SLAVE MODE
+                 (OR)  -- PD5(LED)   MASTER MODE
