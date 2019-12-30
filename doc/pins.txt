@@ -27,7 +27,7 @@ N  ARD pin  descr
 25  16 PC2(ADC2) BibroMOTOR
 26  17 PC3(ADC3) Button C
 27  18 PC4(SDA)  Oled SDA
-28  19 PC5(SDL)  Oled SDL
+28  19 PC5(SCL)  Oled SCL
 
 === Oled
 GND GND
