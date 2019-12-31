@@ -15,6 +15,15 @@ avr-size -C --mcu=atmega328p blink.elf
 avr-objcopy -I ihex -O binary sketch.cpp.hex frimware.bin
 
 ===============================================================================
+
+avr-gcc -g -DF_CPU=16000000UL -Os -Wall -std=gnu99 -mmcu=atmega328p -c display_oled_i2c/display.c -o display_oled_i2c/display.o
+avr-gcc -g -DF_CPU=16000000UL -Os -Wall -std=gnu99 -mmcu=atmega328p -c boot.c -o boot.o
+avr-gcc -g -DF_CPU=16000000UL -Os -Wall -std=gnu99 -mmcu=atmega328p -o boot.elf boot.o display_oled_i2c/display.o
+avr-objcopy -j .text -j .data -O ihex boot.elf boot.hex
+
+avrdude -c usbasp -p atmega328p -U flash:w:boot.hex
+
+===============================================================================
 # compile bootloader
 # reating object file...
 avr-gcc -g -Wall -Os -mmcu=atmega328p -c boot.c
@@ -54,7 +63,7 @@ current fuses Fuses            L:FF    H:DA        E:FD            BOOTSZ1 BOOTS
 2048 words, address 0x3800   LOW=77 HIGH=D8 EXTENDED=FC LOCKBIT=FF       0       0    32 0x0000-0x37ff  4kb     -Ttext=0x7000            240   32
 1024 words, address 0x3c00   LOW=77 HIGH=DA EXTENDED=FC LOCKBIT=FF       0       1    16 0x0000-0x3bff  2kb     -Ttext=0x7800           ?240   8
 512  words, address 0x3e00   LOW=77 HIGH=DC EXTENDED=FC LOCKBIT=FF       1       0     8 0x0000-0x3dff  1kb     -Ttext=0x7c00           ?248   4
-256  words, address 0x3f00   LOW=77 HIGH=DE EXTENDED=FC LOCKBIT=FF       1       1     4 0x0000-0x3eff  512     -Ttext=0x7e00           ?252   2
+256  words, address 0x3f00   LOW=77 HIGH=DE EXTENDED=FC LOCKBIT=FF       1       1     4 0x0000-0x3eff  512b    -Ttext=0x7e00           ?252   2
 
 
 
@@ -80,7 +89,7 @@ avrdude -b 19200 -c usbasp -p atmega328p -v -e -U efuse:w:0xfd:m -U -U hfuse:w:0
 defiuls atmega328p fuses 
 avrdude -c usbasp -p atmega328p -U lfuse:w:0x62:m -U hfuse:w:0xd9:m -U efuse:w:0xff:m
 
-The Arduino (ATmega328p) has pages of 64 words
+The Arduino (ATmega328p) has pages of 64 words / SPM_PAGESIZE
 
 avrdude -c usbasp -p atmega328p -U lfuse:w:0xff:m -U hfuse:w:0xde:m -U efuse:w:0x05:m
 
