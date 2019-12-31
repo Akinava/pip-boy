@@ -5,6 +5,7 @@
 #include "macro.h"
 #include "pins.h"
 #include "display_oled_i2c/display.h"
+#include "sd_spi/sd.h"
 
 #ifndef BOOT_H                                         
 #define BOOT_H

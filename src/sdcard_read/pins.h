@@ -20,4 +20,7 @@
 #define SDA PC4
 #define SCL PC5
 
+// SD
+#define SDCS PB2
+
 #endif
