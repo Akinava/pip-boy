@@ -19,8 +19,14 @@ BOOT_ADDRESS = 0x7e00
 
 #=======================================
 
-OBJECTS = $(TARGET).o
+LIB_DISPLAY = display_oled_i2c/display
 
+#=======================================
+
+OBJECTS = $(TARGET).o
+OBJECTS += $(LIB_DISPLAY).o
+
+# Define all object files.                                                      
 #============================================================================
 
 # Place -D or -U options here for C sources
@@ -186,7 +192,7 @@ clean_msg:
 	@echo $(MSG_CLEANING)
 
 clean_all:
-	rm -f *.hex *.elf *.o
+	rm -f *.hex *.elf $(OBJECTS)
 
 clean: clean_msg clean_all
 #------------------
@@ -197,8 +203,6 @@ dump: $(TARGET).hex
 	$(AVRDUDE_FLAGS) \
 	$(AVRDUDE_READ_FLASH)
 
-
-# Обычное (generic) правило для компилирования файлов на языке C:
 .c.o:
 	$(COMPILE) -c $< -o $@
 
@@ -215,8 +219,7 @@ dump: $(TARGET).hex
 	$(COMPILE) -S $< -o $@
 
 
-
-$(TARGET).elf: $(USB_DRV_DIR) $(OBJECTS)	# зависимость (dependency) usbdrv нужна только для копирования
+$(TARGET).elf: $(OBJECTS)
 	$(COMPILE) $(BOOTFLAG) -o $(TARGET).elf $(OBJECTS)
 
 $(TARGET).hex: $(TARGET).elf

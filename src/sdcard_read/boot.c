@@ -11,7 +11,9 @@ int main(void){
   //uint8_t size = 16;
 	//blockFlashLoad(size);
   displayBegin();
-
+  displayClean();
+  displayPrintHex(0x00, 0, 0);
+  displayUpdate();
   /*
   myOLED.begin();
   myOLED.setFont(TinyFont);

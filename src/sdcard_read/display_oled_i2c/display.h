@@ -9,7 +9,7 @@
 void displayBegin(void);
 void displayClean(void);
 void displayUpdate(void);
-void displayPrintHex(uint8_t value);
+void displayPrintHex(uint8_t h, uint8_t x, uint8_t y);
 
 
 
@@ -31,6 +31,10 @@ void displayPrintHex(uint8_t value);
 #define SSD1306_DISPLAY_ALL_ON_RESUME             0xA4
 #define SSD1306_NORMAL_DISPLAY                    0xA6
 #define SSD1306_COMMAND                           0x00
+#define SSD1306_SET_COLUMN_ADDR                   0x21
+#define SSD1306_SET_PAGE_ADDR                     0x22
+#define SSD1306_DATA_CONTINUE                     0x40
+
 #define TWI_FREQ 400000L
 
 
@@ -39,6 +43,6 @@ void displayPrintHex(uint8_t value);
 
 void _initTWI(void);
 void _sendTWIcommand(uint8_t value); 
-
+uint8_t scrbuf[1024];
 
 #endif

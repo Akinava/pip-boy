@@ -54,17 +54,48 @@ void displayBegin(void){
 
 
 void displayClean(void){
-
+  for (uint16_t i=0; i<1024; i++)
+    scrbuf[i] = 0;
 }
 
 
 void displayUpdate(void){
+  //noInterrupts();
+  _sendTWIcommand(SSD1306_SET_COLUMN_ADDR);
+  _sendTWIcommand(0);
+  _sendTWIcommand(127);
 
+  _sendTWIcommand(SSD1306_SET_PAGE_ADDR);
+  _sendTWIcommand(0);
+  _sendTWIcommand(7);
+  
+  // Send TWI Start
+  // Send start address
+  TWCR = _BV(TWEN) | _BV(TWEA) | _BV(TWINT) | _BV(TWSTA);
+  while ((TWCR & _BV(TWINT)) == 0) {};
+  TWDR = SSD1306_ADDR<<1;
+  TWCR = _BV(TWEN) | _BV(TWINT) | _BV(TWEA);
+  while ((TWCR & _BV(TWINT)) == 0) {};
+  TWDR = SSD1306_DATA_CONTINUE;
+  TWCR = _BV(TWEN) | _BV(TWINT) | _BV(TWEA);
+  while ((TWCR & _BV(TWINT)) == 0) {};
+
+  for (int b=0; b<1024; b++){    // Send data
+    TWDR = scrbuf[b];
+    TWCR = _BV(TWEN) | _BV(TWINT) | _BV(TWEA);              // Clear TWINT to proceed
+    while ((TWCR & _BV(TWINT)) == 0) {};                    // Wait for TWI to be ready
+  }
+
+  // Send TWI Stop
+  TWCR = _BV(TWEN)| _BV(TWINT) | _BV(TWSTO);                // Send STOP
+  //interrupts();
 }
 
 
-void displayPrintHex(uint8_t h){
-
+void displayPrintHex(uint8_t h, uint8_t x, uint8_t y){
+  scrbuf[0] = 0xff;
+  scrbuf[1] = 0xff;
+  scrbuf[2] = 0xff;
 }
 
 
