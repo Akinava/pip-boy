@@ -13,29 +13,17 @@ int main(void){
   displayBegin();
   displayClean();
   displayPrintHex(0x00, 0, 0);
+  displayPrintHex(0x15, 15, 0);
+  displayPrintHex(0x07, 0, 7);
   displayUpdate();
-  /*
-  myOLED.begin();
-  myOLED.setFont(TinyFont);
-  myOLED.clrScr();
-  myOLED.print("00112233445566778899AABBCCDDEEFF", 0, 0);
-  myOLED.print("8", 0, 8);
-  myOLED.print("16", 0, 16);
-  myOLED.print("24", 0, 24);
-  myOLED.print("32", 0, 32);
-  myOLED.print("40", 0, 40);
-  myOLED.print("48", 0, 48);
-  myOLED.print("56", 0, 56);
-  myOLED.update();
-  */
 
   while(1){
     if (CHECK_PIN(BUTTON_C_PINS, BUTTON_C_PIN)){
       TOGGLE(LED_PORT, LED_PIN);
       _delay_ms (1000); // 1 sec
     }else{
-    //  SET_LOW(LED_PORT, LED_PIN);
-     SET_HIGH(LED_PORT, LED_PIN);
+     SET_LOW(LED_PORT, LED_PIN);
+     //SET_HIGH(LED_PORT, LED_PIN);
      }
   }
   return 0;

@@ -1,0 +1,29 @@
+ATMEGA328P    1.23  https://www.aliexpress.com/item/32960857574.html
+DISPLAY       1.58  https://www.aliexpress.com/item/32638662748.html
+NRF24L01      1.85  https://www.aliexpress.com/item/32707423150.html
+SD READER     0.40  https://www.aliexpress.com/item/32867572635.html
+micro SD 16Gb 2.46  https://www.aliexpress.com/item/33036683831.html
+microphone    1.25  https://www.aliexpress.com/item/32866143647.html
+speaker       0.91  https://www.aliexpress.com/item/32952397851.html
+LiPo charger  0.28  https://www.aliexpress.com/item/32649780468.html
+18650 case    0.69  https://www.aliexpress.com/item/33037738446.html
+18650 LiPo    2.41  https://www.aliexpress.com/item/32807032859.html
+IDC Socket    0.10  https://www.aliexpress.com/item/33041013886.html
+IDC Cable     0.50  https://www.aliexpress.com/item/33029492417.html
+
+------------ 13.66$
+
+PCB board
+
+BUTTONS            x7
+cristal            16Mhz
+capacitor          x2 22pf
+resistor for LED   200Om
+LED
+vibro motor
+variable resistor for speaker
+transistor         x2 for speaker and for vibro motor
+audio connector
+off/on switch
+
+TOTAL 

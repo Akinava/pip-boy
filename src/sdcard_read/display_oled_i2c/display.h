@@ -12,7 +12,6 @@ void displayUpdate(void);
 void displayPrintHex(uint8_t h, uint8_t x, uint8_t y);
 
 
-
 #define SSD1306_ADDR                              0x3C
 #define SSD1306_DISPLAY_OFF                       0xAE
 #define SSD1306_DISPLAY_ON                        0xAF
@@ -43,6 +42,7 @@ void displayPrintHex(uint8_t h, uint8_t x, uint8_t y);
 
 void _initTWI(void);
 void _sendTWIcommand(uint8_t value); 
+void _displayPrintHexNum(uint8_t h, uint8_t x, uint8_t y);
 uint8_t scrbuf[1024];
 
 #endif
