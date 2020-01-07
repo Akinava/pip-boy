@@ -17,6 +17,7 @@
 
  */
 #define LED_PIN 5
+#define BTN_C_PIN 17
 #define PIN_RADIO_CE 0
 #define PIN_RADIO_CSN 1
 
@@ -29,45 +30,58 @@ void blink();
 
 #include <OLED_I2C.h>
 OLED  myOLED(SDA, SCL, 8);
-extern uint8_t TinyFont[];
+extern uint8_t SmallFont[];
 
 #define SD_CS_PIN SS
 File myFile;
 
+String getHex(uint8_t h);
+uint8_t c;
+
 void setup() {
   myOLED.begin();
-  myOLED.setFont(TinyFont);
+  myOLED.setFont(SmallFont);
 
   pinMode(PIN_RADIO_CSN, OUTPUT);
-  digitalWrite(PIN_RADIO_CSN, LOW);
+  digitalWrite(PIN_RADIO_CSN, HIGH);
   
   pinMode(LED_PIN, OUTPUT);
+  pinMode(BTN_C_PIN, INPUT_PULLUP);
+
   
   if (!SD.begin(SD_CS_PIN)) {
     digitalWrite(LED_PIN, HIGH);
     return;
   }
 
-  // open the file. note that only one file can be open at a time,
-  // so you have to close this one before opening another.
   //myFile = SD.open("test.txt", FILE_WRITE);
   myFile = SD.open("boot.bin");
 
-  // if the file opened okay, write to it:
+
   if (myFile) {
-  //  while (myFile.available()) {
-      for (uint8_t x=0; x<15; x++){
-        myOLED.print(String(myFile.read(), HEX), x*8, 0);
-        myOLED.update();
+    while (myFile.available()){
+    
+      for (uint8_t w=0; w<64; w++){
+        if (myFile.available())
+          c=myFile.read();
+        else
+          c=0xff;
+
+        myOLED.print(getHex(c), w%8*12, w/8*8);        
       }
-  //  }
-    //myFile.println("testing 1, 2, 3.");
-    // close the file:
+      myOLED.update();
+      
+      while(digitalRead(BTN_C_PIN) == HIGH){}
+      delay(1000);
+
+    }
     myFile.close();
   }else{
     blink();
   }
+  
 }
+
 
 void loop() {
   // nothing happens after setup
@@ -77,4 +91,11 @@ void blink() {
     digitalWrite(LED_PIN, HIGH);   // turn the LED on (HIGH is the voltage level)
     delay(100);                    // wait
     digitalWrite(LED_PIN, LOW);    // turn the LED off by making the voltage LOW
+}
+
+String getHex(uint8_t h){
+   if (h<0x10)
+     return "0"+String(h, HEX);
+   else 
+     return String(h, HEX);
 }

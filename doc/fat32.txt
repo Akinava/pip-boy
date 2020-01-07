@@ -1,0 +1,53 @@
+1be 446 type[+4/1] LBAs[+8/4]
+  H CS.. T H CS.. LBAs     LBAe
+00820300[0c]feffff[00200000]0060cd01
+
+T type = 0c = W95 FAT32 (LBA)
+LBA start - 0x00200000 (0x00002000 * 0x200) = 0x400000
+0x400000 - volume 0
+
+
+
+addr  size data   val    description
+0x0d  1    0x40   0x40   0x40*512 - clister size 0x8000=32768
+0x0e  2    0x2a03 0x032a 810 - sectors before firts fat table * 512 = 414720 0x65400 + 0x400000 = 0x465400  
+00465400: f8ff ff0f ffff ff0f ffff ff0f 0000 0000 (FAT sector 1)
+
+0x10  1    0x02   0x02   FAT tables
+0x24  2    0x6b0e 0x0e6b 3691 sectors for FAT tables
+
+3691*512+0x465400=0x632a00
+00632a00: f8ff ff0f ffff ff0f ffff ff0f 0000 0000 (FAT sector 2)
+
+3691*512+0x632a00=0x800000 (data sector)
+root dir
+00800000: 4162 0069 006e 0000 00ff ff0f 007f ffff  Ab.i.n..........             
+00800010: ffff ffff ffff ffff ffff 0000 ffff ffff  ................             
+
+00800020: 4249 4e20 2020 2020 2020 2010 00c3 2aa2  BIN        ...*.             
+00800030: 2650 2650 0000 2aa2 2650 0900 0000 0000  &P&P..*.&P......             
+
+00800040: 4162 006f 006f 0074 002e 000f 0028 6200  Ab.o.o.t.....(b.             
+00800050: 6900 6e00 0000 ffff ffff 0000 ffff ffff  i.n.............             
+
+00800060: 424f 4f54 2020 2020 4249 4e20 0057 7a99  BOOT    BIN .Wz.             
+00800070: 954f 2250 0000 1c87 954f 0700 bc00 0000  .O"P.....O......
+
+
+
+
+dir
+00838000: 2e20 2020 2020 2020 2020 2010 00c3 2aa2  .          ...*.             
+00838010: 2650 2650 0000 2aa2 2650 0900 0000 0000  &P&P..*.&P......             
+00838020: 2e2e 2020 2020 2020 2020 2010 00c3 2aa2  ..         ...*.             
+00838030: 2650 2650 0000 2aa2 2650 0000 0000 0000  &P&P..*.&P......             
+00838040: 416e 0075 006d 002e 0070 000f 00af 7900  An.u.m...p....y.             
+00838050: 0000 ffff ffff ffff ffff 0000 ffff ffff  ................             
+00838060: 4e55 4d20 2020 2020 5059 2020 0003 4ca2  NUM     PY  ..L.             
+00838070: 2650 2650 0000 4ca2 2650 0a00 de00 0000  &P&P..L.&P......
+
+file
+00828000: - file start (0c94 3400 0c94 3e00 0c94 3e00 0c94 3e00)
+
+file
+00840000: 7769 7468 206f 7065 6e28 276e 756d 6265  with open('numbe             

@@ -21,6 +21,11 @@
 #define SCL PC5
 
 // SD
-#define SDCS PB2
+#define SD_DDR DDRB
+#define SD_PORT PORTB
+#define SD_CS PB2
+#define MOSI PB3
+#define MISO PB4
+#define SCK PB5
 
 #endif

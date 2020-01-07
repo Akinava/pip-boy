@@ -20,24 +20,41 @@ int main(void){
   displayUpdate();
   */
 
-  while(1){
-    if (CHECK_PIN(BUTTON_C_PINS, BUTTON_C_PIN)){
-      TOGGLE(LED_PORT, LED_PIN);
-      _delay_ms (1000); // 1 sec
-      break;
-    }else{
+  while(CHECK_PIN(BUTTON_C_PINS, BUTTON_C_PIN)){
      SET_LOW(LED_PORT, LED_PIN);
      //SET_HIGH(LED_PORT, LED_PIN);
-     }
   }
+
+
+  //displayBegin();
+  //displayClean();
+  //for (uint8_t i=0; i<64; i++){
+  //  displayPrintHex(0, i%16, i/16);
+  //}
+  //displayUpdate();
+ 
+  sdBegin();
+
+  //fileOpen();
+  //uint8_t data = fileRead();
+  //fileRead();
+  //fileClose();
+  //sdStop();
+
+
+  //displayBegin();
+  //displayClean();
+  //displayPrintHex(data, 0, 0);
+  //displayUpdate();
+ 
 
   while(1){
     if (CHECK_PIN(BUTTON_C_PINS, BUTTON_C_PIN)){
       TOGGLE(LED_PORT, LED_PIN);
       _delay_ms (100); // 1 sec
     }else{
+     //SET_LOW(LED_PORT, LED_PIN);
      SET_LOW(LED_PORT, LED_PIN);
-     //SET_HIGH(LED_PORT, LED_PIN);
      }
   }
 
