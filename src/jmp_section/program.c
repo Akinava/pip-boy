@@ -1,5 +1,3 @@
-#define F_CPU 16000000UL // 16 MHz
- 
 #include <avr/io.h>
 #include <util/delay.h>
 
@@ -30,7 +28,7 @@
 #define BUTTON_PINS PINC
 
 
-#define bl (*((void(*)(const char* filename))(0x7c80/2)))
+#define bl (*((void(*)(uint8_t c))(0x7c80/2)))
 
 void start_blink(void);
 
@@ -46,9 +44,7 @@ int main(void){
   while(1){
 
     if (CHECK_PIN(BUTTON_PINS, BUTTON_PIN)){
-      //void* bl = (void *) 0x7c80;
-      //goto *bl;
-      bl();
+      bl(5);
      }else{
       SET_HIGH(LED_PORT, LED_PIN);
     } 

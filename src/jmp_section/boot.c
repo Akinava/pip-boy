@@ -1,5 +1,3 @@
-#define F_CPU 16000000UL // 16 MHz
- 
 #include <avr/io.h>
 #include <util/delay.h>
 
@@ -29,7 +27,7 @@
 #define BUTTON_PINS PINC
 
 
-void start_blink(void);
+void start_blink(uint8_t c);
 
 
 int main(void){
@@ -38,13 +36,10 @@ int main(void){
   SET_DDR_IN(BUTTON_DDR, BUTTON_PIN);
   SET_PULLUP(BUTTON_PORT, BUTTON_PIN);
 
-  start_blink();
-
   while(1){
 
     if (CHECK_PIN(BUTTON_PINS, BUTTON_PIN)){
-      void* bl = (void *) 0x0000;
-      goto *bl;
+      start_blink(2);
      }else{
       SET_LOW(LED_PORT, LED_PIN);
     } 
@@ -53,10 +48,11 @@ int main(void){
 }
 
 
-//__attribute__((section(".blink"))) 
-void start_blink(void){
-  for (uint8_t i=0; i<4; i++){
+void start_blink(uint8_t c){
+  for (uint8_t i=0; i<c*2; i++){
     TOGGLE(LED_PORT, LED_PIN);
     _delay_ms (150);
   }
+
+  goto *(void*) 0;
 }

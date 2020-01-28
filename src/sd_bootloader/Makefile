@@ -1,8 +1,6 @@
 #=======================================
 
-TARGET_PROGRAM = program
-TARGET_BOOT = boot
-TARGET_FRIMWARE = firmware
+TARGET = bootloader
 
 # tipe of MK
 MCU  = atmega328p
@@ -16,11 +14,12 @@ AVRDUDE_PROGRAMMER = usbasp
 #PROGRAMMER_PORT = usb
 
 BOOT_ADDRESS = 0x7c00
-SUBROUTINE_ADDRESS = 0x1000
 
 #=======================================
 
 OBJECTS = $(TARGET).o
+ELF = $(TARGET).elf
+HEX = $(TARGET).hex
 
 #============================================================================
 
@@ -65,10 +64,7 @@ CFLAGS += $(CSTANDARD)
 #CFLAGS  += -I$(USB_DRV_DIR) -I. -DDEBUG_LEVEL=0
 
 
-ifeq ($(BOOT),true)
-	#BOOTFLAG = -Wl,-Ttext=$(BOOT_ADDRESS)
-	BOOTFLAG = -Wl,-section-start=.blink=0x1000
-endif
+BOOTFLAG = -Wl,-Ttext=$(BOOT_ADDRESS)
 
 
 #============================================================================
@@ -149,41 +145,28 @@ end:
 
 #------------------
 
-$(TARGET_FRIMWARE).o:
-	avr-gcc -g -DF_CPU=16000000UL -Os -std=gnu99 -mmcu=atmega328p -c $(TARGET_PROGRAM).c -o $(TARGET_PROGRAM).o
-	avr-gcc -g -DF_CPU=16000000UL -Os -std=gnu99 -mmcu=atmega328p -c $(TARGET_BOOT).c -o $(TARGET_BOOT).o
+$(OBJ):
+	$(COMPILE) -c $(TARGET).c -o $(OBJ)
 
 
-$(TARGET_FRIMWARE).elf: $(TARGET_FRIMWARE).o
-	avr-gcc -g -DF_CPU=16000000UL -Os -std=gnu99 -mmcu=atmega328p $(TARGET_PROGRAM).o -o $(TARGET_PROGRAM).elf
-	avr-gcc -g -DF_CPU=16000000UL -Os -std=gnu99 -mmcu=atmega328p -Wl,-section-start=.blink=0x70a0 -Wl,-Ttext=0x7c00 $(TARGET_BOOT).o -o $(TARGET_BOOT).elf
+$(ELF): $(OBJ)
+	$(COMPILE) $(BOOTFLAG) $(OBJ) -o $(ELF)
 
 
-$(TARGET_FRIMWARE).hex: $(TARGET_FRIMWARE).elf
-	avr-objcopy -j .text -j .data -O ihex $(TARGET_PROGRAM).elf $(TARGET_PROGRAM).hex
-	avr-objcopy -j .text -j .data -O ihex $(TARGET_BOOT).elf $(TARGET_BOOT).hex
+
+$(HEX): $(ELF)
+	$(OBJCOPY) -j .text -j .data -O ihex $(ELF) $(HEX)
 
 
-#%.hex: $("$*").elf
-#	rm -f "$@"
-#	avr-gcc -g -Os -std=gnu99 -mmcu=atmega328p -c $("$*").c
-#	@echo make "targ ext" "$@" "targ" "$*" 
+all: begin $(HEX) end
 
 
-build_firmware: $(TARGET_FRIMWARE).hex
-	head -n -1 $(TARGET_PROGRAM).hex > firmware.hex
-	cat $(TARGET_BOOT).hex >> firmware.hex
-
-
-all: begin build_firmware end
-
-
-program: build_firmware
-	avrdude -c usbasp -p atmega328p -U flash:w:$(TARGET_FRIMWARE).hex
+program: all
+	$(AVRDUDE) $(AVRDUDE_FLAGS) $(AVRDUDE_WRITE_FLASH)
 
 
 dump:
-	avrdude -c usbasp -p atmega328p -v -U eeprom:r:dump_eeprom.hex:i       
+	$(AVRDUDE) $(AVRDUDE_FLAGS) $(AVRDUDE_READ_FLASH)
 
 
 clean_msg:
