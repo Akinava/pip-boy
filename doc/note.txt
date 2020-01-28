@@ -24,6 +24,11 @@ avr-objcopy -j .text -j .data -O ihex boot.elf boot.hex
 avrdude -c usbasp -p atmega328p -U flash:w:boot.hex
 
 ===============================================================================
+
+elf to asm
+avr-objdump -S boot.elf
+
+===============================================================================
 # compile bootloader
 # reating object file...
 avr-gcc -g -Wall -Os -mmcu=atmega328p -c boot.c
@@ -69,12 +74,12 @@ current fuses Fuses            L:FF    H:DA        E:FD            BOOTSZ1 BOOTS
 
 2<<14 32768
 loader                                             firmware
-bytes words pages start_address start_word_address    bytes words pages end_address end_word_adress
-    0     0     0                                     32768 16384   256      0x8000          0x4000 
-  512   256     4        0x7e00             0x3f00    32256 16128   252      0x7dff          0x3eff
- 1024   512     8        0x7c00             0x3e00    31744 15872   248      0x7bff          0x3dff
- 2048  1024    16        0x7800             0x3c00    30720 15360   240      0x77ff          0x3bff
- 4096  2048    32        0x7000             0x3800    28672 14336   224      0x6fff          0x37ff
+bytes words pages start_address start_word_address    bytes words pages end_address end_word_adress fuse:H
+    0     0     0                                     32768 16384   256      0x8000          0x4000     df
+  512   256     4        0x7e00             0x3f00    32256 16128   252      0x7dff          0x3eff     de
+ 1024   512     8        0x7c00             0x3e00    31744 15872   248      0x7bff          0x3dff     dc
+ 2048  1024    16        0x7800             0x3c00    30720 15360   240      0x77ff          0x3bff     da
+ 4096  2048    32        0x7000             0x3800    28672 14336   224      0x6fff          0x37ff     d8
 
 
 
@@ -106,7 +111,7 @@ avrdude -c usbasp -p atmega328p -U efuse:r:-:h
 avrdude -c usbasp -p atmega328p -U flash:r:dump_flash.hex:i
 dump eeprom
 avrdude -c usbasp -p atmega328p -v -U eeprom:r:dump_eeprom.hex:i
-avrdude -c usbasp -p atmega328p -v -U eeprom:r:dump_eeprom.elf:r
+avrdude -c usbasp -p atmega328p -v -U eeprom:r:dump_eeprom.bin:r
 
 
 # write to flash                                               
@@ -126,6 +131,8 @@ load_game("BLINK");
 
 void* bl = (void *) 0x3c00;
 goto *bl;
+  # or
+((void(*)(void))0)();
 
 07. goto bootloader
 done
@@ -147,6 +154,10 @@ done
 14 difune GAMEBUINO
 
 15 import gamebuino games
+
+16 define ARDUBOY
+
+17 import ARDUBOY games
 
 
 
