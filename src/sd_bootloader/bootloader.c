@@ -15,7 +15,6 @@ int main(void){
 
 
 void load(const char * filename){
-
 }
 
 

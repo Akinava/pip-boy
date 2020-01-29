@@ -17,7 +17,7 @@ BOOT_ADDRESS = 0x7c00
 
 #=======================================
 
-OBJECTS = $(TARGET).o
+OBJ = $(TARGET).o
 ELF = $(TARGET).elf
 HEX = $(TARGET).hex
 
