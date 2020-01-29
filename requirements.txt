@@ -1,0 +1,4 @@
+gcc-avr
+binutils-avr
+avr-libc
+gdb-avr
