@@ -1,78 +1,16 @@
 #include "sd.h"
 
-uint8_t sdBegin(void){
-  partialBlockRead_ = 0;
-  inBlock_ = 0;
-  type_ = 0;
-
+uint8_t sd_begin(void){
   if (!card_init()){return 0;}
   if (!vol_init()){return 0;}
   return 1;
-}
-
-
-uint8_t fileOpen(void){
-  return 0;
-}
-
-uint8_t fileAvailable(void){
-  return 0;
-}
-
-uint8_t fileRead(void){
-  return 0;
-}
-
-
-void fileClose(void){
-
-}
-
-void sdStop(void){
 }
 
 uint8_t vol_init(void){
   uint8_t part = 1; // 0, 1
   uint32_t volumeStartBlock = 0;
   uint8_t buf[BPB_COUNT];
-  if (!cdRawRead(volumeStartBlock, PART_OFFSET + 16*(part-1), buf, 16)){return 0;}
-
-  displayBegin();
-  displayClean();
-  for (uint8_t i=0; i<BPB_COUNT;i++)
-    displayPrintHex(buf[i], i%16, i/16);
-  displayUpdate();
-
-  // part 0
-  // buf 00000000000000000000000000000000
-  //     1fd33c8776f79bab01b708ef02f3c919
-  //     bf0249c0ff
-  //
-  // part 1
-  // buf 008203000cfeffff002000000060cd01
-  //     1dd37c8776f79bab01b708ef02f3c919
-  //     bf0249c0ff
-  //
-  //     16 bytesPerSector 512-0x0200 130-0x0082
-  //     8 sectorsPerCluster 03
-  //     16 reservedSectorCount
-  //     8  fatCount
-  //     16 rootDirEntryCount
-  //     16 totalSectors16
-  //     8  mediaType
-  //     16 sectorsPerFat16
-  //     16 sectorsPerTrtack
-  //     16 headCount
-  //     32 hidddenSectors
-  //     32 totalSectors32
-  //     32 sectorsPerFat32
-  //     16 fat32Flags
-  //     16 fat32Version
-  //     32 fat32RootCluster
-  //     16 fat32FSInfo
-  //     16 fat32BackBootBlock
-  //     8  fat32Reserved[12]
-  
+  if (!cd_raw_read(volumeStartBlock, PART_OFFSET + 16*(part-1), buf, 16)){return 0;}
 
   bpb_t *bpb = (bpb_t *)buf;
 
@@ -82,11 +20,10 @@ uint8_t vol_init(void){
     bpb->sectorsPerCluster == 0 ||
     (bpb->sectorsPerCluster & (bpb->sectorsPerCluster - 1)) != 0) {
        // not valid FAT volume
-       //error(6);
        return 0;
   }
-  fatCount_ = bpb->fatCount;
-  blocksPerCluster_ = bpb->sectorsPerCluster;
+  fat_count_ = bpb->fatCount;
+  blocks_per_cluster_ = bpb->sectorsPerCluster;
   blocksPerFat_ = bpb->sectorsPerFat16 ? bpb->sectorsPerFat16 : bpb->sectorsPerFat32;
   rootDirEntryCount_ = bpb->rootDirEntryCount;
   fatStartBlock_ = volumeStartBlock + bpb->reservedSectorCount;
@@ -106,11 +43,6 @@ uint8_t vol_init(void){
     fatType_ = 32;
   }
 
-  displayBegin();
-  displayClean();
-  displayPrintHex(fatType_, 0, 0);
-  displayUpdate();
- 
   return 1;
 }
 
@@ -124,38 +56,33 @@ uint8_t card_init(void){
   // Enable SPI, Set as Master
   //Prescaler: Fosc/16, Enable Interrupts
   SPCR = _BV(SPE)|_BV(MSTR)|_BV(SPR0); // | (1 << SPR1)
-  uint8_t r = cardCommand(CMD0, 0, 0X95);  // 0x3f
+  uint8_t r = card_command(CMD0, 0, 0X95);  // 0x3f
 
   for (uint16_t retry = 0; r != R1_IDLE_STATE; retry++){
     if (retry == 0XFFFF) {
-      // ERROR 0
-      error(0);
       return 0;
     }
-    r = spiRec();
+    r = spi_rec();
   }
-  r = cardCommand(CMD8, 0x1AA, 0X87);
+  r = card_command(CMD8, 0x1AA, 0X87);
   if (r != 1){
-    error(1);
     return 0;
   }
   type_ = SD_CARD_TYPE_SD2; 
 
 
   for (uint16_t retry = 0; ; retry++) {
-    cardCommand(CMD55, 0, 0XFF);
-    r = cardCommand(ACMD41, type_ == SD_CARD_TYPE_SD2 ? 0X40000000 : 0, 0XFF);
+    card_command(CMD55, 0, 0XFF);
+    r = card_command(ACMD41, type_ == SD_CARD_TYPE_SD2 ? 0X40000000 : 0, 0XFF);
     if (r == R1_READY_STATE)break;
     if (retry == 1000) {
-      error(2);
       return 0;
     }
   }
-  if(cardCommand(CMD58, 0, 0XFF)) {
-      error(3);
+  if(card_command(CMD58, 0, 0XFF)) {
       return 0;
   }
-  for (uint8_t i = 0; i < 4; i++) ocr[i] = spiRec();
+  for (uint8_t i = 0; i < 4; i++) ocr[i] = spi_rec();
   if (type_ == SD_CARD_TYPE_SD2 && (ocr[0] & 0XC0) == 0xC0) type_ = SD_CARD_TYPE_SDHC;
   //use max SPI frequency
   SPCR &= ~((1 << SPR1) | (1 << SPR0)); // f_OSC/4
@@ -165,39 +92,39 @@ uint8_t card_init(void){
   return 1;
 }
 
-void spiSend(uint8_t data){
+void spi_send(uint8_t data){
   SPDR = data;
   while(!(SPSR & (1<<SPIF)));
 }
 
-uint8_t spiRec(void){
+uint8_t spi_rec(void){
   SPDR = 0xFF;
   while(!(SPSR & (1<<SPIF)));
   return SPDR;
 }
 
 
-uint8_t cardCommand(uint8_t cmd, uint32_t arg, uint8_t crc){
+uint8_t card_command(uint8_t cmd, uint32_t arg, uint8_t crc){
   uint8_t r1;
   // end read if in partialBlockRead mode
-  readEnd();
+  read_end();
   //select card
   SET_LOW(SD_PORT, SD_CS);
   // some cards need extra clocks to go to ready state
-  spiRec();
+  spi_rec();
   // send command
-  spiSend(cmd | 0x40);
+  spi_send(cmd | 0x40);
   //send argument
-  for (int8_t s = 24; s >= 0; s -= 8) spiSend(arg >> s);
+  for (int8_t s = 24; s >= 0; s -= 8) spi_send(arg >> s);
   //send CRC
-  spiSend(crc);
+  spi_send(crc);
   //wait for not busy
-  for (uint8_t retry = 0; (r1 = spiRec()) == 0xFF && retry != 0XFF; retry++);
+  for (uint8_t retry = 0; (r1 = spi_rec()) == 0xFF && retry != 0XFF; retry++);
   return r1;
 }
 
-void readEnd(void){
-  if (inBlock_) {
+void read_end(void){
+  if (in_block_) {
     // skip data and crc
     SPDR = 0XFF;
     while (offset_++ < 513) {
@@ -206,38 +133,35 @@ void readEnd(void){
     }
     while(!(SPSR & (1 << SPIF)));//wait for last crc byte
     SET_HIGH(SD_PORT, SD_CS);
-    inBlock_ = 0;
+    in_block_ = 0;
   }
 }
 
-uint8_t sdWaitStartBlock(void){
+uint8_t sd_wait_start_block(void){
   uint8_t r;
   uint16_t retry;
   //wait for start of data
-  for (retry = 0; ((r = spiRec()) == 0XFF) && retry != 10000; retry++);
+  for (retry = 0; ((r = spi_rec()) == 0XFF) && retry != 10000; retry++);
   if (r == DATA_START_BLOCK) return 1;
-  error(5);
   return 0;
 }
 
-uint8_t cdRawRead(uint32_t block, uint16_t offset, uint8_t *dst, uint16_t count)
+uint8_t cd_raw_read(uint32_t block, uint16_t offset, uint8_t *dst, uint16_t count)
 {
   if (count == 0) return 1;
   if ((count + offset) > 512) {
-    error(5);
     return 0;
   }
-  if (!inBlock_ || block != block_ || offset < offset_) {
+  if (!in_block_ || block != block_ || offset < offset_) {
     block_ = block;
     //use address if not SDHC card
     if (type_ != SD_CARD_TYPE_SDHC) block <<= 9;
-    if (cardCommand(CMD17, block, 0XFF)) {
-      error(4);
+    if (card_command(CMD17, block, 0XFF)) {
       return 0;
     }
-    if (!sdWaitStartBlock()) return 0;
+    if (!sd_wait_start_block()) return 0;
     offset_ = 0;
-    inBlock_ = 1;
+    in_block_ = 1;
   }
   //start first spi transfer
   SPDR = 0XFF;
@@ -256,16 +180,6 @@ uint8_t cdRawRead(uint32_t block, uint16_t offset, uint8_t *dst, uint16_t count)
   while(!(SPSR & (1 << SPIF)));// wait for last byte
   dst[n] = SPDR;
   offset_ += count;
-  if (!partialBlockRead_ || offset_ >= 512) readEnd();
+  if (!partial_block_read_ || offset_ >= 512) read_end();
   return 1;
-}
-
-
-void error(uint8_t e){
-  displayBegin();
-  displayClean();
-  displayPrintHex(0xef, 0, 0);
-  displayPrintHex(0xf0, 1, 0);
-  displayPrintHex(e, 2, 0);
-  displayUpdate();
 }
