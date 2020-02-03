@@ -7,41 +7,18 @@ uint8_t sd_begin(void){
 }
 
 uint8_t vol_init(void){
-  uint8_t part = 1; // 0, 1
-  uint32_t volumeStartBlock = 0;
-  uint8_t buf[BPB_COUNT];
-  if (!cd_raw_read(volumeStartBlock, PART_OFFSET + 16*(part-1), buf, 16)){return 0;}
+  uint32_t start_block = 0;
+  uint8_t buf[VOL_ADDRESS_COUNT];
+  if (!cd_raw_read(start_block, VOL_ADDRESS_OFFSET, buf, VOL_ADDRESS_COUNT)){return 0;}
 
-  bpb_t *bpb = (bpb_t *)buf;
+  uint32_t vol_address = *((uint32_t*)buf);
 
-  if (bpb->bytesPerSector != 512 ||
-    bpb->fatCount == 0 ||
-    bpb->reservedSectorCount == 0 ||
-    bpb->sectorsPerCluster == 0 ||
-    (bpb->sectorsPerCluster & (bpb->sectorsPerCluster - 1)) != 0) {
-       // not valid FAT volume
-       return 0;
+  for (uint8_t i=0; i<VOL_ADDRESS_COUNT; i++){
+    uint8_t t = (vol_address>>(8*i))&0xff;
+    displayPrintHex((uint8_t)t, i%16, i/16);
   }
-  fat_count_ = bpb->fatCount;
-  blocks_per_cluster_ = bpb->sectorsPerCluster;
-  blocksPerFat_ = bpb->sectorsPerFat16 ? bpb->sectorsPerFat16 : bpb->sectorsPerFat32;
-  rootDirEntryCount_ = bpb->rootDirEntryCount;
-  fatStartBlock_ = volumeStartBlock + bpb->reservedSectorCount;
-  rootDirStart_ = fatStartBlock_ + bpb->fatCount*blocksPerFat_;
-  dataStartBlock_ = rootDirStart_ + ((32*bpb->rootDirEntryCount + 511)/512);
-  totalBlocks_ = bpb->totalSectors16 ? bpb->totalSectors16 : bpb->totalSectors32;
-  clusterCount_ = (totalBlocks_ - (dataStartBlock_ - volumeStartBlock))
-                  /bpb->sectorsPerCluster;
-  if (clusterCount_ < 4085) {
-    fatType_ = 12;
-  }
-  else if (clusterCount_ < 65525) {
-    fatType_ = 16;
-  }
-  else {
-    rootDirStart_ = bpb->fat32RootCluster;
-    fatType_ = 32;
-  }
+  displayUpdate();
+
 
   return 1;
 }

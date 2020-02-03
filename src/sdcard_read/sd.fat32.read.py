@@ -7,7 +7,7 @@ import struct
 DIR=b'BIN        '
 FILE=b'BOOT    BIN'
 byte_per_sector = 0x0200
-vol_map_address = 0x1c6
+vol_map_address = 0x01c6
 vol_map_address_len = 4
 sector_befor_fat_tab_addr = 0x0e
 sector_befor_fat_tab_len = 2

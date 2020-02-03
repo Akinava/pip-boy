@@ -1,5 +1,6 @@
 #include "../macro.h"
 #include "../pins.h"
+#include "../display_oled_i2c/display.h"
 
 #ifndef SD_H
 #define SD_H
@@ -22,6 +23,7 @@ uint8_t in_block_;
 uint8_t type_;
 uint32_t block_;
 uint8_t partial_block_read_;
+
 uint8_t fat_count_;
 uint8_t blocks_per_cluster_;
 uint32_t blocksPerFat_;
@@ -29,9 +31,6 @@ int16_t rootDirEntryCount_;
 uint32_t fatStartBlock_;
 uint32_t rootDirStart_;
 uint32_t dataStartBlock_;
-uint32_t totalBlocks_;
-uint32_t clusterCount_;
-uint8_t fatType_;
 
 // SD card commands
 /** GO_IDLE_STATE - init card in spi mode if CS low */
@@ -57,36 +56,10 @@ uint8_t fatType_;
 /** High Capacity SD card */
 #define SD_CARD_TYPE_SDHC 3
 
-/** offset to partition table in mbr */
-#define PART_OFFSET (512-64-2) 
-/** Byte count for part of BIOS Parameter Block to be read by init() */
-#define BPB_COUNT 37
 /** start data token for read or write */
 #define DATA_START_BLOCK      0XFE
 
-struct biosPramBlock{
-  uint16_t bytesPerSector;
-  uint8_t  sectorsPerCluster;
-  uint16_t reservedSectorCount;
-  uint8_t  fatCount;
-  uint16_t rootDirEntryCount;
-  uint16_t totalSectors16;
-  uint8_t  mediaType;
-  uint16_t sectorsPerFat16;
-  uint16_t sectorsPerTrtack;
-  uint16_t headCount;
-  uint32_t hidddenSectors;
-  uint32_t totalSectors32;
-  uint32_t sectorsPerFat32;
-  uint16_t fat32Flags;
-  uint16_t fat32Version;
-  uint32_t fat32RootCluster;
-  uint16_t fat32FSInfo;
-  uint16_t fat32BackBootBlock;
-  uint8_t  fat32Reserved[12];
-};
-
-/** Type name for biosParmBlock */
-typedef struct biosPramBlock bpb_t;
+#define VOL_ADDRESS_OFFSET 0x01c6
+#define VOL_ADDRESS_COUNT 4
 
 #endif
