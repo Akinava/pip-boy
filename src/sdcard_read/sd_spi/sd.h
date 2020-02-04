@@ -1,3 +1,4 @@
+#include <string.h>
 #include "../macro.h"
 #include "../pins.h"
 #include "../display_oled_i2c/display.h"
@@ -5,10 +6,11 @@
 #ifndef SD_H
 #define SD_H
 
-uint8_t sd_begin(void);
+uint8_t sd_init(void);
 
 uint8_t card_init(void);
 uint8_t vol_init(void);
+uint8_t root_dir_init(void);
 
 void spi_send(uint8_t data);
 uint8_t spi_rec(void);
@@ -24,13 +26,16 @@ uint8_t type_;
 uint32_t block_;
 uint8_t partial_block_read_;
 
-uint8_t fat_count_;
-uint8_t blocks_per_cluster_;
-uint32_t blocksPerFat_;
-int16_t rootDirEntryCount_;
-uint32_t fatStartBlock_;
-uint32_t rootDirStart_;
-uint32_t dataStartBlock_;
+uint32_t volume_address_;
+
+
+//uint8_t fat_count_;
+//uint8_t blocks_per_cluster_;
+//uint32_t blocksPerFat_;
+//int16_t rootDirEntryCount_;
+//uint32_t fatStartBlock_;
+//uint32_t rootDirStart_;
+//uint32_t dataStartBlock_;
 
 // SD card commands
 /** GO_IDLE_STATE - init card in spi mode if CS low */
@@ -61,5 +66,8 @@ uint32_t dataStartBlock_;
 
 #define VOL_ADDRESS_OFFSET 0x01c6
 #define VOL_ADDRESS_COUNT 4
+
+#define ROOT_DIR_INFO_OFFSET 0x0b 
+#define ROOT_DIR_INFO_COUNT 13
 
 #endif

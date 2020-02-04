@@ -1,24 +1,45 @@
 #include "sd.h"
 
-uint8_t sd_begin(void){
+uint8_t sd_init(void){
   if (!card_init()){return 0;}
   if (!vol_init()){return 0;}
+  if (!root_dir_init()){return 0;}
+  return 1;
+}
+
+uint8_t root_dir_init(void){
+  uint8_t buf[ROOT_DIR_INFO_COUNT];
+  if (!cd_raw_read(volume_address_, ROOT_DIR_INFO_OFFSET, buf, ROOT_DIR_INFO_COUNT)){return 0;}
+
+  for (int8_t i=0; i<ROOT_DIR_INFO_COUNT; i++){
+    displayPrintHex(buf[i], i%16, i/16);
+  }
+  displayUpdate();
+
   return 1;
 }
 
 uint8_t vol_init(void){
-  uint32_t start_block = 0;
   uint8_t buf[VOL_ADDRESS_COUNT];
-  if (!cd_raw_read(start_block, VOL_ADDRESS_OFFSET, buf, VOL_ADDRESS_COUNT)){return 0;}
+  if (!cd_raw_read(0, VOL_ADDRESS_OFFSET, buf, VOL_ADDRESS_COUNT)){return 0;}
+  memcpy(&volume_address_, buf, VOL_ADDRESS_COUNT);
 
-  uint32_t vol_address = *((uint32_t*)buf);
-
-  for (uint8_t i=0; i<VOL_ADDRESS_COUNT; i++){
-    uint8_t t = (vol_address>>(8*i))&0xff;
+  // straight view
+  /*
+  for (int8_t i=0; i<VOL_ADDRESS_COUNT; i++){
+    uint8_t t = (volume_address_>>(8*(VOL_ADDRESS_COUNT-i-1)))&0xff;
     displayPrintHex((uint8_t)t, i%16, i/16);
   }
-  displayUpdate();
+  */
 
+  /*
+  // back view
+  for (uint8_t i=0; i<VOL_ADDRESS_COUNT; i++){
+    uint8_t t = (volume_address_>>(8*i))&0xff;
+    displayPrintHex((uint8_t)t, i%16, i/16);
+  }
+  */
+  //displayUpdate();
 
   return 1;
 }

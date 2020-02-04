@@ -22,7 +22,7 @@ int main(void){
   //}
   //displayUpdate();
  
-  if (!sd_begin()){
+  if (!sd_init()){
     SET_HIGH(LED_PORT, LED_PIN);
   }
 

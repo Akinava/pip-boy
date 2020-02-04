@@ -228,4 +228,6 @@ next part of folder BIN in claster [0000 4200]  0x00000042
 0x0b  2    0x0002 0x0200 bytes per sector = 0x200 = 512
 1 << 15 = 32768, 32768 / 512 = 64 sectors, hex(64) = 0x40
 it means sectors per claster should be 0x40
-mkfs.fat -s 64 /dev/sdb1
+
+mkdosfs -F 16 -s 64 /dev/sdb1
+maximal size fat16 for sector size 64 (32k) is a 2047M
