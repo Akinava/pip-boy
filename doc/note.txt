@@ -154,10 +154,12 @@ done
 14 difune GAMEBUINO
 
 15 import gamebuino games
+http://legacy.gamebuino.com/wiki/index.php?title=Games
 
 16 define ARDUBOY
 
 17 import ARDUBOY games
+https://arduboy.com/
 
 
 
