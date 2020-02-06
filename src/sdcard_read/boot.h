@@ -7,7 +7,7 @@
 #ifndef BOOT_H                                         
 #define BOOT_H
                                                                                 
-const char BOOT_NAME[] PROGMEM = "boot.bin";
+const char BOOT_NAME[] PROGMEM = "BOOT    BIN";
 uint8_t PAGE_BUFFER[SPM_PAGESIZE];
 
 #endif

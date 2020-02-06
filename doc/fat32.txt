@@ -231,3 +231,7 @@ it means sectors per claster should be 0x40
 
 mkdosfs -F 16 -s 64 /dev/sdb1
 maximal size fat16 for sector size 64 (32k) is a 2047M
+
+for ((i=1;i<=1030;i++)); do echo $i; touch /media/lis/B7FB-E57D/BIN/$(printf "APP%05d.BIN" $i); done
+sudo dd if=/dev/sdb1 of=sdb1.dump bs=100M status=progress
+xxd sdb1.dump | grep -v "0000 0000 0000 0000 0000 0000 0000 0000" > sdb1.hex.dump
