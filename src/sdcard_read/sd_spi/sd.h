@@ -7,10 +7,9 @@
 #define SD_H
 
 uint8_t sd_init(void);
-
 uint8_t card_init(void);
 uint8_t vol_init(void);
-uint8_t root_dir_init(void);
+uint8_t sd_find_obj(uint32_t start_sector, const char* dir_name, uint32_t* obj_sector);
 
 void spi_send(uint8_t data);
 uint8_t spi_rec(void);
@@ -26,16 +25,17 @@ uint8_t type_;
 uint32_t block_;
 uint8_t partial_block_read_;
 
-uint32_t volume_address_;
+uint32_t volume_sector_;
+uint16_t bytes_per_sector_;
+uint8_t sectors_per_claster_;
+uint16_t reserved_sectors_;
+uint8_t fat_count_;
+uint16_t root_entry_count_; 
+uint16_t sectors_per_fat_; 
 
-
-//uint8_t fat_count_;
-//uint8_t blocks_per_cluster_;
-//uint32_t blocksPerFat_;
-//int16_t rootDirEntryCount_;
-//uint32_t fatStartBlock_;
-//uint32_t rootDirStart_;
-//uint32_t dataStartBlock_;
+uint32_t fat_sector_;
+uint32_t root_sector_;
+uint32_t data_sector_;
 
 // SD card commands
 /** GO_IDLE_STATE - init card in spi mode if CS low */
@@ -65,9 +65,22 @@ uint32_t volume_address_;
 #define DATA_START_BLOCK      0XFE
 
 #define VOL_ADDRESS_OFFSET 0x01c6
-#define VOL_ADDRESS_COUNT 4
 
-#define ROOT_DIR_INFO_OFFSET 0x0b 
-#define ROOT_DIR_INFO_COUNT 13
+#define SECTOR_LENGTH 4
+
+#define VOL_INFO_OFFSET 0x0b
+#define VOL_INFO_SIZE 13
+
+#define SECTORS_PER_CLASTER_OFFSET 2
+#define RESERVED_SECTORS_OFFSET 3
+#define FAT_COUNT_OFFSET 5
+#define ROOT_ENTRY_COUNT_OFFSET 6
+#define SECTORS_PER_FAT_OFFSET 11
+
+#define OBJECT_RECORD_SIZE 32
+#define OBJECT_RECORD_NAME_OFFSET 0
+#define OBJECT_RECORD_NAME_SIZE 8 + 3
+
+#define LAST_CLASTER_FLAG 0x0FF8
 
 #endif

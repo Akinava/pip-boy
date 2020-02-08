@@ -84,9 +84,27 @@ void displayUpdate(void){
 }
 
 
-void displayPrintHex(uint8_t h, uint8_t x, uint8_t y){
+void show_u8(uint8_t h, uint8_t x, uint8_t y){
   _displayPrintHexNum(h>>4, x*8, y);    // print high
   _displayPrintHexNum(h&0xf, x*8+4, y); // print low
+}
+
+
+void show_u16(uint16_t h, uint8_t x, uint8_t y){
+  int8_t szof = sizeof(h);
+  for (int8_t i=0; i<szof; i++){
+    uint8_t t = (h>>(8*(szof-i-1)))&0xff;
+    show_u8((uint8_t)t, i%16+x, y);
+  }
+}
+
+
+void show_u32(uint32_t h, uint8_t x, uint8_t y){
+  int8_t szof = sizeof(h);
+  for (int8_t i=0; i<szof; i++){
+    uint8_t t = (h>>(8*(szof-i-1)))&0xff;
+    show_u8((uint8_t)t, i%16+x, y);
+  }
 }
 
 

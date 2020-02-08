@@ -1,45 +1,78 @@
 #include "sd.h"
 
+uint8_t sd_find_obj(uint32_t start_sector, const char* obj_name, uint32_t* obj_sector){
+  displayBegin();
+  displayClean();
+  show_u32(root_sector_, 0, 0);
+  displayUpdate();
+  return 1; 
+
+
+  /*
+  uint8_t obj_info_buf[OBJECT_RECORD_SIZE];
+  uint16_t claster_flag = 0; 
+  uint16_t max_dir_entry_count;
+
+  if (start_sector == 0){
+    start_sector = root_sector_;
+    max_dir_entry_count = root_entry_count_;
+  }else{
+    max_dir_entry_count = bytes_per_sector_ * sectors_per_claster_ / OBJECT_RECORD_SIZE;
+  }
+
+  displayBegin();
+  displayClean();
+  show_u8(0, 0, 8);
+  displayUpdate();
+ 
+
+  while(claster_flag < LAST_CLASTER_FLAG){
+    for (uint16_t entry_index=0; entry_index<max_dir_entry_count; entry_index++){
+      if (!cd_raw_read(start_sector, entry_index*OBJECT_RECORD_SIZE, obj_info_buf, OBJECT_RECORD_SIZE)){return 0;}
+
+      displayBegin();
+      displayClean();
+      for(uint8_t i=1; i<OBJECT_RECORD_SIZE; i++){
+        show_u8(obj_info_buf[i], i%16, i/16);
+      }
+      displayUpdate();
+      return 0;
+ 
+    } 
+  }
+  return 1;
+  */
+}
+
 uint8_t sd_init(void){
   if (!card_init()){return 0;}
   if (!vol_init()){return 0;}
-  if (!root_dir_init()){return 0;}
-  return 1;
-}
-
-uint8_t root_dir_init(void){
-  uint8_t buf[ROOT_DIR_INFO_COUNT];
-  if (!cd_raw_read(volume_address_, ROOT_DIR_INFO_OFFSET, buf, ROOT_DIR_INFO_COUNT)){return 0;}
-
-  for (int8_t i=0; i<ROOT_DIR_INFO_COUNT; i++){
-    displayPrintHex(buf[i], i%16, i/16);
-  }
-  displayUpdate();
-
   return 1;
 }
 
 uint8_t vol_init(void){
-  uint8_t buf[VOL_ADDRESS_COUNT];
-  if (!cd_raw_read(0, VOL_ADDRESS_OFFSET, buf, VOL_ADDRESS_COUNT)){return 0;}
-  memcpy(&volume_address_, buf, VOL_ADDRESS_COUNT);
+  uint8_t vol_address_buf[SECTOR_LENGTH];
+  if (!cd_raw_read(0, VOL_ADDRESS_OFFSET, vol_address_buf, SECTOR_LENGTH)){return 0;}
+  memcpy(&volume_sector_, vol_address_buf, sizeof(volume_sector_));
 
-  // straight view
-  /*
-  for (int8_t i=0; i<VOL_ADDRESS_COUNT; i++){
-    uint8_t t = (volume_address_>>(8*(VOL_ADDRESS_COUNT-i-1)))&0xff;
-    displayPrintHex((uint8_t)t, i%16, i/16);
-  }
-  */
+  uint8_t vol_info_buf[VOL_INFO_SIZE];
+  if (!cd_raw_read(volume_sector_, VOL_INFO_OFFSET, vol_info_buf, VOL_INFO_SIZE)){return 0;}
 
-  /*
-  // back view
-  for (uint8_t i=0; i<VOL_ADDRESS_COUNT; i++){
-    uint8_t t = (volume_address_>>(8*i))&0xff;
-    displayPrintHex((uint8_t)t, i%16, i/16);
-  }
-  */
-  //displayUpdate();
+  // MIGHT BE OPTIMIZED
+  memcpy(&bytes_per_sector_, vol_info_buf, sizeof(bytes_per_sector_));
+  memcpy(&sectors_per_claster_, &vol_info_buf[SECTORS_PER_CLASTER_OFFSET], sizeof(sectors_per_claster_));
+  memcpy(&reserved_sectors_, &vol_info_buf[RESERVED_SECTORS_OFFSET], sizeof(reserved_sectors_));
+  memcpy(&fat_count_, &vol_info_buf[FAT_COUNT_OFFSET], sizeof(fat_count_));
+  memcpy(&root_entry_count_, &vol_info_buf[ROOT_ENTRY_COUNT_OFFSET], sizeof(root_entry_count_));
+  memcpy(&sectors_per_fat_, &vol_info_buf[SECTORS_PER_FAT_OFFSET], sizeof(sectors_per_fat_));
+
+  fat_sector_ = volume_sector_ + reserved_sectors_; 
+  root_sector_ = fat_sector_ + sectors_per_fat_ * fat_count_;
+  data_sector_ = root_sector_ + root_entry_count_ * OBJECT_RECORD_SIZE / bytes_per_sector_;
+
+  show_u32(volume_sector_, 0, 0);
+  show_u16(bytes_per_sector_, 0, 1);
+  show_u8(sectors_per_claster_, 0, 2);
 
   return 1;
 }

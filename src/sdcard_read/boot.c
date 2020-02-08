@@ -9,23 +9,21 @@ int main(void){
   SET_PULLUP(BUTTON_C_PORT, BUTTON_C_PIN);
   SET_LOW(LED_PORT, LED_PIN);
 
+  // FIXME
   while(CHECK_PIN(BUTTON_C_PINS, BUTTON_C_PIN)){
+    // if button c is pressed load boot
     SET_HIGH(LED_PORT, LED_PIN);
-  }
-
-  displayBegin();
-  displayClean();
+  }// else goto 0 address
 
 
-  //for (uint8_t i=0; i<64; i++){
-  //  displayPrintHex(0, i%16, i/16);
-  //}
-  //displayUpdate();
- 
   if (!sd_init()){
-    SET_HIGH(LED_PORT, LED_PIN);
+    error_light();
   }
 
+  uint32_t bin_dir_sector;
+  if(!sd_find_obj(0, BOOT_DIR_NAME, &bin_dir_sector)){
+    error_blink();
+  }
 
   //fileOpen();
   //uint8_t data = fileRead();
@@ -33,8 +31,22 @@ int main(void){
   //fileClose();
   //sdStop();
 
+  // FIXME 
   while(1){
      //SET_HIGH(LED_PORT, LED_PIN);
   }
   return 0;
+}
+
+
+void error_light(void){
+    SET_HIGH(LED_PORT, LED_PIN);
+    while(1){}
+}
+
+void error_blink(void){
+  while(1){
+    TOGGLE(LED_PORT, LED_PIN);
+    _delay_ms(1000);
+  }
 }

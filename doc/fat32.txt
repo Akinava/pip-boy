@@ -229,9 +229,66 @@ next part of folder BIN in claster [0000 4200]  0x00000042
 1 << 15 = 32768, 32768 / 512 = 64 sectors, hex(64) = 0x40
 it means sectors per claster should be 0x40
 
+===============================================================================
+
 mkdosfs -F 16 -s 64 /dev/sdb1
 maximal size fat16 for sector size 64 (32k) is a 2047M
+
+===============================================================================
 
 for ((i=1;i<=1030;i++)); do echo $i; touch /media/lis/B7FB-E57D/BIN/$(printf "APP%05d.BIN" $i); done
 sudo dd if=/dev/sdb1 of=sdb1.dump bs=100M status=progress
 xxd sdb1.dump | grep -v "0000 0000 0000 0000 0000 0000 0000 0000" > sdb1.hex.dump
+
+===============================================================================
+
+addr  size data   val    description
+0x0b  2    0x0002 0x0200 bytes per sector = 0x200
+0x0d  1    0x40   0x40   sectors per claster | 0x200 * 0x40 = 0x8000 (byte per claster)  (1024 records per claster if not root dir + dir . and ..)
+0x0e  2    0x0400 0x0004 reserved sectors = 0x0004 * 0x200 = 0x0800 (address of FAT table 1)
+0x10  1    0x02   0x02   number of FAT tables
+0x11  2    0x0002 0x0200 max records in ROOT dir (512)
+0x16  2    0xc800 0x00c8 sectors per FAT table | 0x019000 (byte per FAT table)
+
+
+
+0x0800 + 0x00c8 * 0x02 * 0x0200 = 0x032800 (root dir address)
+0x032800 + 0x0200 * 32 = 0x036800 (data start claster address)
+
+
+
+mkdosfs -F 16 -s 64 big.img;while (( "$?" == "0" ));do ls -l big.img; cat 1.img >> big.img; mkdosfs -F 16 -s 64 big.img;done
+
+for mkdosfs -F 16 -s 64 part
+max size of part is 2147254271 byte
+or 2047 Mb
+
+
+
+
+
+
+
+
+===============================================================================
+fat16 400M
+00000800 start vol sector
+
+          0 1  2 3  4 5  6 7  8 9  a b  c d  e f
+00000000: eb3c 906d 6b66 732e 6661 7400 0240 4000  .<.mkfs.fat..@@.
+00000010: 0200 0400 00f8 0001 2000 4000 0008 0000  ........ .@.....
+
+addr  size data   val    description
+0x0b  2    0x0002 0x0200 bytes per sector = 0x200
+0x0d  1    0x40   0x40   sectors per claster | 0x200 * 0x40 = 0x8000 (byte per claster)  (1024 records per claster)
+0x0e  2    0x4000 0x0040 reserved sectors = 0x0040 * 0x200 = 0x8000 (address of FAT table 1)
+0x10  1    0x02   0x02   number of FAT tables
+0x11  2    0x0004 0x0400 max records in ROOT dir (1024)
+0x16  2    0x0001 0x0100 sectors per FAT table | 0x019000 (byte per FAT table)
+
+
+fat  = 0x800 + 0x40 = 0x840
+root = 0x840 + 0x0100 * 2 = 0x0a40
+data = 0x0a40 + 0x0400 * 32 / 0x0200 = 0x0a80
+
+

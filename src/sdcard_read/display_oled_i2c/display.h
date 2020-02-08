@@ -9,7 +9,9 @@
 void displayBegin(void);
 void displayClean(void);
 void displayUpdate(void);
-void displayPrintHex(uint8_t h, uint8_t x, uint8_t y);
+void show_u8(uint8_t h, uint8_t x, uint8_t y);
+void show_u16(uint16_t h, uint8_t x, uint8_t y);
+void show_u32(uint32_t h, uint8_t x, uint8_t y);
 
 
 #define SSD1306_ADDR                              0x3C
