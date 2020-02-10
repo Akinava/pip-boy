@@ -291,4 +291,13 @@ fat  = 0x800 + 0x40 = 0x840
 root = 0x840 + 0x0100 * 2 = 0x0a40
 data = 0x0a40 + 0x0400 * 32 / 0x0200 = 0x0a80
 
+          0 1  2 3  4 5  6 7  8 9  a b  c d  e f
+00048040: 4249 4e20 2020 2020 2020 2010 009f e098  BIN        .....
+00048050: 4750 4850 0000 8bb9 4850 0300 0000 0000  GPHP....HP......
+
+0-a name
+0x0b  1    0x10       0x10       catalog mark
+0x14  2    0x0000     0x0000     High claster number
+0x1a  2    0x0300     0x0003     Low claster number
+0x1c  4    0x00000000 0x00000000 file size
 
