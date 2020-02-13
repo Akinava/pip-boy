@@ -10,8 +10,9 @@ LiPo charger  0.28  https://www.aliexpress.com/item/32649780468.html
 18650 LiPo    2.41  https://www.aliexpress.com/item/32807032859.html
 IDC Socket    0.10  https://www.aliexpress.com/item/33041013886.html
 IDC Cable     0.50  https://www.aliexpress.com/item/33029492417.html
+IDC Connect 2x1.20. https://a.aliexpress.com/_UsJs1
 
------------- 13.66$
+------------ 16.06$
 
 PCB board
 
