@@ -1,8 +1,6 @@
-#include <util/delay.h>
-//#include <string.h>
+#include <avr/pgmspace.h>
 #include "../macro.h"
 #include "../pins.h"
-#include "../display_oled_i2c/display.h"
 
 #ifndef SD_H
 #define SD_H
@@ -55,10 +53,12 @@ typedef struct {
   uint32_t sector;
   uint32_t size;
   uint16_t cluster;
+  uint32_t cursor;
 } file_t;
 
 uint8_t sd_init(void);
 uint8_t file_open(const char* file_path, file_t* boot_file);
+uint8_t file_read(file_t* file, uint8_t* buf, uint16_t size);
 
 uint8_t card_init_(void);
 uint8_t vol_init_(void);

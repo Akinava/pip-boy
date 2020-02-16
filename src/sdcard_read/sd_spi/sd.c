@@ -1,9 +1,16 @@
 #include "sd.h"
 
-
 const uint8_t cluster_bytes_rule[] PROGMEM = {0x1a, 0x1b, 0x14, 0x15};
-const uint8_t size_bytes_rule[] PROGMEM = {0x1f, 0x1e, 0x1d, 0x1c};
+const uint8_t size_bytes_rule[] PROGMEM = {0x1c, 0x1d, 0x1e, 0x1f};
 
+
+uint8_t file_read(file_t* file, uint8_t* buf, uint16_t size){
+  uint32_t sector = file->sector + file->cursor / vol_info_.bytes_per_sector;
+  uint16_t offset = file->cursor % vol_info_.bytes_per_sector;
+  if (!cd_raw_read_(sector, offset, buf, size)){return 0;}
+  file->cursor += size;
+  return 1;
+}
 
 uint8_t file_open(const char* file_path, file_t* file){
   // parameters:
@@ -16,17 +23,18 @@ uint8_t file_open(const char* file_path, file_t* file){
   uint8_t i = 0;
   uint8_t obj_i = 0;
   file->sector = root_sector_;
+  file->cursor = 0;
 
   do{
     c = pgm_read_byte_near(file_path + i);
-    if(c==CHAR_SLASH || !c){
-      if(i){
-      if(!find_obj_by_name(obj_name_, file)){return 0;}
+    if (c==CHAR_SLASH || !c){
+      if (i){
+      if (!find_obj_by_name(obj_name_, file)){return 0;}
       }
       obj_i = 0;
       memset_(obj_name_, CHAR_SPACE, OBJECT_NAME_SIZE);
     }else{
-      if(c == CHAR_DOT){
+      if (c == CHAR_DOT){
         obj_i = 8;
       }else{
         obj_name_[obj_i] = c;
@@ -52,49 +60,18 @@ uint8_t find_obj_by_name(uint8_t* obj_name, file_t* file){
   if (file->sector != root_sector_){
      directory_entries = vol_info_.sectors_per_claster * vol_info_.bytes_per_sector / OBJECT_RECORD_SIZE; 
   }
+
   uint8_t obj_buf[OBJECT_RECORD_SIZE];
   uint8_t records_per_sector = vol_info_.bytes_per_sector / OBJECT_RECORD_SIZE;
 
-  // obj name what we need to finde
-  for (uint8_t j=0; j<OBJECT_NAME_SIZE; j++){
-    show_u8(obj_name[j], j, 0);
-  }
-
-  displayUpdate();
-
   do{
-
-    // cluster sector
-    show_u16(file->cluster, 0, 2);
-    show_u32(file->sector, 3, 2);
-    displayUpdate();
-
     for (uint16_t i=0; i<directory_entries; i++){
       uint32_t rec_sector = file->sector + i / records_per_sector;
       uint16_t rec_offset = i % records_per_sector * OBJECT_RECORD_SIZE;
-      // TODO to speedup we can read all sector 0x200
-      show_u32(rec_sector, 0, 4);
-      show_u16(rec_offset, 5, 4);
-      displayUpdate();
 
       if (!cd_raw_read_(rec_sector, rec_offset, obj_buf, OBJECT_RECORD_SIZE)){return 0;}
 
-
-      // FIXME DEBUG
-      // show count obj in dir
-      show_u16(i, 0, 3);
-      // show obj name what do we have
-      for (uint8_t j=0; j<OBJECT_NAME_SIZE; j++){
-        show_u8(obj_buf[j], j, 1);
-      }
-      // 415050303130323642
-      displayUpdate();
-      if (file->cluster == 0xa){
-        _delay_ms(10000);
-      };
-
-
-      if(cmp_(obj_buf, obj_name)){
+      if (cmp_(obj_buf, obj_name)){
         file_info_parce_(file, obj_buf);
         return 1;
       }
@@ -110,7 +87,7 @@ uint8_t next_claster_(file_t* file){
   uint16_t fat_cluster_place = file->cluster*fat_cluster_size;
 
   if (!cd_raw_read_(fat_sector_, fat_cluster_place, cluster_buf, fat_cluster_size)){return 0;}
-  if(file->sector >= END_OF_CLASTERCHAIN){return 0;}
+  if (file->sector >= END_OF_CLASTERCHAIN){return 0;}
 
   get_sector_by_cluster_(file);
   return 1;
@@ -131,7 +108,7 @@ uint32_t warp_bytes_(uint8_t* file_info, const uint8_t* rule){
   uint32_t res = 0;
   for (uint8_t i=0; i<4; i++){
     uint8_t r = pgm_read_byte_near(rule + i);
-    res += file_info[r] << (8*i);
+    res |= file_info[r] << (8*i);
   }
   return res;
 }
@@ -194,7 +171,7 @@ uint8_t card_init_(void){
       return 0;
     }
   }
-  if(card_command_(CMD58, 0, 0XFF)) {
+  if (card_command_(CMD58, 0, 0XFF)) {
       return 0;
   }
   for (uint8_t i = 0; i < 4; i++) ocr[i] = spi_rec_();

@@ -12,6 +12,7 @@ const char BOOT_APP[] PROGMEM = "/BIN/BOOT.BIN";
 uint8_t PAGE_BUFFER[SPM_PAGESIZE];
 
 void load(const char* file_path);
+void setup_button(void);
 void setup_led(void);
 void error_light(void);
 void error_blink(void);
