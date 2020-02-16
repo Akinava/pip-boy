@@ -1,7 +1,17 @@
 #include "sd.h"
 
+
+const uint8_t cluster_bytes_rule[] PROGMEM = {0x1a, 0x1b, 0x14, 0x15};
+const uint8_t size_bytes_rule[] PROGMEM = {0x1f, 0x1e, 0x1d, 0x1c};
+
+
 uint8_t file_open(const char* file_path, file_t* file){
-  uint8_t obj_name[OBJECT_NAME_SIZE];
+  // parameters:
+  // file_path - in unix view exp: '/BIN/APP.BIN'
+  // file      - file sector, file size
+  //
+  // if file exist save in file file sector and size; return 1
+  // else retrn 0
   uint8_t c;
   uint8_t i = 0;
   uint8_t obj_i = 0;
@@ -11,15 +21,15 @@ uint8_t file_open(const char* file_path, file_t* file){
     c = pgm_read_byte_near(file_path + i);
     if(c==CHAR_SLASH || !c){
       if(i){
-        if(!find_obj_by_name(obj_name, file)){return 0;}
+      if(!find_obj_by_name(obj_name_, file)){return 0;}
       }
       obj_i = 0;
-      memset(obj_name, CHAR_SPACE, OBJECT_NAME_SIZE);
+      memset_(obj_name_, CHAR_SPACE, OBJECT_NAME_SIZE);
     }else{
       if(c == CHAR_DOT){
         obj_i = 8;
       }else{
-        obj_name[obj_i] = c;
+        obj_name_[obj_i] = c;
         obj_i++;
       }
     }
@@ -35,53 +45,101 @@ uint8_t sd_init(void){
 }
 
 uint8_t find_obj_by_name(uint8_t* obj_name, file_t* file){
-  uint16_t directory_entries = vol_info_->sectors_per_claster * vol_info_->bytes_per_sector / OBJECT_RECORD_SIZE; 
-  if (file->sector == root_sector_){
-    directory_entries = vol_info_->root_directory_entries;
+  // parameters:
+  // obj_name - object name and ext in fat16 format cahr[8+3], exp: "APP     BIN"
+  // file     -  file sector and file size
+  uint16_t directory_entries = vol_info_.root_directory_entries;
+  if (file->sector != root_sector_){
+     directory_entries = vol_info_.sectors_per_claster * vol_info_.bytes_per_sector / OBJECT_RECORD_SIZE; 
   }
-
   uint8_t obj_buf[OBJECT_RECORD_SIZE];
+  uint8_t records_per_sector = vol_info_.bytes_per_sector / OBJECT_RECORD_SIZE;
 
-  displayClean();
-
-  for (uint16_t i=0; i<directory_entries; i++){
-    if (!cd_raw_read_(file->sector, i*OBJECT_RECORD_SIZE, obj_buf, OBJECT_RECORD_SIZE)){return 0;}
-
-
-
-    // FIXME DEBUG
-    for (uint8_t j=0; j<OBJECT_RECORD_SIZE; j++){
-      show_u8(obj_buf[j], j%16, j/16);
-    }
-    displayUpdate();
-    _delay_ms(300);
-
-
- 
-    if(cmp_(obj_buf, obj_name)){
-        file_info_parce_(file, obj_buf);
-        show_u32(file->sector, 0, 5);
-        show_u32(file->size, 5, 5);
-        displayUpdate();
-        _delay_ms(3000);
-        return 1;
-    }   
+  // obj name what we need to finde
+  for (uint8_t j=0; j<OBJECT_NAME_SIZE; j++){
+    show_u8(obj_name[j], j, 0);
   }
+
+  displayUpdate();
+
+  do{
+
+    // cluster sector
+    show_u16(file->cluster, 0, 2);
+    show_u32(file->sector, 3, 2);
+    displayUpdate();
+
+    for (uint16_t i=0; i<directory_entries; i++){
+      uint32_t rec_sector = file->sector + i / records_per_sector;
+      uint16_t rec_offset = i % records_per_sector * OBJECT_RECORD_SIZE;
+      // TODO to speedup we can read all sector 0x200
+      show_u32(rec_sector, 0, 4);
+      show_u16(rec_offset, 5, 4);
+      displayUpdate();
+
+      if (!cd_raw_read_(rec_sector, rec_offset, obj_buf, OBJECT_RECORD_SIZE)){return 0;}
+
+
+      // FIXME DEBUG
+      // show count obj in dir
+      show_u16(i, 0, 3);
+      // show obj name what do we have
+      for (uint8_t j=0; j<OBJECT_NAME_SIZE; j++){
+        show_u8(obj_buf[j], j, 1);
+      }
+      // 415050303130323642
+      displayUpdate();
+      if (file->cluster == 0xa){
+        _delay_ms(10000);
+      };
+
+
+      if(cmp_(obj_buf, obj_name)){
+        file_info_parce_(file, obj_buf);
+        return 1;
+      }
+    }
+  }while(next_claster_(file));
   return 0;
 }
 
+uint8_t next_claster_(file_t* file){
+  if (file->sector == root_sector_){return 0;}
+  uint8_t* cluster_buf = ((uint8_t*)&file->cluster);
+  uint16_t fat_cluster_size = sizeof(file->cluster);
+  uint16_t fat_cluster_place = file->cluster*fat_cluster_size;
+
+  if (!cd_raw_read_(fat_sector_, fat_cluster_place, cluster_buf, fat_cluster_size)){return 0;}
+  if(file->sector >= END_OF_CLASTERCHAIN){return 0;}
+
+  get_sector_by_cluster_(file);
+  return 1;
+}
+
+
 void file_info_parce_(file_t* file, uint8_t* file_info){
-  if (file->sector == root_sector_){
-    file->sector = data_sector_ - 2; 
+  file->cluster = warp_bytes_(file_info, cluster_bytes_rule);
+  file->size = warp_bytes_(file_info, size_bytes_rule);
+  get_sector_by_cluster_(file);
+}
+
+void get_sector_by_cluster_(file_t* file){
+  file->sector = data_sector_ + ((file->cluster-2) * vol_info_.sectors_per_claster);
+}
+
+uint32_t warp_bytes_(uint8_t* file_info, const uint8_t* rule){
+  uint32_t res = 0;
+  for (uint8_t i=0; i<4; i++){
+    uint8_t r = pgm_read_byte_near(rule + i);
+    res += file_info[r] << (8*i);
   }
-  file->sector += ((uint32_t)file_info[0x15]<<24)+
-                  ((uint32_t)file_info[0x14]<<16)+
-                  ((uint32_t)file_info[0x1b]<<8)+
-                             file_info[0x1a];
-  file->size = ((uint32_t)file_info[0x1c]<<24)+
-               ((uint32_t)file_info[0x1d]<<16)+
-               ((uint32_t)file_info[0x1e]<<8)+
-                          file_info[0x1f];
+  return res;
+}
+
+void memset_(uint8_t* s1, uint8_t c, uint8_t size){
+  for (uint8_t i=0; i<size; i++){
+    s1[i] = c;
+  }
 }
 
 uint8_t cmp_(uint8_t* s1, uint8_t* s2){
@@ -92,18 +150,14 @@ uint8_t cmp_(uint8_t* s1, uint8_t* s2){
 }
 
 uint8_t vol_init_(void){
-  uint8_t vol_address_buf[SECTOR_LENGTH];
+  uint8_t* vol_address_buf = ((uint8_t*)&volume_sector_);
   if (!cd_raw_read_(0, VOL_ADDRESS_OFFSET, vol_address_buf, SECTOR_LENGTH)){return 0;}
-  memcpy(&volume_sector_, vol_address_buf, sizeof(volume_sector_));
 
-  uint8_t vol_info_buf[VOL_INFO_SIZE];
-  if (!cd_raw_read_(volume_sector_, VOL_INFO_OFFSET, vol_info_buf, VOL_INFO_SIZE)){return 0;}
-  
-  vol_info_ = (vol_info_t*)&vol_info_buf;
-
-  fat_sector_ = volume_sector_ + vol_info_->reserved_sectors; 
-  root_sector_ = fat_sector_ + vol_info_->sectors_per_FAT * vol_info_->number_of_FATs;
-  data_sector_ = root_sector_ + vol_info_->root_directory_entries * OBJECT_RECORD_SIZE / vol_info_->bytes_per_sector;
+  uint8_t* vol_info_buf = ((uint8_t*)&vol_info_);
+  if (!cd_raw_read_(volume_sector_, VOL_INFO_OFFSET, vol_info_buf, sizeof(vol_info_))){return 0;}
+  fat_sector_ = volume_sector_ + vol_info_.reserved_sectors; 
+  root_sector_ = fat_sector_ + vol_info_.sectors_per_FAT * vol_info_.number_of_FATs;
+  data_sector_ = root_sector_ + vol_info_.root_directory_entries * OBJECT_RECORD_SIZE / vol_info_.bytes_per_sector;
   return 1;
 }
 

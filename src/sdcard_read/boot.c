@@ -18,6 +18,7 @@ int main(void){
   // FIXME DEBUG
   load(BOOT_APP);
   while(1){
+    error_blink();
   }
 
   return 0;
@@ -26,12 +27,12 @@ int main(void){
 void load(const char* file_path){
   setup_led();
 
+  displayBegin();
+  displayClean();
+
   if (!sd_init()){
     error_light();
   }
-
-  displayBegin();
-  displayClean();
 
   file_t boot_file;
   if (!file_open(file_path, &boot_file)){

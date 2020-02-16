@@ -8,6 +8,7 @@
 #define BOOT_H
                                                                                 
 const char BOOT_APP[] PROGMEM = "/BIN/BOOT.BIN";
+//const char BOOT_APP[] PROGMEM = "/SAVE/BOOT.BIN";
 uint8_t PAGE_BUFFER[SPM_PAGESIZE];
 
 void load(const char* file_path);
