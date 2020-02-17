@@ -40,7 +40,6 @@ void load(const char* file_path){
       error_blink();
     }
     // make a page
-   }
   }
   SET_HIGH(LED_PORT, LED_PIN);
   _delay_ms(100);

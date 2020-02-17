@@ -14,8 +14,13 @@ AVRDUDE_PROGRAMMER = usbasp
 # programmer port
 #PROGRAMMER_PORT = usb
 
-#BOOT = true
-BOOT_ADDRESS = 0x7e00
+BOOT = true
+# 4096 bytes
+BOOT_ADDRESS = 0x7000
+HIGH_FUSE=0xD8
+
+LOW_FUSE = 0xFF
+EXTENDED_FUSE = 0xFD
 
 #=======================================
 
@@ -97,6 +102,9 @@ COPY = cp
 COMPILE = $(CC) $(CFLAGS) -mmcu=$(MCU)
 
 #============================================================================
+##---------------- FUSES ----------------------------------------
+FUSES = -U lfuse:w:$(LOW_FUSE):m -U hfuse:w:$(HIGH_FUSE):m -U efuse:w:$(EXTENDED_FUSE):m
+
 ##---------------- Programming Options (avrdude) ----------------
 
 AVRDUDE_WRITE_FLASH = -U flash:w:$(TARGET).hex
@@ -175,6 +183,10 @@ sizeafter:
 # Display compiler version information.
 gccversion :
 	@$(CC) --version
+
+
+fuses:
+	$(AVRDUDE) $(AVRDUDE_FLAGS) $(FUSES)
 
 #==>
 all: begin gccversion sizebefore build sizeafter end
