@@ -3,7 +3,6 @@
 const uint8_t cluster_bytes_rule[] PROGMEM = {0x1a, 0x1b, 0x14, 0x15};
 const uint8_t size_bytes_rule[] PROGMEM = {0x1c, 0x1d, 0x1e, 0x1f};
 
-
 uint8_t file_read(file_t* file, uint8_t* buf, uint16_t size){
   uint32_t sector = file->sector + file->cursor / vol_info_.bytes_per_sector;
   uint16_t offset = file->cursor % vol_info_.bytes_per_sector;
