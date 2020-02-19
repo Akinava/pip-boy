@@ -24,13 +24,11 @@ EXTENDED_FUSE = 0xFD
 
 #=======================================
 
-LIB_DISPLAY = display_oled_i2c/display
 LIB_SD = sd_spi/sd
 
 #=======================================
 
 OBJECTS = $(TARGET).o
-OBJECTS += $(LIB_DISPLAY).o
 OBJECTS += $(LIB_SD).o
 
 # Define all object files.                                                      
