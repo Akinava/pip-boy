@@ -159,8 +159,6 @@ uint8_t card_init_(void){
   if (r != 1){
     return 0;
   }
-  type_ = SD_CARD_TYPE_SD2; 
-
 
   for (uint16_t retry = 0; ; retry++) {
     card_command_(CMD55, 0, 0XFF);
