@@ -164,7 +164,7 @@ uint8_t card_init_(void){
 
   for (uint16_t retry = 0; ; retry++) {
     card_command_(CMD55, 0, 0XFF);
-    r = card_command_(ACMD41, type_ == SD_CARD_TYPE_SD2 ? 0X40000000 : 0, 0XFF);
+    r = card_command_(ACMD41, 0X40000000, 0XFF);
     if (r == R1_READY_STATE)break;
     if (retry == 1000) {
       return 0;
