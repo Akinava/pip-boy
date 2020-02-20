@@ -11,9 +11,6 @@
 const char BOOT_APP[] PROGMEM = "/BIN/BOOT.BIN";
 void* start_address = 0;
 
-uint8_t PAGE_BUFFER[SPM_PAGESIZE];
-uint32_t ADDRESS;
-
 void load(const char* file_path);
 void block_flash_load();
 void setup_button(void);
@@ -21,7 +18,5 @@ void setup_led(void);
 void error_light(void);
 void error_blink(void);
 void reboot(void);
-
-#define WATCHDOG_16MS   (_BV(WDE))
 
 #endif

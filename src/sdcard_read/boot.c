@@ -18,7 +18,9 @@ int main(void){
 
 void load(const char* file_path){
   setup_led();
-  ADDRESS = 0;
+
+  uint8_t buf[SPM_PAGESIZE];
+  uint32_t address = 0;
 
   if (!sd_init()){
     error_light();
@@ -30,10 +32,10 @@ void load(const char* file_path){
   }
 
   while(boot_file.cursor < boot_file.size){
-    if (!file_read(&boot_file, PAGE_BUFFER, SPM_PAGESIZE)){
+    if (!file_read(&boot_file, buf, SPM_PAGESIZE)){
       error_blink();
     }
-    block_flash_load();
+    block_flash_load(&address, buf);
   }
   SET_HIGH(LED_PORT, LED_PIN);
   _delay_ms(100);
@@ -42,10 +44,7 @@ void load(const char* file_path){
   reboot();
  }
 
-void block_flash_load(void){
-	uint16_t temp_address = ADDRESS;	
-	uint16_t i, temp_word;
-
+void block_flash_load(uint32_t* address, uint8_t* buf){
 	// Perform page erase
   //boot_page_erase(address);
 
@@ -53,28 +52,25 @@ void block_flash_load(void){
   //boot_spm_busy_wait();		
 
 	// fill the flash page buffer with the data
-  for(i = 0; i < SPM_PAGESIZE; i+=2){
-		// load the little end byte from the word
-		temp_word = PAGE_BUFFER[i];
+  for(uint8_t i = 0; i < SPM_PAGESIZE; i+=2){
 
 		// load the big end byte
-		temp_word += (PAGE_BUFFER[i+1] << 8);
+		uint16_t temp_word = *((uint16_t*)(buf + i));
 		
 		// put the word into the page butter
-    boot_page_fill(ADDRESS, temp_word);;
+    boot_page_fill(*address + i, temp_word);;
     	
-		// incrememnt the word address						
-    ADDRESS += 2;
   } 
     
 	// write the page to flash
-  boot_page_write(temp_address);
+  boot_page_write(*address);
 
 	// wait until finished writing
   boot_spm_busy_wait();
 	
 	// Re-enable the RWW section 
   //boot_rww_enable();
+  *address += SPM_PAGESIZE;
  
 }
 
@@ -100,8 +96,6 @@ void error_blink(void){
 }
 
 void reboot(){
-  WDTCSR = _BV(WDCE) | _BV(WDE);
-  WDTCSR = _BV(WDCE) | _BV(WDE);
-  WDTCSR = WATCHDOG_16MS;
+  WDTCSR = _BV(WDE);
 	while (1);
 }
