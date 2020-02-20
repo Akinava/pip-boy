@@ -174,7 +174,7 @@ uint8_t card_init_(void){
       return 0;
   }
   for (uint8_t i = 0; i < 4; i++) ocr[i] = spi_rec_();
-  if (type_ == SD_CARD_TYPE_SD2 && (ocr[0] & 0XC0) == 0xC0) type_ = SD_CARD_TYPE_SDHC;
+  type_ = SD_CARD_TYPE_SDHC;
   //use max SPI frequency
   SPCR &= ~((1 << SPR1) | (1 << SPR0)); // f_OSC/4
   if (!slow) SPSR |= (1 << SPI2X); // Doubled Clock Frequency: f_OSC/2
