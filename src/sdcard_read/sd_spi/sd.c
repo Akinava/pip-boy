@@ -139,7 +139,6 @@ uint8_t vol_init_(void){
 
 uint8_t card_init_(void){
   uint8_t ocr[4];
-  uint8_t slow = 0;
   // Set MOSI, SCK, CS as Output
   SD_DDR |= _BV(MOSI)|_BV(SCK)|_BV(SD_CS);
   // set sd cs off
@@ -175,7 +174,7 @@ uint8_t card_init_(void){
   type_ = SD_CARD_TYPE_SDHC;
   //use max SPI frequency
   SPCR &= ~((1 << SPR1) | (1 << SPR0)); // f_OSC/4
-  if (!slow) SPSR |= (1 << SPI2X); // Doubled Clock Frequency: f_OSC/2
+  SPSR |= (1 << SPI2X); // Doubled Clock Frequency: f_OSC/2
   SET_HIGH(SD_PORT, SD_CS);
   
   return 1;
