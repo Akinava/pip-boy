@@ -43,46 +43,34 @@ void load(const char* file_path){
   reboot();
  }
 
-void block_flash_load(uint32_t* address, uint8_t* buf){
+static void block_flash_load(uint32_t* address, uint8_t* buf){
 	// Perform page erase
   //boot_page_erase(address);
-
 	// Wait until the memory is erased
   //boot_spm_busy_wait();		
 
-	// fill the flash page buffer with the data
   for(uint8_t i = 0; i < SPM_PAGESIZE; i+=2){
-
-		// load the big end byte
 		uint16_t temp_word = *((uint16_t*)(buf + i));
-		
-		// put the word into the page butter
     boot_page_fill(*address + i, temp_word);;
-    	
   } 
-    
-	// write the page to flash
   boot_page_write(*address);
-
 	// wait until finished writing
   boot_spm_busy_wait();
-	
 	// Re-enable the RWW section 
   //boot_rww_enable();
   *address += SPM_PAGESIZE;
- 
 }
 
-void setup_button(void){
+static void setup_button(void){
   SET_DDR_IN(BUTTON_C_DDR, BUTTON_C_PIN);
   SET_PULLUP(BUTTON_C_PORT, BUTTON_C_PIN);
 }
-void setup_led(void){
+static void setup_led(void){
   SET_DDR_OUT(LED_DDR, LED_PIN);
   SET_LOW(LED_PORT, LED_PIN);
 }
 
-void error_light(void){
+static void error_light(void){
     SET_HIGH(LED_PORT, LED_PIN);
     while(1){}
 }
@@ -94,7 +82,7 @@ void error_blink(void){
   }
 }
 
-void reboot(){
+static void reboot(){
   WDTCSR = _BV(WDE);
 	while (1);
 }
