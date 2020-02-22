@@ -51,7 +51,7 @@ uint8_t sd_init(void){
   return 1;
 }
 
-uint8_t find_obj_by_name(uint8_t* obj_name, file_t* file){
+static uint8_t find_obj_by_name(uint8_t* obj_name, file_t* file){
   // parameters:
   // obj_name - object name and ext in fat16 format cahr[8+3], exp: "APP     BIN"
   // file     -  file sector and file size
@@ -79,7 +79,7 @@ uint8_t find_obj_by_name(uint8_t* obj_name, file_t* file){
   return 0;
 }
 
-uint8_t next_claster_(file_t* file){
+static uint8_t next_claster_(file_t* file){
   if (file->sector == root_sector_){return 0;}
   uint8_t* cluster_buf = ((uint8_t*)&file->cluster);
   uint16_t fat_cluster_size = sizeof(file->cluster);
@@ -125,7 +125,7 @@ uint8_t cmp_(uint8_t* s1, uint8_t* s2){
   return 1;
 }
 
-uint8_t vol_init_(void){
+static uint8_t vol_init_(void){
   uint8_t* vol_address_buf = ((uint8_t*)&volume_sector_);
   if (!cd_raw_read_(0, VOL_ADDRESS_OFFSET, vol_address_buf, SECTOR_LENGTH)){return 0;}
 
@@ -137,7 +137,7 @@ uint8_t vol_init_(void){
   return 1;
 }
 
-uint8_t card_init_(void){
+static uint8_t card_init_(void){
   // Set MOSI, SCK, CS as Output
   SD_DDR |= _BV(MOSI)|_BV(SCK)|_BV(SD_CS);
   // set sd cs off

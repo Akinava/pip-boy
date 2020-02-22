@@ -60,10 +60,10 @@ uint8_t sd_init(void);
 uint8_t file_open(const char* file_path, file_t* boot_file);
 uint8_t file_read(file_t* file, uint8_t* buf, uint16_t size);
 
-uint8_t card_init_(void);
-uint8_t vol_init_(void);
-uint8_t find_obj_by_name(uint8_t* obj_name, file_t* file);
-uint8_t next_claster_(file_t* file);
+static uint8_t card_init_(void);
+static uint8_t vol_init_(void);
+static uint8_t find_obj_by_name(uint8_t* obj_name, file_t* file);
+static uint8_t next_claster_(file_t* file);
 void get_sector_by_cluster_(file_t* file);
 uint8_t cmp_(uint8_t* s1, uint8_t* s2);
 static void memset_(uint8_t* s1, uint8_t c, uint8_t size);
