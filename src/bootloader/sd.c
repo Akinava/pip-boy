@@ -93,7 +93,7 @@ uint8_t next_claster_(file_t* file){
 }
 
 
-void file_info_parce_(file_t* file, uint8_t* file_info){
+static void file_info_parce_(file_t* file, uint8_t* file_info){
   file->cluster = warp_bytes_(file_info, cluster_bytes_rule);
   file->size = warp_bytes_(file_info, size_bytes_rule);
   get_sector_by_cluster_(file);
@@ -112,7 +112,7 @@ uint32_t warp_bytes_(uint8_t* file_info, const uint8_t* rule){
   return res;
 }
 
-void memset_(uint8_t* s1, uint8_t c, uint8_t size){
+static void memset_(uint8_t* s1, uint8_t c, uint8_t size){
   for (uint8_t i=0; i<size; i++){
     s1[i] = c;
   }
