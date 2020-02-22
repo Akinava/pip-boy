@@ -1,6 +1,6 @@
 #include <avr/pgmspace.h>
-#include "../macro.h"
-#include "../pins.h"
+#include "macro.h"
+#include "pins.h"
 
 #ifndef SD_H
 #define SD_H

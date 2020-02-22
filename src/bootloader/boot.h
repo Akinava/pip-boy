@@ -3,7 +3,7 @@
 #include <avr/io.h>
 #include "macro.h"
 #include "pins.h"
-#include "sd_spi/sd.h"
+#include "sd.h"
                                                                                
 #ifndef BOOT_H                                         
 #define BOOT_H

@@ -138,7 +138,6 @@ uint8_t vol_init_(void){
 }
 
 uint8_t card_init_(void){
-  uint8_t ocr[4];
   // Set MOSI, SCK, CS as Output
   SD_DDR |= _BV(MOSI)|_BV(SCK)|_BV(SD_CS);
   // set sd cs off
@@ -170,7 +169,9 @@ uint8_t card_init_(void){
   if (card_command_(CMD58, 0, 0XFF)) {
       return 0;
   }
-  for (uint8_t i = 0; i < 4; i++) ocr[i] = spi_rec_();
+  for (uint8_t i = 0; i < 4; i++){
+    spi_rec_();
+  }
   type_ = SD_CARD_TYPE_SDHC;
   //use max SPI frequency
   SPCR &= ~((1 << SPR1) | (1 << SPR0)); // f_OSC/4
