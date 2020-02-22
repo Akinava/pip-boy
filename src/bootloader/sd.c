@@ -6,7 +6,7 @@ const uint8_t size_bytes_rule[] PROGMEM = {0x1c, 0x1d, 0x1e, 0x1f};
 uint8_t file_read(file_t* file, uint8_t* buf, uint16_t size){
   uint32_t sector = file->sector + file->cursor / vol_info_.bytes_per_sector;
   uint16_t offset = file->cursor % vol_info_.bytes_per_sector;
-  if (!cd_raw_read_(sector, offset, buf, size)){return 0;}
+  if (!sd_raw_read_(sector, offset, buf, size)){return 0;}
   file->cursor += size;
   return 1;
 }
@@ -68,7 +68,7 @@ static uint8_t find_obj_by_name(uint8_t* obj_name, file_t* file){
       uint32_t rec_sector = file->sector + i / records_per_sector;
       uint16_t rec_offset = i % records_per_sector * OBJECT_RECORD_SIZE;
 
-      if (!cd_raw_read_(rec_sector, rec_offset, obj_buf, OBJECT_RECORD_SIZE)){return 0;}
+      if (!sd_raw_read_(rec_sector, rec_offset, obj_buf, OBJECT_RECORD_SIZE)){return 0;}
 
       if (cmp_(obj_buf, obj_name)){
         file_info_parce_(file, obj_buf);
@@ -85,7 +85,7 @@ static uint8_t next_claster_(file_t* file){
   uint16_t fat_cluster_size = sizeof(file->cluster);
   uint16_t fat_cluster_place = file->cluster*fat_cluster_size;
 
-  if (!cd_raw_read_(fat_sector_, fat_cluster_place, cluster_buf, fat_cluster_size)){return 0;}
+  if (!sd_raw_read_(fat_sector_, fat_cluster_place, cluster_buf, fat_cluster_size)){return 0;}
   if (file->sector >= END_OF_CLASTERCHAIN){return 0;}
 
   get_sector_by_cluster_(file);
@@ -127,10 +127,10 @@ static uint8_t cmp_(uint8_t* s1, uint8_t* s2){
 
 static uint8_t vol_init_(void){
   uint8_t* vol_address_buf = ((uint8_t*)&volume_sector_);
-  if (!cd_raw_read_(0, VOL_ADDRESS_OFFSET, vol_address_buf, SECTOR_LENGTH)){return 0;}
+  if (!sd_raw_read_(0, VOL_ADDRESS_OFFSET, vol_address_buf, SECTOR_LENGTH)){return 0;}
 
   uint8_t* vol_info_buf = ((uint8_t*)&vol_info_);
-  if (!cd_raw_read_(volume_sector_, VOL_INFO_OFFSET, vol_info_buf, sizeof(vol_info_))){return 0;}
+  if (!sd_raw_read_(volume_sector_, VOL_INFO_OFFSET, vol_info_buf, sizeof(vol_info_))){return 0;}
   fat_sector_ = volume_sector_ + vol_info_.reserved_sectors; 
   root_sector_ = fat_sector_ + vol_info_.sectors_per_FAT * vol_info_.number_of_FATs;
   data_sector_ = root_sector_ + vol_info_.root_directory_entries * OBJECT_RECORD_SIZE / vol_info_.bytes_per_sector;
@@ -236,7 +236,7 @@ static uint8_t sd_wait_start_block_(void){
   return 0;
 }
 
-uint8_t cd_raw_read_(uint32_t block, uint16_t offset, uint8_t *dst, uint16_t count)
+uint8_t sd_raw_read_(uint32_t block, uint16_t offset, uint8_t *dst, uint16_t count)
 {
   if (count == 0) return 1;
   if ((count + offset) > 512) {

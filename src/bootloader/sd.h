@@ -71,7 +71,7 @@ uint32_t warp_bytes_(uint8_t* file_info, const uint8_t* rule);
 static void file_info_parce_(file_t* file, uint8_t* file_info);
 static void spi_send_(uint8_t data);
 static uint8_t spi_rec_(void);
-uint8_t cd_raw_read_(uint32_t block, uint16_t offset, uint8_t *dst, uint16_t count);
+uint8_t sd_raw_read_(uint32_t block, uint16_t offset, uint8_t *dst, uint16_t count);
 static uint8_t card_command_(uint8_t cmd, uint32_t arg, uint8_t crc);
 void read_end_(void);
 static uint8_t sd_wait_start_block_(void);
