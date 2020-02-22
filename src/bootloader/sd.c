@@ -118,7 +118,7 @@ static void memset_(uint8_t* s1, uint8_t c, uint8_t size){
   }
 }
 
-uint8_t cmp_(uint8_t* s1, uint8_t* s2){
+static uint8_t cmp_(uint8_t* s1, uint8_t* s2){
   for (uint8_t i=0; i< OBJECT_NAME_SIZE; i++){
     if (s1[i] != s2[i]){return 0;}
   }
@@ -187,7 +187,7 @@ static void spi_send_(uint8_t data){
 
 }
 
-uint8_t spi_rec_(void){
+static uint8_t spi_rec_(void){
   SPDR = 0xFF;
   while(!(SPSR & (1<<SPIF)));
   return SPDR;
