@@ -88,16 +88,17 @@ typedef struct {
 } vol_info_t;
 
 vol_info_t vol_info_;
-uint32_t fat_sector_;
-uint32_t root_sector_;
-uint32_t data_sector_;
-uint8_t obj_name_[OBJECT_NAME_SIZE];
 
-uint16_t offset_;
-uint8_t in_block_;
-uint8_t type_;
-uint32_t block_;
-uint8_t partial_block_read_;
-uint32_t volume_sector_;
+static uint32_t fat_sector_;
+static uint32_t root_sector_;
+static uint32_t data_sector_;
+static uint8_t obj_name_[OBJECT_NAME_SIZE];
+
+static uint16_t offset_;
+static uint8_t in_block_;
+static uint8_t type_;
+static uint32_t block_;
+static uint8_t partial_block_read_;
+static uint32_t volume_sector_;
 
 #endif
