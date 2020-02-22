@@ -181,9 +181,10 @@ uint8_t card_init_(void){
   return 1;
 }
 
-void spi_send_(uint8_t data){
+static void spi_send_(uint8_t data){
   SPDR = data;
   while(!(SPSR & (1<<SPIF)));
+
 }
 
 uint8_t spi_rec_(void){
