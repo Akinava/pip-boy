@@ -23,7 +23,7 @@ int main(void){
     SET_HIGH(LED_PORT, LED_PIN);
     _delay_ms(100);
     SET_LOW(LED_PORT, LED_PIN);
-    _delay_ms(500)
+    _delay_ms(500);
   }
   return 0;
 }
