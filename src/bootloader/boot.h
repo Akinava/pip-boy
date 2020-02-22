@@ -9,7 +9,7 @@
 #define BOOT_H
 
 const char BOOT_APP[] PROGMEM = "/BIN/BOOT.BIN";
-void* start_address = 0;
+const void (*app_start)(void) = 0x0;
 
 void load(const char* file_path);
 void block_flash_load();

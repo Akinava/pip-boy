@@ -1,6 +1,6 @@
 #include "boot.h"
 
-int main(void){
+void main(void){
   setup_button();
   setup_led();
 
@@ -11,9 +11,8 @@ int main(void){
     SET_LOW(LED_PORT, LED_PIN);
     load(BOOT_APP);
   }else{
-    goto *start_address;
+    app_start();
   }
-  return 0;
 }
 
 void load(const char* file_path){
