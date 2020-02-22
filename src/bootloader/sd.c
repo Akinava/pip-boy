@@ -194,7 +194,7 @@ static uint8_t spi_rec_(void){
 }
 
 
-uint8_t card_command_(uint8_t cmd, uint32_t arg, uint8_t crc){
+static uint8_t card_command_(uint8_t cmd, uint32_t arg, uint8_t crc){
   uint8_t r1;
   // end read if in partialBlockRead mode
   read_end_();
@@ -227,7 +227,7 @@ void read_end_(void){
   }
 }
 
-uint8_t sd_wait_start_block_(void){
+static uint8_t sd_wait_start_block_(void){
   uint8_t r;
   uint16_t retry;
   //wait for start of data
