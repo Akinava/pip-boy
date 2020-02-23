@@ -1,0 +1,4 @@
+SD 1.0 < 2GB
+SD 1.1 < 4GB
+SDHC < 32GB
+SDXC < 2TB
