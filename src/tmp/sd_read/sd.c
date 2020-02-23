@@ -192,6 +192,19 @@ uint8_t spi_rec_(void){
   return SPDR;
 }
 
+void read_end_(void){
+  if (in_block_) {
+    // skip data and crc
+    SPDR = 0XFF;
+    while (offset_++ < 513) {
+      while(!(SPSR & (1 << SPIF)));
+      SPDR = 0XFF;
+    }
+    while(!(SPSR & (1 << SPIF)));//wait for last crc byte
+    SET_HIGH(SD_PORT, SD_CS); // unselect card
+    in_block_ = 0;
+  }
+}
 
 uint8_t card_command_(uint8_t cmd, uint32_t arg, uint8_t crc){
   uint8_t r1;
@@ -210,20 +223,6 @@ uint8_t card_command_(uint8_t cmd, uint32_t arg, uint8_t crc){
   //wait for not busy
   for (uint8_t retry = 0; (r1 = spi_rec_()) == 0xFF && retry != 0XFF; retry++);
   return r1;
-}
-
-void read_end_(void){
-  if (in_block_) {
-    // skip data and crc
-    SPDR = 0XFF;
-    while (offset_++ < 513) {
-      while(!(SPSR & (1 << SPIF)));
-      SPDR = 0XFF;
-    }
-    while(!(SPSR & (1 << SPIF)));//wait for last crc byte
-    SET_HIGH(SD_PORT, SD_CS);
-    in_block_ = 0;
-  }
 }
 
 uint8_t sd_wait_start_block_(void){

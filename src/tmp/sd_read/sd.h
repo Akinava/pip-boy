@@ -23,7 +23,7 @@
 /** status for card in the ready state */
 #define R1_READY_STATE 0
 /** status for card in the idle state */
-#define R1_IDLE_STATE 0x01
+#define R1_IDLE_STATE 1
 /** Standard capacity V2 SD card */
 #define SD_CARD_TYPE_SD2 2
 /** High Capacity SD card */
@@ -37,7 +37,6 @@
 #define SECTOR_LENGTH 4
 
 #define VOL_INFO_OFFSET 0x0b
-//#define VOL_INFO_SIZE 13
 
 #define OBJECT_RECORD_SIZE 32
 #define OBJECT_RECORD_NAME_OFFSET 0
