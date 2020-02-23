@@ -141,18 +141,34 @@ uint8_t card_init_(void){
   // Set MOSI, SCK, CS as Output
   SD_DDR |= _BV(MOSI)|_BV(SCK)|_BV(SD_CS);
   // set sd cs off
-  SET_HIGH(SD_PORT, SD_CS);
+  SD_UNSET(SD_PORT, SD_CS);
   // Enable SPI, Set as Master
   //Prescaler: Fosc/16, Enable Interrupts
   SPCR = _BV(SPE)|_BV(MSTR)|_BV(SPR0); // | (1 << SPR1)
-  uint8_t r = card_command_(CMD0, 0, 0X95);  // 0x3f
 
+  for (uint8_t i=0; i<10; i++){
+    spi_send_(0xFF);
+  }
+
+  cmd_[0] = 0x40 + CMD0;
+	cmd_[1] = 0x00;
+  cmd_[2] = 0x00;
+  cmd_[3] = 0x00;
+  cmd_[4] = 0x00;
+  cmd_[5] = 0x95;
+
+  uint8_t r = send_cmd_();
+  //uint8_t r = card_command_(CMD0, 0, 0X95);  // 0x3f
+  
   for (uint16_t retry = 0; r != R1_IDLE_STATE; retry++){
     if (retry == 0XFFFF) {
       return 0;
     }
-    r = spi_rec_();
+    spi_send_(0xFF);
+    r = SPDR;
   }
+  
+
   r = card_command_(CMD8, 0x1AA, 0X87);
   if (r != 1){
     return 0;
@@ -170,13 +186,13 @@ uint8_t card_init_(void){
       return 0;
   }
   for (uint8_t i = 0; i < 4; i++){
-    spi_rec_();
+    spi_send_(0xFF);
   }
   type_ = SD_CARD_TYPE_SDHC;
   //use max SPI frequency
   SPCR &= ~((1 << SPR1) | (1 << SPR0)); // f_OSC/4
   SPSR |= (1 << SPI2X); // Doubled Clock Frequency: f_OSC/2
-  SET_HIGH(SD_PORT, SD_CS);
+  SD_UNSET(SD_PORT, SD_CS);
   
   return 1;
 }
@@ -184,12 +200,6 @@ uint8_t card_init_(void){
 void spi_send_(uint8_t data){
   SPDR = data;
   while(!(SPSR & (1<<SPIF)));
-}
-
-uint8_t spi_rec_(void){
-  SPDR = 0xFF;
-  while(!(SPSR & (1<<SPIF)));
-  return SPDR;
 }
 
 void read_end_(void){
@@ -201,36 +211,69 @@ void read_end_(void){
       SPDR = 0XFF;
     }
     while(!(SPSR & (1 << SPIF)));//wait for last crc byte
-    SET_HIGH(SD_PORT, SD_CS); // unselect card
+    SD_UNSET(SD_PORT, SD_CS); // unselect card
     in_block_ = 0;
   }
 }
 
-uint8_t card_command_(uint8_t cmd, uint32_t arg, uint8_t crc){
-  uint8_t r1;
+uint8_t send_cmd_(void){
   // end read if in partialBlockRead mode
-  read_end_();
+  //read_end_();
+  spi_send_(0xFF);
   //select card
-  SET_LOW(SD_PORT, SD_CS);
+  SD_SET(SD_PORT, SD_CS);
   // some cards need extra clocks to go to ready state
-  spi_rec_();
+  //spi_send_(0xFF);
+  // send command
+  //
+
+  //spi_send_(cmd | 0x40);
+  //send argument
+  for (int8_t s = 0; s < sizeof(cmd_); s++){
+    spi_send_(cmd_[s]);
+  }
+  //send CRC
+  //spi_send_(crc);
+  //wait for not busy
+  spi_send_(0xFF);
+  for (uint8_t retry = 0; SPDR == 0xFF && retry != 0xFF; retry++){
+    spi_send_(0xFF);
+  }
+  return SPDR;
+}
+
+uint8_t card_command_(uint8_t cmd, uint32_t arg, uint8_t crc){
+  // end read if in partialBlockRead mode
+  //read_end_();
+  spi_send_(0xFF);
+  //select card
+  SD_SET(SD_PORT, SD_CS);
+  // some cards need extra clocks to go to ready state
+  //spi_send_(0xFF);
   // send command
   spi_send_(cmd | 0x40);
   //send argument
-  for (int8_t s = 24; s >= 0; s -= 8) spi_send_(arg >> s);
+  for (int8_t s = 24; s >= 0; s -= 8){
+    spi_send_(arg >> s);
+  }
   //send CRC
   spi_send_(crc);
   //wait for not busy
-  for (uint8_t retry = 0; (r1 = spi_rec_()) == 0xFF && retry != 0XFF; retry++);
-  return r1;
+  spi_send_(0xFF);
+  for (uint8_t retry = 0; SPDR == 0xFF && retry != 0XFF; retry++){
+    spi_send_(0xFF);
+  }
+  return SPDR;
 }
 
 uint8_t sd_wait_start_block_(void){
-  uint8_t r;
   uint16_t retry;
   //wait for start of data
-  for (retry = 0; ((r = spi_rec_()) == 0XFF) && retry != 10000; retry++);
-  if (r == DATA_START_BLOCK) return 1;
+  spi_send_(0xFF);
+  for (retry = 0; (SPDR == 0XFF) && retry != 10000; retry++){
+    spi_send_(0xFF);
+  }
+  if (SPDR == DATA_START_BLOCK) return 1;
   return 0;
 }
 

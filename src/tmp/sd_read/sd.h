@@ -2,23 +2,25 @@
 #include "macro.h"
 #include "pins.h"
 
+#include "display.h"
+
 #ifndef SD_H
 #define SD_H
 
 // SD card commands
 /** GO_IDLE_STATE - init card in spi mode if CS low */
-#define CMD0     0x00      
+#define CMD0     0      
 /** SEND_IF_COND - verify SD Memory Card interface operating condition.*/
-#define CMD8     0x08
+#define CMD8     8
 /** APP_CMD - escape for application specific command */
-#define CMD55    0x37 
+#define CMD55    55 
 /** READ_BLOCK - read a single data block from the card */
-#define CMD17    0x11
+#define CMD17    17
 /** SD_SEND_OP_COMD - Sends host capacity support information and
     activates the card's initialization process */
-#define ACMD41   0x29   
+#define ACMD41   41  
 /** READ_OCR - read the OCR register of a card */
-#define CMD58    0x3a
+#define CMD58    58
 
 /** status for card in the ready state */
 #define R1_READY_STATE 0
@@ -30,7 +32,7 @@
 #define SD_CARD_TYPE_SDHC 3
 
 /** start data token for read or write */
-#define DATA_START_BLOCK 0Xfe
+#define DATA_START_BLOCK 0xfe
 
 #define VOL_ADDRESS_OFFSET 0x01c6
 
@@ -47,6 +49,9 @@
 #define CHAR_SLASH 0x2f
 #define CHAR_DOT 0x2e
 #define CHAR_SPACE 0x20
+
+#define SD_SET SET_LOW
+#define SD_UNSET SET_HIGH
 
 typedef struct {
   uint32_t sector;
@@ -74,6 +79,7 @@ uint8_t sd_raw_read_(uint32_t block, uint16_t offset, uint8_t *dst, uint16_t cou
 uint8_t card_command_(uint8_t cmd, uint32_t arg, uint8_t crc);
 void read_end_(void);
 uint8_t sd_wait_start_block_(void);
+uint8_t send_cmd_(void);
 
 typedef struct {
   uint16_t bytes_per_sector;
@@ -87,6 +93,10 @@ typedef struct {
 } vol_info_t;
 
 vol_info_t vol_info_;
+
+
+uint8_t cmd_[6];
+
 
 uint32_t fat_sector_;
 uint32_t root_sector_;
