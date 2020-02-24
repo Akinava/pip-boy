@@ -150,7 +150,7 @@ uint8_t card_init_(void){
     spi_send_(0xFF);
   }
 
-  cmd_[0] = 0x40 | CMD0;
+  cmd_[0] = CMD0;
 	cmd_[1] = 0x00;
   cmd_[2] = 0x00;
   cmd_[3] = 0x00;
@@ -166,21 +166,18 @@ uint8_t card_init_(void){
     spi_send_(0xFF);
   }
 
-  uint8_t r;
-  
-  cmd_[0] = 0x40 | CMD8;
+  cmd_[0] = CMD8;
   cmd_[3] = 0x01;
   cmd_[4] = 0xAA;
   cmd_[5] = 0x87;
   send_cmd_();
 
-  //r = card_command_(CMD8, 0x1AA, 0X87);
-
-  //if (r != 1){
   if (SPDR != 1){
     return 0;
   }
+ 
   
+  uint8_t r;
   for (uint16_t retry = 0; ; retry++) {
     card_command_(CMD55, 0, 0XFF);
     r = card_command_(ACMD41, 0X40000000, 0XFF);
@@ -189,6 +186,7 @@ uint8_t card_init_(void){
       return 0;
     }
   }
+  
   
   if (card_command_(CMD58, 0, 0XFF)) {
       return 0;
@@ -226,24 +224,15 @@ void read_end_(void){
 }
 
 void send_cmd_(void){
-  // end read if in partialBlockRead mode
-  //read_end_();
   spi_send_(0xFF);
-  //select card
   SD_SET(SD_PORT, SD_CS);
-  // some cards need extra clocks to go to ready state
-  //spi_send_(0xFF);
-  // send command
-  //
 
   //spi_send_(cmd | 0x40);
   //send argument
+  cmd_[0] |= 0x40;
   for (int8_t s = 0; s < sizeof(cmd_); s++){
     spi_send_(cmd_[s]);
   }
-  //send CRC
-  //spi_send_(crc);
-  //wait for not busy
   spi_send_(0xFF);
   for (uint8_t retry = 0; SPDR == 0xFF && retry != 0xFF; retry++){
     spi_send_(0xFF);
