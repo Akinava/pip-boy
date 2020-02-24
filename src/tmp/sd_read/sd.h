@@ -79,7 +79,7 @@ uint8_t sd_raw_read_(uint32_t block, uint16_t offset, uint8_t *dst, uint16_t cou
 uint8_t card_command_(uint8_t cmd, uint32_t arg, uint8_t crc);
 void read_end_(void);
 uint8_t sd_wait_start_block_(void);
-uint8_t send_cmd_(void);
+void send_cmd_(void);
 
 typedef struct {
   uint16_t bytes_per_sector;

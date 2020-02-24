@@ -150,30 +150,37 @@ uint8_t card_init_(void){
     spi_send_(0xFF);
   }
 
-  cmd_[0] = 0x40 + CMD0;
+  cmd_[0] = 0x40 | CMD0;
 	cmd_[1] = 0x00;
   cmd_[2] = 0x00;
   cmd_[3] = 0x00;
   cmd_[4] = 0x00;
   cmd_[5] = 0x95;
 
-  uint8_t r = send_cmd_();
-  //uint8_t r = card_command_(CMD0, 0, 0X95);  // 0x3f
+  send_cmd_();
   
-  for (uint16_t retry = 0; r != R1_IDLE_STATE; retry++){
-    if (retry == 0XFFFF) {
+  for (uint16_t retry = 0; SPDR != R1_IDLE_STATE; retry++){
+    if (retry == 0xFFFF) {
       return 0;
     }
     spi_send_(0xFF);
-    r = SPDR;
   }
-  
 
-  r = card_command_(CMD8, 0x1AA, 0X87);
-  if (r != 1){
+  uint8_t r;
+  
+  cmd_[0] = 0x40 | CMD8;
+  cmd_[3] = 0x01;
+  cmd_[4] = 0xAA;
+  cmd_[5] = 0x87;
+  send_cmd_();
+
+  //r = card_command_(CMD8, 0x1AA, 0X87);
+
+  //if (r != 1){
+  if (SPDR != 1){
     return 0;
   }
-
+  
   for (uint16_t retry = 0; ; retry++) {
     card_command_(CMD55, 0, 0XFF);
     r = card_command_(ACMD41, 0X40000000, 0XFF);
@@ -182,12 +189,14 @@ uint8_t card_init_(void){
       return 0;
     }
   }
+  
   if (card_command_(CMD58, 0, 0XFF)) {
       return 0;
   }
   for (uint8_t i = 0; i < 4; i++){
     spi_send_(0xFF);
   }
+  
   type_ = SD_CARD_TYPE_SDHC;
   //use max SPI frequency
   SPCR &= ~((1 << SPR1) | (1 << SPR0)); // f_OSC/4
@@ -216,7 +225,7 @@ void read_end_(void){
   }
 }
 
-uint8_t send_cmd_(void){
+void send_cmd_(void){
   // end read if in partialBlockRead mode
   //read_end_();
   spi_send_(0xFF);
@@ -239,7 +248,6 @@ uint8_t send_cmd_(void){
   for (uint8_t retry = 0; SPDR == 0xFF && retry != 0xFF; retry++){
     spi_send_(0xFF);
   }
-  return SPDR;
 }
 
 uint8_t card_command_(uint8_t cmd, uint32_t arg, uint8_t crc){
