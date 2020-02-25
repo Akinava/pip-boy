@@ -127,16 +127,15 @@ uint8_t cmp_(uint8_t* s1, uint8_t* s2){
 }
 
 uint8_t vol_init_(void){
-  read_sector_(0);
-  return 0;
+  // volume address
+  if(!read_sector_(0)){return 0;}
+  volume_sector_ = *((uint32_t*)(sector_buffer_ + VOL_ADDRESS_OFFSET));
+  // volume info
+  if(!read_sector_(volume_sector_)){return 0;}
+  vol_info_ = *((vol_info_t*)(sector_buffer_ + VOL_INFO_OFFSET));
 
-  uint8_t* vol_address_buf = ((uint8_t*)&volume_sector_);
-  if (!sd_raw_read_(0, VOL_ADDRESS_OFFSET, vol_address_buf, SECTOR_LENGTH)){return 0;}
-
-  return 0;
-
-  uint8_t* vol_info_buf = ((uint8_t*)&vol_info_);
-  if (!sd_raw_read_(volume_sector_, VOL_INFO_OFFSET, vol_info_buf, sizeof(vol_info_))){return 0;}
+  ///uint8_t* vol_info_buf = ((uint8_t*)&vol_info_);
+  //if (!sd_raw_read_(volume_sector_, VOL_INFO_OFFSET, vol_info_buf, sizeof(vol_info_))){return 0;}
   fat_sector_ = volume_sector_ + vol_info_.reserved_sectors; 
   root_sector_ = fat_sector_ + vol_info_.sectors_per_FAT * vol_info_.number_of_FATs;
   data_sector_ = root_sector_ + vol_info_.root_directory_entries * OBJECT_RECORD_SIZE / vol_info_.bytes_per_sector;
@@ -185,6 +184,7 @@ uint8_t card_init_(void){
   if(SPDR){
       return 0;
   }
+
   for (uint8_t i = 0; i < 4; i++){
     spi_send_(0xFF);
   }
@@ -254,6 +254,9 @@ uint8_t read_sector_(uint32_t sector){
     spi_send_(0xFF);
     sector_buffer_[i] = SPDR;
   }
+  spi_send_(0xFF);
+  spi_send_(0xFF);
+  SD_UNSET(SD_PORT, SD_CS);
   return 1;
 }
 
