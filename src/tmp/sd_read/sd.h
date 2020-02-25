@@ -76,10 +76,9 @@ void file_info_parce_(file_t* file, uint8_t* file_info);
 void spi_send_(uint8_t data);
 uint8_t spi_rec_(void);
 uint8_t sd_raw_read_(uint32_t block, uint16_t offset, uint8_t *dst, uint16_t count);
-uint8_t card_command_(uint8_t cmd, uint32_t arg, uint8_t crc);
+void card_command_(uint8_t cmd, uint32_t arg, uint8_t crc);
 void read_end_(void);
 uint8_t sd_wait_start_block_(void);
-void send_cmd_(void);
 
 typedef struct {
   uint16_t bytes_per_sector;
@@ -94,10 +93,6 @@ typedef struct {
 
 vol_info_t vol_info_;
 
-
-uint8_t cmd_[6];
-
-
 uint32_t fat_sector_;
 uint32_t root_sector_;
 uint32_t data_sector_;
@@ -105,7 +100,6 @@ uint8_t obj_name_[OBJECT_NAME_SIZE];
 
 uint16_t offset_;
 uint8_t in_block_;
-uint8_t type_;
 uint32_t block_;
 uint8_t partial_block_read_;
 uint32_t volume_sector_;

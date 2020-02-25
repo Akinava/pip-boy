@@ -150,57 +150,45 @@ uint8_t card_init_(void){
     spi_send_(0xFF);
   }
 
-  cmd_[0] = CMD0;
-	cmd_[1] = 0x00;
-  cmd_[2] = 0x00;
-  cmd_[3] = 0x00;
-  cmd_[4] = 0x00;
-  cmd_[5] = 0x95;
-
-  send_cmd_();
+  card_command_(CMD0, 0, 0x95);
   
-  for (uint16_t retry = 0; SPDR != R1_IDLE_STATE; retry++){
-    if (retry == 0xFFFF) {
+  for (uint16_t retry = 0; ;retry++){
+  if (retry == 0xFFFF) {
       return 0;
+    }
+    if (SPDR == R1_IDLE_STATE){
+      break;
     }
     spi_send_(0xFF);
   }
 
-  cmd_[0] = CMD8;
-  cmd_[3] = 0x01;
-  cmd_[4] = 0xAA;
-  cmd_[5] = 0x87;
-  send_cmd_();
+  card_command_(CMD8, 0x01AA, 0x87);
 
   if (SPDR != 1){
     return 0;
   }
  
-  
-  uint8_t r;
   for (uint16_t retry = 0; ; retry++) {
     card_command_(CMD55, 0, 0xFF);
-    r = card_command_(ACMD41, 0x40000000, 0xFF);
-    if (r == R1_READY_STATE)break;
+    card_command_(ACMD41, 0x40000000, 0xFF);
+    if (SPDR == R1_READY_STATE)break;
     if (retry == 1000) {
       return 0;
     }
   }
-  
-  
-  if (card_command_(CMD58, 0, 0xFF)) {
+
+  card_command_(CMD58, 0, 0xFF );
+  if(SPDR){
       return 0;
   }
   for (uint8_t i = 0; i < 4; i++){
     spi_send_(0xFF);
   }
   
-  type_ = SD_CARD_TYPE_SDHC;
   //use max SPI frequency
   SPCR &= ~((1 << SPR1) | (1 << SPR0)); // f_OSC/4
   SPSR |= (1 << SPI2X); // Doubled Clock Frequency: f_OSC/2
   SD_UNSET(SD_PORT, SD_CS);
-  
   return 1;
 }
 
@@ -223,23 +211,7 @@ void read_end_(void){
   }
 }
 
-void send_cmd_(void){
-  spi_send_(0xFF);
-  SD_SET(SD_PORT, SD_CS);
-
-  //spi_send_(cmd | 0x40);
-  //send argument
-  cmd_[0] |= 0x40;
-  for (int8_t s = 0; s < sizeof(cmd_); s++){
-    spi_send_(cmd_[s]);
-  }
-  spi_send_(0xFF);
-  for (uint8_t retry = 0; SPDR == 0xFF && retry != 0xFF; retry++){
-    spi_send_(0xFF);
-  }
-}
-
-uint8_t card_command_(uint8_t cmd, uint32_t arg, uint8_t crc){
+void card_command_(uint8_t cmd, uint32_t arg, uint8_t crc){
   // end read if in partialBlockRead mode
   //read_end_();
   spi_send_(0xFF);
@@ -260,7 +232,6 @@ uint8_t card_command_(uint8_t cmd, uint32_t arg, uint8_t crc){
   for (uint8_t retry = 0; SPDR == 0xFF && retry != 0xFF; retry++){
     spi_send_(0xFF);
   }
-  return SPDR;
 }
 
 uint8_t sd_wait_start_block_(void){
@@ -283,8 +254,8 @@ uint8_t sd_raw_read_(uint32_t block, uint16_t offset, uint8_t *dst, uint16_t cou
   if (!in_block_ || block != block_ || offset < offset_) {
     block_ = block;
     //use address if not SDHC card
-    if (type_ != SD_CARD_TYPE_SDHC) block <<= 9;
-    if (card_command_(CMD17, block, 0xFF)) {
+    card_command_(CMD17, block, 0xFF);
+    if (SPDR){
       return 0;
     }
     if (!sd_wait_start_block_()) return 0;
