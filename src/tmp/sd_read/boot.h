@@ -14,7 +14,7 @@ const char BOOT_APP[] PROGMEM = "/BIN/BOOT.BIN";
 const int (*app_start)(void) = 0x0;
 
 void load(const char* file_path);
-void block_flash_load_();
+void block_flash_load_(uint32_t* address);
 void setup_button_(void);
 void setup_led_(void);
 void error_light_(void);

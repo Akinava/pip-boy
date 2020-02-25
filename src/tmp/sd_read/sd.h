@@ -60,9 +60,11 @@ typedef struct {
   uint32_t cursor;
 } file_t;
 
+uint8_t sector_buffer[512];
+
 uint8_t sd_init(void);
 uint8_t file_open(const char* file_path, file_t* boot_file);
-uint8_t file_read(file_t* file, uint8_t* buf, uint16_t size);
+uint8_t file_read(file_t* file);
 
 uint8_t card_init_(void);
 uint8_t vol_init_(void);
@@ -80,8 +82,6 @@ void card_command_(uint8_t cmd, uint32_t arg, uint8_t crc);
 void read_end_(void);
 uint8_t wait_start_block_(void);
 uint8_t read_sector_(uint32_t sector);
-
-uint8_t sector_buffer_[512];
 
 typedef struct {
   uint16_t bytes_per_sector;

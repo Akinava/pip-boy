@@ -18,7 +18,6 @@ int main(void){
 void load(const char* file_path){
   setup_led_();
 
-  uint8_t buf[SPM_PAGESIZE];
   uint32_t address = 0;
 
   // FIXME
@@ -35,10 +34,10 @@ void load(const char* file_path){
   }
 
   while(boot_file.cursor < boot_file.size){
-    if (!file_read(&boot_file, buf, SPM_PAGESIZE)){
+    if (!file_read(&boot_file)){
       error_blink_();
     }
-    block_flash_load_(&address, buf);
+    block_flash_load_(&address);
   }
   SET_HIGH(LED_PORT, LED_PIN);
   _delay_ms(100);
@@ -47,10 +46,10 @@ void load(const char* file_path){
   reboot_();
  }
 
-void block_flash_load_(uint32_t* address, uint8_t* buf){
+void block_flash_load_(uint32_t* address){
   // FIXME
   for(uint8_t i = 0; i < SPM_PAGESIZE; i++){
-    show_u8( *(buf + i), i%16, i/16);
+    show_u8(*(sector_buffer + i), i%16, i/16);
   } 
   displayUpdate();
   while(!CHECK_PIN(BUTTON_C_PINS, BUTTON_C_PIN)){};
