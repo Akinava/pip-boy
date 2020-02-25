@@ -9,14 +9,6 @@ uint8_t file_read(file_t* file, uint8_t* buf, uint16_t size){
   if (!sd_raw_read_(sector, offset, buf, size)){return 0;}
   file->cursor += size;
   return 1;
-  /*
-  read_sector_(file->sector);
-  for (uint8_t i=0; i<SPM_PAGESIZE; i++){
-    show_u8(sector_buffer_[i], i%16, i/16);
-  }
-  displayUpdate();
-  return 0;
-  */
 }
 
 uint8_t file_open(const char* file_path, file_t* file){
@@ -135,8 +127,13 @@ uint8_t cmp_(uint8_t* s1, uint8_t* s2){
 }
 
 uint8_t vol_init_(void){
+  read_sector_(0);
+  return 0;
+
   uint8_t* vol_address_buf = ((uint8_t*)&volume_sector_);
   if (!sd_raw_read_(0, VOL_ADDRESS_OFFSET, vol_address_buf, SECTOR_LENGTH)){return 0;}
+
+  return 0;
 
   uint8_t* vol_info_buf = ((uint8_t*)&vol_info_);
   if (!sd_raw_read_(volume_sector_, VOL_INFO_OFFSET, vol_info_buf, sizeof(vol_info_))){return 0;}
@@ -238,13 +235,9 @@ uint8_t wait_start_block_(void){
 
 void read_end_(void){
   if (in_block_) {
-    // skip data and crc
-    SPDR = 0xFF;
-    while (offset_++ < 513) {
-      while(!(SPSR & (1 << SPIF)));
-      SPDR = 0xFF;
-    }
-    while(!(SPSR & (1 << SPIF)));//wait for last crc byte
+    do{
+     spi_send_(0xFF); 
+    }while (offset_++ < 513);
     SD_UNSET(SD_PORT, SD_CS); // unselect card
     in_block_ = 0;
   }
@@ -252,21 +245,14 @@ void read_end_(void){
 
 uint8_t read_sector_(uint32_t sector){
   card_command_(CMD17, sector, 0xFF);
-
-  // FIXME maybe not need
-  if (SPDR){
-    return 0;
-  }
-
-  if (!wait_start_block_()){
+  if (SPDR || !wait_start_block_()){
     return 0;
   }
 
   // read sector
   for (uint16_t i = 0; i < 512; i++) {
-    while(!(SPSR & (1 << SPIF)));
+    spi_send_(0xFF);
     sector_buffer_[i] = SPDR;
-    SPDR = 0xFF;
   }
   return 1;
 }
