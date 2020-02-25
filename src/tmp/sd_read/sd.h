@@ -78,7 +78,10 @@ uint8_t spi_rec_(void);
 uint8_t sd_raw_read_(uint32_t block, uint16_t offset, uint8_t *dst, uint16_t count);
 void card_command_(uint8_t cmd, uint32_t arg, uint8_t crc);
 void read_end_(void);
-uint8_t sd_wait_start_block_(void);
+uint8_t wait_start_block_(void);
+uint8_t read_sector_(uint32_t sector);
+
+uint8_t sector_buffer_[512];
 
 typedef struct {
   uint16_t bytes_per_sector;

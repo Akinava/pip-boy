@@ -9,6 +9,14 @@ uint8_t file_read(file_t* file, uint8_t* buf, uint16_t size){
   if (!sd_raw_read_(sector, offset, buf, size)){return 0;}
   file->cursor += size;
   return 1;
+  /*
+  read_sector_(file->sector);
+  for (uint8_t i=0; i<SPM_PAGESIZE; i++){
+    show_u8(sector_buffer_[i], i%16, i/16);
+  }
+  displayUpdate();
+  return 0;
+  */
 }
 
 uint8_t file_open(const char* file_path, file_t* file){
@@ -21,14 +29,15 @@ uint8_t file_open(const char* file_path, file_t* file){
   uint8_t c;
   uint8_t i = 0;
   uint8_t obj_i = 0;
+
   file->sector = root_sector_;
   file->cursor = 0;
 
   do{
     c = pgm_read_byte_near(file_path + i);
-    if (c==CHAR_SLASH || !c){
+    if (c == CHAR_SLASH || !c){
       if (i){
-      if (!find_obj_by_name(obj_name_, file)){return 0;}
+        if (!find_obj_by_name(obj_name_, file)){return 0;}
       }
       obj_i = 0;
       memset_(obj_name_, CHAR_SPACE, OBJECT_NAME_SIZE);
@@ -151,7 +160,6 @@ uint8_t card_init_(void){
   }
 
   card_command_(CMD0, 0, 0x95);
-  
   for (uint16_t retry = 0; ;retry++){
   if (retry == 0xFFFF) {
       return 0;
@@ -163,7 +171,6 @@ uint8_t card_init_(void){
   }
 
   card_command_(CMD8, 0x01AA, 0x87);
-
   if (SPDR != 1){
     return 0;
   }
@@ -197,6 +204,38 @@ void spi_send_(uint8_t data){
   while(!(SPSR & (1<<SPIF)));
 }
 
+void card_command_(uint8_t cmd, uint32_t arg, uint8_t crc){
+  // end read if in partialBlockRead mode
+  spi_send_(0xFF);
+  //select card
+  SD_SET(SD_PORT, SD_CS);
+  // send command
+  spi_send_(cmd | 0x40);
+  //send argument
+  for (int8_t s = 24; s >= 0; s -= 8){
+    spi_send_(arg >> s);
+  }
+  //send CRC
+  spi_send_(crc);
+  //wait for not busy
+  spi_send_(0xFF);
+  for (uint8_t retry = 0; retry < 0xFF; retry++){
+    spi_send_(0xFF);
+    if (SPDR != 0xFF){
+      break;
+    }
+  }
+}
+
+uint8_t wait_start_block_(void){
+  uint16_t retry = 10000;
+  do{
+    spi_send_(0xFF);
+    if (SPDR == DATA_START_BLOCK) return 1;
+  }while(retry);
+  return 0;
+}
+
 void read_end_(void){
   if (in_block_) {
     // skip data and crc
@@ -211,38 +250,25 @@ void read_end_(void){
   }
 }
 
-void card_command_(uint8_t cmd, uint32_t arg, uint8_t crc){
-  // end read if in partialBlockRead mode
-  //read_end_();
-  spi_send_(0xFF);
-  //select card
-  SD_SET(SD_PORT, SD_CS);
-  // some cards need extra clocks to go to ready state
-  //spi_send_(0xFF);
-  // send command
-  spi_send_(cmd | 0x40);
-  //send argument
-  for (int8_t s = 24; s >= 0; s -= 8){
-    spi_send_(arg >> s);
-  }
-  //send CRC
-  spi_send_(crc);
-  //wait for not busy
-  spi_send_(0xFF);
-  for (uint8_t retry = 0; SPDR == 0xFF && retry != 0xFF; retry++){
-    spi_send_(0xFF);
-  }
-}
+uint8_t read_sector_(uint32_t sector){
+  card_command_(CMD17, sector, 0xFF);
 
-uint8_t sd_wait_start_block_(void){
-  uint16_t retry;
-  //wait for start of data
-  spi_send_(0xFF);
-  for (retry = 0; (SPDR == 0xFF) && retry != 10000; retry++){
-    spi_send_(0xFF);
+  // FIXME maybe not need
+  if (SPDR){
+    return 0;
   }
-  if (SPDR == DATA_START_BLOCK) return 1;
-  return 0;
+
+  if (!wait_start_block_()){
+    return 0;
+  }
+
+  // read sector
+  for (uint16_t i = 0; i < 512; i++) {
+    while(!(SPSR & (1 << SPIF)));
+    sector_buffer_[i] = SPDR;
+    SPDR = 0xFF;
+  }
+  return 1;
 }
 
 uint8_t sd_raw_read_(uint32_t block, uint16_t offset, uint8_t *dst, uint16_t count)
@@ -258,7 +284,7 @@ uint8_t sd_raw_read_(uint32_t block, uint16_t offset, uint8_t *dst, uint16_t cou
     if (SPDR){
       return 0;
     }
-    if (!sd_wait_start_block_()) return 0;
+    if (!wait_start_block_()) return 0;
     offset_ = 0;
     in_block_ = 1;
   }
