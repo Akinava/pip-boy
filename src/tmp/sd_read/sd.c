@@ -179,8 +179,8 @@ uint8_t card_init_(void){
   
   uint8_t r;
   for (uint16_t retry = 0; ; retry++) {
-    card_command_(CMD55, 0, 0XFF);
-    r = card_command_(ACMD41, 0X40000000, 0XFF);
+    card_command_(CMD55, 0, 0xFF);
+    r = card_command_(ACMD41, 0x40000000, 0xFF);
     if (r == R1_READY_STATE)break;
     if (retry == 1000) {
       return 0;
@@ -188,7 +188,7 @@ uint8_t card_init_(void){
   }
   
   
-  if (card_command_(CMD58, 0, 0XFF)) {
+  if (card_command_(CMD58, 0, 0xFF)) {
       return 0;
   }
   for (uint8_t i = 0; i < 4; i++){
@@ -212,10 +212,10 @@ void spi_send_(uint8_t data){
 void read_end_(void){
   if (in_block_) {
     // skip data and crc
-    SPDR = 0XFF;
+    SPDR = 0xFF;
     while (offset_++ < 513) {
       while(!(SPSR & (1 << SPIF)));
-      SPDR = 0XFF;
+      SPDR = 0xFF;
     }
     while(!(SPSR & (1 << SPIF)));//wait for last crc byte
     SD_UNSET(SD_PORT, SD_CS); // unselect card
@@ -257,7 +257,7 @@ uint8_t card_command_(uint8_t cmd, uint32_t arg, uint8_t crc){
   spi_send_(crc);
   //wait for not busy
   spi_send_(0xFF);
-  for (uint8_t retry = 0; SPDR == 0xFF && retry != 0XFF; retry++){
+  for (uint8_t retry = 0; SPDR == 0xFF && retry != 0xFF; retry++){
     spi_send_(0xFF);
   }
   return SPDR;
@@ -267,7 +267,7 @@ uint8_t sd_wait_start_block_(void){
   uint16_t retry;
   //wait for start of data
   spi_send_(0xFF);
-  for (retry = 0; (SPDR == 0XFF) && retry != 10000; retry++){
+  for (retry = 0; (SPDR == 0xFF) && retry != 10000; retry++){
     spi_send_(0xFF);
   }
   if (SPDR == DATA_START_BLOCK) return 1;
@@ -284,7 +284,7 @@ uint8_t sd_raw_read_(uint32_t block, uint16_t offset, uint8_t *dst, uint16_t cou
     block_ = block;
     //use address if not SDHC card
     if (type_ != SD_CARD_TYPE_SDHC) block <<= 9;
-    if (card_command_(CMD17, block, 0XFF)) {
+    if (card_command_(CMD17, block, 0xFF)) {
       return 0;
     }
     if (!sd_wait_start_block_()) return 0;
@@ -292,18 +292,18 @@ uint8_t sd_raw_read_(uint32_t block, uint16_t offset, uint8_t *dst, uint16_t cou
     in_block_ = 1;
   }
   //start first spi transfer
-  SPDR = 0XFF;
+  SPDR = 0xFF;
   //skip data before offset
   for (;offset_ < offset; offset_++) {
     while(!(SPSR & (1 << SPIF)));
-    SPDR = 0XFF;
+    SPDR = 0xFF;
   }
   //transfer data
   uint16_t n = count - 1;
   for (uint16_t i = 0; i < n; i++) {
     while(!(SPSR & (1 << SPIF)));
     dst[i] = SPDR;
-    SPDR = 0XFF;
+    SPDR = 0xFF;
   }
   while(!(SPSR & (1 << SPIF)));// wait for last byte
   dst[n] = SPDR;
