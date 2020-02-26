@@ -55,43 +55,48 @@ uint8_t find_obj_by_name(uint8_t* obj_name, file_t* file){
   // parameters:
   // obj_name - object name and ext in fat16 format cahr[8+3], exp: "APP     BIN"
   // file     -  file sector and file size
-  uint16_t directory_entries = vol_info_.root_directory_entries;
+  uint8_t sectors = vol_info_.root_directory_entries * OBJECT_RECORD_SIZE / vol_info_.bytes_per_sector; 
+
   if (file->sector != root_sector_){
-     directory_entries = vol_info_.sectors_per_claster * vol_info_.bytes_per_sector / OBJECT_RECORD_SIZE; 
+     sectors = vol_info_.sectors_per_claster;
   }
 
-  uint8_t obj_buf[OBJECT_RECORD_SIZE];
   uint8_t records_per_sector = vol_info_.bytes_per_sector / OBJECT_RECORD_SIZE;
+  uint8_t obj_buf[OBJECT_RECORD_SIZE];
 
   do{
-    for (uint16_t i=0; i<directory_entries; i++){
-      uint32_t rec_sector = file->sector + i / records_per_sector;
-      uint16_t rec_offset = i % records_per_sector * OBJECT_RECORD_SIZE;
+    for (uint8_t sector_offset = 0; sector_offset < sectors; sector_offset++){
+      if (!read_sector_(file->sector+sector_offset)){return 0;}
 
-      if (!sd_raw_read_(rec_sector, rec_offset, obj_buf, OBJECT_RECORD_SIZE)){return 0;}
+      for (uint8_t record_offset = 0; record_offset < records_per_sector; record_offset++){
+        memcpy_(obj_buf, sector_buffer + record_offset * 32, OBJECT_RECORD_SIZE);
 
-      if (cmp_(obj_buf, obj_name)){
-        file_info_parce_(file, obj_buf);
-        return 1;
+        if (cmp_(obj_buf, obj_name)){
+          file_info_parce_(file, obj_buf);
+          return 1;
+        }
       }
     }
   }while(next_claster_(file));
   return 0;
 }
 
+void memcpy_(uint8_t* dst, uint8_t* src, uint8_t len){
+  for (uint8_t i=0; i<len; i++){
+    *(dst + i) = *(src + i);
+  }
+}
+
 uint8_t next_claster_(file_t* file){
   if (file->sector == root_sector_){return 0;}
-  uint8_t* cluster_buf = ((uint8_t*)&file->cluster);
   uint16_t fat_cluster_size = sizeof(file->cluster);
   uint16_t fat_cluster_place = file->cluster*fat_cluster_size;
-
-  if (!sd_raw_read_(fat_sector_, fat_cluster_place, cluster_buf, fat_cluster_size)){return 0;}
+  if (!read_sector_(fat_sector_)){return 0;}
+  file->cluster = *((uint32_t*)(sector_buffer + fat_cluster_place));
   if (file->sector >= END_OF_CLASTERCHAIN){return 0;}
-
   get_sector_by_cluster_(file);
   return 1;
 }
-
 
 void file_info_parce_(file_t* file, uint8_t* file_info){
   file->cluster = warp_bytes_(file_info, cluster_bytes_rule);
@@ -256,43 +261,5 @@ uint8_t read_sector_(uint32_t sector){
   spi_send_(0xFF);
   spi_send_(0xFF);
   SD_UNSET(SD_PORT, SD_CS);
-  return 1;
-}
-
-uint8_t sd_raw_read_(uint32_t block, uint16_t offset, uint8_t *dst, uint16_t count)
-{
-  if (count == 0) return 1;
-  if ((count + offset) > 512) {
-    return 0;
-  }
-  if (!in_block_ || block != block_ || offset < offset_) {
-    block_ = block;
-    //use address if not SDHC card
-    card_command_(CMD17, block, 0xFF);
-    if (SPDR){
-      return 0;
-    }
-    if (!wait_start_block_()) return 0;
-    offset_ = 0;
-    in_block_ = 1;
-  }
-  //start first spi transfer
-  SPDR = 0xFF;
-  //skip data before offset
-  for (;offset_ < offset; offset_++) {
-    while(!(SPSR & (1 << SPIF)));
-    SPDR = 0xFF;
-  }
-  //transfer data
-  uint16_t n = count - 1;
-  for (uint16_t i = 0; i < n; i++) {
-    while(!(SPSR & (1 << SPIF)));
-    dst[i] = SPDR;
-    SPDR = 0xFF;
-  }
-  while(!(SPSR & (1 << SPIF)));// wait for last byte
-  dst[n] = SPDR;
-  offset_ += count;
-  if (!partial_block_read_ || offset_ >= 512) read_end_();
   return 1;
 }
