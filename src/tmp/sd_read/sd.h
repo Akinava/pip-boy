@@ -54,7 +54,7 @@
 #define SD_UNSET SET_HIGH
 
 typedef struct {
-  uint32_t sector;
+  uint32_t sector; // start of file
   uint32_t size;
   uint16_t cluster;
   uint32_t cursor;

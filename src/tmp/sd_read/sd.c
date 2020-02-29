@@ -235,16 +235,6 @@ uint8_t wait_start_block_(void){
   return 0;
 }
 
-void read_end_(void){
-  if (in_block_) {
-    do{
-     spi_send_(0xFF); 
-    }while (offset_++ < 513);
-    SD_UNSET(SD_PORT, SD_CS); // unselect card
-    in_block_ = 0;
-  }
-}
-
 uint8_t read_sector_(uint32_t sector){
   card_command_(CMD17, sector, 0xFF);
   if (SPDR || !wait_start_block_()){
