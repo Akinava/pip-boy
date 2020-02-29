@@ -81,12 +81,6 @@ uint8_t find_obj_by_name(uint8_t* obj_name, file_t* file){
   return 0;
 }
 
-void memcpy_(uint8_t* dst, uint8_t* src, uint8_t len){
-  for (uint8_t i=0; i<len; i++){
-    *(dst + i) = *(src + i);
-  }
-}
-
 uint8_t next_claster_(file_t* file){
   if (file->sector == root_sector_){return 0;}
   uint16_t fat_cluster_size = sizeof(file->cluster);
@@ -115,6 +109,12 @@ uint32_t warp_bytes_(uint8_t* file_info, const uint8_t* rule){
     res |= file_info[r] << (8*i);
   }
   return res;
+}
+
+void memcpy_(uint8_t* dst, uint8_t* src, uint8_t len){
+  for (uint8_t i=0; i<len; i++){
+    *(dst++) = *(src++);
+  }
 }
 
 void memset_(uint8_t* s1, uint8_t c, uint8_t size){

@@ -79,7 +79,6 @@ void file_info_parce_(file_t* file, uint8_t* file_info);
 void spi_send_(uint8_t data);
 uint8_t spi_rec_(void);
 void card_command_(uint8_t cmd, uint32_t arg, uint8_t crc);
-void read_end_(void);
 uint8_t wait_start_block_(void);
 uint8_t read_sector_(uint32_t sector);
 
