@@ -62,6 +62,19 @@ typedef struct {
 
 uint8_t sector_buffer[512];
 
+typedef struct {
+  uint16_t bytes_per_sector;
+  uint8_t sectors_per_claster;
+  uint16_t reserved_sectors;
+  uint8_t number_of_FATs;
+  uint16_t root_directory_entries;
+  uint16_t total_logical_sectors;
+  uint8_t media_descriptor;
+  uint16_t sectors_per_FAT; 
+} vol_info_t;
+
+vol_info_t vol_info;
+
 uint8_t sd_init(void);
 uint8_t file_open(const char* file_path, file_t* boot_file);
 uint8_t file_read(file_t* file);
@@ -81,19 +94,6 @@ uint8_t spi_rec_(void);
 void card_command_(uint8_t cmd, uint32_t arg, uint8_t crc);
 uint8_t wait_start_block_(void);
 uint8_t read_sector_(uint32_t sector);
-
-typedef struct {
-  uint16_t bytes_per_sector;
-  uint8_t sectors_per_claster;
-  uint16_t reserved_sectors;
-  uint8_t number_of_FATs;
-  uint16_t root_directory_entries;
-  uint16_t total_logical_sectors;
-  uint8_t media_descriptor;
-  uint16_t sectors_per_FAT; 
-} vol_info_t;
-
-vol_info_t vol_info_;
 
 uint32_t fat_sector_;
 uint32_t root_sector_;

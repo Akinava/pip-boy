@@ -42,6 +42,7 @@ uint8_t file_open(const char* file_path, file_t* file){
     }
     i++;
   }while(c);
+
   return 1;
 }
 
@@ -55,13 +56,13 @@ uint8_t find_obj_by_name(uint8_t* obj_name, file_t* file){
   // parameters:
   // obj_name - object name and ext in fat16 format cahr[8+3], exp: "APP     BIN"
   // file     -  file sector and file size
-  uint8_t sectors = vol_info_.root_directory_entries * OBJECT_RECORD_SIZE / vol_info_.bytes_per_sector; 
+  uint8_t sectors = vol_info.root_directory_entries * OBJECT_RECORD_SIZE / vol_info.bytes_per_sector; 
 
   if (file->sector != root_sector_){
-     sectors = vol_info_.sectors_per_claster;
+     sectors = vol_info.sectors_per_claster;
   }
 
-  uint8_t records_per_sector = vol_info_.bytes_per_sector / OBJECT_RECORD_SIZE;
+  uint8_t records_per_sector = vol_info.bytes_per_sector / OBJECT_RECORD_SIZE;
   uint8_t obj_buf[OBJECT_RECORD_SIZE];
 
   do{
@@ -95,11 +96,14 @@ uint8_t next_claster_(file_t* file){
 void file_info_parce_(file_t* file, uint8_t* file_info){
   file->cluster = warp_bytes_(file_info, cluster_bytes_rule);
   file->size = warp_bytes_(file_info, size_bytes_rule);
+  // FIXME doesn't work why?
+  //file->cluster = *((uint16_t*)(file_info + 0x14));
+  //file->size = *((uint32_t*)(file_info + 0x1c));
   get_sector_by_cluster_(file);
 }
 
 void get_sector_by_cluster_(file_t* file){
-  file->sector = data_sector_ + ((file->cluster-2) * vol_info_.sectors_per_claster);
+  file->sector = data_sector_ + ((file->cluster-2) * vol_info.sectors_per_claster);
 }
 
 uint32_t warp_bytes_(uint8_t* file_info, const uint8_t* rule){
@@ -136,11 +140,11 @@ uint8_t vol_init_(void){
   volume_sector_ = *((uint32_t*)(sector_buffer + VOL_ADDRESS_OFFSET));
   // volume info
   if(!read_sector_(volume_sector_)){return 0;}
-  vol_info_ = *((vol_info_t*)(sector_buffer + VOL_INFO_OFFSET));
+  vol_info = *((vol_info_t*)(sector_buffer + VOL_INFO_OFFSET));
 
-  fat_sector_ = volume_sector_ + vol_info_.reserved_sectors; 
-  root_sector_ = fat_sector_ + vol_info_.sectors_per_FAT * vol_info_.number_of_FATs;
-  data_sector_ = root_sector_ + vol_info_.root_directory_entries * OBJECT_RECORD_SIZE / vol_info_.bytes_per_sector;
+  fat_sector_ = volume_sector_ + vol_info.reserved_sectors; 
+  root_sector_ = fat_sector_ + vol_info.sectors_per_FAT * vol_info.number_of_FATs;
+  data_sector_ = root_sector_ + vol_info.root_directory_entries * OBJECT_RECORD_SIZE / vol_info.bytes_per_sector;
   return 1;
 }
 

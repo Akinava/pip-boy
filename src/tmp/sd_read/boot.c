@@ -33,6 +33,8 @@ void load(const char* file_path){
     error_blink_();
   }
 
+  //uint8_t pages_in_sector = vol_info.bytes_per_sector / SPM_PAGESIZE; 
+
   while(boot_file.cursor < boot_file.size){
     if (!file_read(&boot_file)){
       error_blink_();
