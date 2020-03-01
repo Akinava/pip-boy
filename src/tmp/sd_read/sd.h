@@ -26,22 +26,15 @@
 #define R1_READY_STATE 0
 /** status for card in the idle state */
 #define R1_IDLE_STATE 1
-/** Standard capacity V2 SD card */
-#define SD_CARD_TYPE_SD2 2
-/** High Capacity SD card */
-#define SD_CARD_TYPE_SDHC 3
 
 /** start data token for read or write */
 #define DATA_START_BLOCK 0xfe
 
 #define VOL_ADDRESS_OFFSET 0x01c6
 
-#define SECTOR_LENGTH 4
-
 #define VOL_INFO_OFFSET 0x0b
 
 #define OBJECT_RECORD_SIZE 32
-#define OBJECT_RECORD_NAME_OFFSET 0
 #define OBJECT_NAME_SIZE 8 + 3
 
 #define END_OF_CLASTERCHAIN 0x0fff8
@@ -86,24 +79,18 @@ uint8_t next_claster_(file_t* file);
 void get_sector_by_cluster_(file_t* file);
 uint8_t cmp_(uint8_t* s1, uint8_t* s2);
 void memcpy_(uint8_t* dst, uint8_t* src, uint8_t len);
-void memset_(uint8_t* s1, uint8_t c, uint8_t size);
-uint32_t warp_bytes_(uint8_t* file_info, const uint8_t* rule);
+void erase_obj_name_(void);
 void file_info_parce_(file_t* file, uint8_t* file_info);
 void spi_send_(uint8_t data);
-uint8_t spi_rec_(void);
 void card_command_(uint8_t cmd, uint32_t arg, uint8_t crc);
 uint8_t wait_start_block_(void);
 uint8_t read_sector_(uint32_t sector);
 
+uint32_t volume_sector_;
 uint32_t fat_sector_;
 uint32_t root_sector_;
 uint32_t data_sector_;
-uint8_t obj_name_[OBJECT_NAME_SIZE];
 
-uint16_t offset_;
-uint8_t in_block_;
-uint32_t block_;
-uint8_t partial_block_read_;
-uint32_t volume_sector_;
+uint8_t obj_name_[OBJECT_NAME_SIZE];
 
 #endif

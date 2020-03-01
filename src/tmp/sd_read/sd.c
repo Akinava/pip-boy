@@ -1,8 +1,5 @@
 #include "sd.h"
 
-const uint8_t cluster_bytes_rule[] PROGMEM = {0x1a, 0x1b, 0x14, 0x15};
-const uint8_t size_bytes_rule[] PROGMEM = {0x1c, 0x1d, 0x1e, 0x1f};
-
 uint8_t file_read(file_t* file){
   // size of sector 512 byte
   if (!read_sector_(file->sector)){return 0;}
@@ -31,7 +28,7 @@ uint8_t file_open(const char* file_path, file_t* file){
         if (!find_obj_by_name(obj_name_, file)){return 0;}
       }
       obj_i = 0;
-      memset_(obj_name_, CHAR_SPACE, OBJECT_NAME_SIZE);
+      erase_obj_name_();
     }else{
       if (c == CHAR_DOT){
         obj_i = 8;
@@ -94,25 +91,13 @@ uint8_t next_claster_(file_t* file){
 }
 
 void file_info_parce_(file_t* file, uint8_t* file_info){
-  file->cluster = warp_bytes_(file_info, cluster_bytes_rule);
-  file->size = warp_bytes_(file_info, size_bytes_rule);
-  // FIXME doesn't work why?
-  //file->cluster = *((uint16_t*)(file_info + 0x14));
-  //file->size = *((uint32_t*)(file_info + 0x1c));
+  file->cluster = *((uint16_t*)(file_info + 0x1a));
+  file->size = *((uint32_t*)(file_info + 0x1c));
   get_sector_by_cluster_(file);
 }
 
 void get_sector_by_cluster_(file_t* file){
   file->sector = data_sector_ + ((file->cluster-2) * vol_info.sectors_per_claster);
-}
-
-uint32_t warp_bytes_(uint8_t* file_info, const uint8_t* rule){
-  uint32_t res = 0;
-  for (uint8_t i=0; i<4; i++){
-    uint8_t r = pgm_read_byte_near(rule + i);
-    res |= file_info[r] << (8*i);
-  }
-  return res;
 }
 
 void memcpy_(uint8_t* dst, uint8_t* src, uint8_t len){
@@ -121,9 +106,9 @@ void memcpy_(uint8_t* dst, uint8_t* src, uint8_t len){
   }
 }
 
-void memset_(uint8_t* s1, uint8_t c, uint8_t size){
-  for (uint8_t i=0; i<size; i++){
-    s1[i] = c;
+void erase_obj_name_(void){
+  for (uint8_t i=0; i<OBJECT_NAME_SIZE; i++){
+    obj_name_[i] = CHAR_SPACE;
   }
 }
 
