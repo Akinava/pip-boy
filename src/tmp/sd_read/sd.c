@@ -1,6 +1,6 @@
 #include "sd.h"
 
-uint8_t file_read(file_t* file){
+uint8_t file_read_sector(file_t* file){
   // size of sector 512 byte
   if (!read_sector_(file->sector)){return 0;}
   file->cursor += sizeof(sector_buffer);
@@ -49,7 +49,7 @@ uint8_t sd_init(void){
   return 1;
 }
 
-uint8_t find_obj_by_name(file_t* file){
+static inline uint8_t find_obj_by_name(file_t* file){
   // parameters:
   // obj_name - object name and ext in fat16 format cahr[8+3], exp: "APP     BIN"
   // file     -  file sector and file size
@@ -78,7 +78,7 @@ uint8_t find_obj_by_name(file_t* file){
   return 0;
 }
 
-uint8_t next_claster_(file_t* file){
+static inline uint8_t next_claster_(file_t* file){
   if (file->sector == root_sector_){return 0;}
   uint16_t fat_cluster_size = sizeof(file->cluster);
   uint16_t fat_cluster_place = file->cluster*fat_cluster_size;
@@ -89,7 +89,7 @@ uint8_t next_claster_(file_t* file){
   return 1;
 }
 
-void file_info_parce_(file_t* file, uint8_t* file_info){
+static inline void file_info_parce_(file_t* file, uint8_t* file_info){
   file->cluster = *((uint16_t*)(file_info + FILE_CLUSTER_OFFSET));
   file->size = *((uint32_t*)(file_info + FILE_SIZE_OFFSET));
   get_sector_by_cluster_(file);
@@ -99,7 +99,7 @@ void get_sector_by_cluster_(file_t* file){
   file->sector = data_sector_ + ((file->cluster-2) * vol_info.sectors_per_claster);
 }
 
-void cp_record_data_(uint8_t* buffer){
+static inline void cp_record_data_(uint8_t* buffer){
   for (uint8_t i=0; i<OBJECT_RECORD_SIZE; i++){
     *(obj_data_+i) = *(buffer+i);
   }
@@ -111,14 +111,14 @@ void erase_obj_name_(void){
   }
 }
 
-uint8_t check_obj_has_name_(){
+static inline uint8_t check_obj_has_name_(){
   for (uint8_t i=0; i< OBJECT_NAME_SIZE; i++){
     if (obj_data_[i] != obj_name_[i]){return 0;}
   }
   return 1;
 }
 
-uint8_t vol_init_(void){
+static inline uint8_t vol_init_(void){
   // volume address
   if(!read_sector_(0)){return 0;}
   volume_sector_ = *((uint32_t*)(sector_buffer + VOL_ADDRESS_OFFSET));
@@ -132,7 +132,7 @@ uint8_t vol_init_(void){
   return 1;
 }
 
-uint8_t card_init_(void){
+static inline uint8_t card_init_(void){
   // Set MOSI, SCK, CS as Output
   SD_DDR |= _BV(MOSI)|_BV(SCK)|_BV(SD_CS);
   // set sd cs off
@@ -186,12 +186,12 @@ uint8_t card_init_(void){
   return 1;
 }
 
-void spi_send_(uint8_t data){
+static inline void spi_send_(uint8_t data){
   SPDR = data;
   while(!(SPSR & (1<<SPIF)));
 }
 
-void card_command_(uint8_t cmd, uint32_t arg, uint8_t crc){
+static inline void card_command_(uint8_t cmd, uint32_t arg, uint8_t crc){
   // end read if in partialBlockRead mode
   spi_send_(0xFF);
   //select card
@@ -214,7 +214,7 @@ void card_command_(uint8_t cmd, uint32_t arg, uint8_t crc){
   }
 }
 
-uint8_t wait_start_block_(void){
+static inline uint8_t wait_start_block_(void){
   uint16_t retry = 10000;
   do{
     spi_send_(0xFF);
@@ -223,7 +223,7 @@ uint8_t wait_start_block_(void){
   return 0;
 }
 
-uint8_t read_sector_(uint32_t sector){
+static inline uint8_t read_sector_(uint32_t sector){
   card_command_(CMD17, sector, 0xFF);
   if (SPDR || !wait_start_block_()){
     return 0;
