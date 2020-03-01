@@ -1,8 +1,8 @@
 #include "boot.h"
 
-void main(void){
-  setup_button();
-  setup_led();
+int main(void){
+  setup_button_();
+  setup_led_();
 
   // MAIN LOGIC
   if(CHECK_PIN(BUTTON_C_PINS, BUTTON_C_PIN)){
@@ -16,41 +16,43 @@ void main(void){
 }
 
 void load(const char* file_path){
-  setup_led();
+  setup_led_();
 
-  uint8_t buf[SPM_PAGESIZE];
   uint32_t address = 0;
 
   if (!sd_init()){
-    error_light();
+    error_light_();
   }
 
   file_t boot_file;
   if (!file_open(file_path, &boot_file)){
-    error_blink();
+    error_blink_();
   }
 
   while(boot_file.cursor < boot_file.size){
-    if (!file_read(&boot_file, buf, SPM_PAGESIZE)){
-      error_blink();
+    if (!file_read_sector(&boot_file)){
+      error_blink_();
     }
-    block_flash_load(&address, buf);
+    for (uint8_t page=0; page<vol_info.bytes_per_sector/SPM_PAGESIZE; page++){
+      block_flash_load_(&address, page);
+      if (address + SPM_PAGESIZE*page > boot_file.size){break;}
+    }
   }
   SET_HIGH(LED_PORT, LED_PIN);
   _delay_ms(100);
   SET_LOW(LED_PORT, LED_PIN);
 
-  reboot();
+  reboot_();
  }
 
-static void block_flash_load(uint32_t* address, uint8_t* buf){
+void block_flash_load_(uint32_t* address, uint8_t page){
 	// Perform page erase
   //boot_page_erase(address);
 	// Wait until the memory is erased
   //boot_spm_busy_wait();		
 
   for(uint8_t i = 0; i < SPM_PAGESIZE; i+=2){
-		uint16_t temp_word = *((uint16_t*)(buf + i));
+		uint16_t temp_word = *((uint16_t*)(sector_buffer + i + page * SPM_PAGESIZE));
     boot_page_fill(*address + i, temp_word);;
   } 
   boot_page_write(*address);
@@ -61,28 +63,29 @@ static void block_flash_load(uint32_t* address, uint8_t* buf){
   *address += SPM_PAGESIZE;
 }
 
-static void setup_button(void){
+void setup_button_(void){
   SET_DDR_IN(BUTTON_C_DDR, BUTTON_C_PIN);
   SET_PULLUP(BUTTON_C_PORT, BUTTON_C_PIN);
 }
-static void setup_led(void){
+
+void setup_led_(void){
   SET_DDR_OUT(LED_DDR, LED_PIN);
   SET_LOW(LED_PORT, LED_PIN);
 }
 
-static void error_light(void){
+void error_light_(void){
     SET_HIGH(LED_PORT, LED_PIN);
     while(1){}
 }
 
-void error_blink(void){
+void error_blink_(void){
   while(1){
     TOGGLE(LED_PORT, LED_PIN);
     _delay_ms(1000);
   }
 }
 
-static void reboot(){
+void reboot_(){
   WDTCSR = _BV(WDE);
 	while (1);
 }
