@@ -34,6 +34,9 @@
 
 #define VOL_INFO_OFFSET 0x0b
 
+#define FILE_CLUSTER_OFFSET 0x1a
+#define FILE_SIZE_OFFSET 0x1c
+
 #define OBJECT_RECORD_SIZE 32
 #define OBJECT_NAME_SIZE 8 + 3
 
@@ -74,11 +77,11 @@ uint8_t file_read(file_t* file);
 
 uint8_t card_init_(void);
 uint8_t vol_init_(void);
-uint8_t find_obj_by_name(uint8_t* obj_name, file_t* file);
+uint8_t find_obj_by_name(file_t* file);
 uint8_t next_claster_(file_t* file);
 void get_sector_by_cluster_(file_t* file);
-uint8_t cmp_(uint8_t* s1, uint8_t* s2);
-void memcpy_(uint8_t* dst, uint8_t* src, uint8_t len);
+uint8_t check_obj_has_name_(void);
+void cp_record_data_(uint8_t* buffer);
 void erase_obj_name_(void);
 void file_info_parce_(file_t* file, uint8_t* file_info);
 void spi_send_(uint8_t data);
@@ -92,5 +95,6 @@ uint32_t root_sector_;
 uint32_t data_sector_;
 
 uint8_t obj_name_[OBJECT_NAME_SIZE];
+uint8_t obj_data_[OBJECT_RECORD_SIZE];
 
 #endif
