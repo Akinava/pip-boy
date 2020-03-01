@@ -21,8 +21,8 @@ void load(const char* file_path){
   uint32_t address = 0;
 
   // FIXME
-  displayBegin();
-  displayClean();
+  //displayBegin();
+  //displayClean();
 
   if (!sd_init()){
     error_light_();
@@ -33,13 +33,14 @@ void load(const char* file_path){
     error_blink_();
   }
 
-  //uint8_t pages_in_sector = vol_info.bytes_per_sector / SPM_PAGESIZE; 
-
   while(boot_file.cursor < boot_file.size){
     if (!file_read_sector(&boot_file)){
       error_blink_();
     }
-    block_flash_load_(&address);
+    for (uint8_t page=0; page<vol_info.bytes_per_sector/SPM_PAGESIZE; page++){
+      block_flash_load_(&address, page);
+      if (address + SPM_PAGESIZE*page > boot_file.size){break;}
+    }
   }
   SET_HIGH(LED_PORT, LED_PIN);
   _delay_ms(100);
@@ -48,22 +49,23 @@ void load(const char* file_path){
   reboot_();
  }
 
-void block_flash_load_(uint32_t* address){
-  // FIXME
+void block_flash_load_(uint32_t* address, uint8_t page){
+  /*
   for(uint8_t i = 0; i < SPM_PAGESIZE; i++){
-    show_u8(*(sector_buffer + i), i%16, i/16);
-  } 
+    show_u8(*(sector_buffer + i + page * SPM_PAGESIZE), i%16, i/16);
+  }
+  *address += SPM_PAGESIZE;
   displayUpdate();
   while(!CHECK_PIN(BUTTON_C_PINS, BUTTON_C_PIN)){};
-
-  /*
+  */
+  
 	// Perform page erase
   //boot_page_erase(address);
 	// Wait until the memory is erased
   //boot_spm_busy_wait();		
 
   for(uint8_t i = 0; i < SPM_PAGESIZE; i+=2){
-		uint16_t temp_word = *((uint16_t*)(buf + i));
+		uint16_t temp_word = *((uint16_t*)(sector_buffer + i + page * SPM_PAGESIZE));
     boot_page_fill(*address + i, temp_word);;
   } 
   boot_page_write(*address);
@@ -72,7 +74,6 @@ void block_flash_load_(uint32_t* address){
 	// Re-enable the RWW section 
   //boot_rww_enable();
   *address += SPM_PAGESIZE;
-  */
 }
 
 void setup_button_(void){
