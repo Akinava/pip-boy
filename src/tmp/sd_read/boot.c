@@ -20,10 +20,6 @@ void load(const char* file_path){
 
   uint32_t address = 0;
 
-  // FIXME
-  //displayBegin();
-  //displayClean();
-
   if (!sd_init()){
     error_light_();
   }
@@ -50,15 +46,6 @@ void load(const char* file_path){
  }
 
 void block_flash_load_(uint32_t* address, uint8_t page){
-  /*
-  for(uint8_t i = 0; i < SPM_PAGESIZE; i++){
-    show_u8(*(sector_buffer + i + page * SPM_PAGESIZE), i%16, i/16);
-  }
-  *address += SPM_PAGESIZE;
-  displayUpdate();
-  while(!CHECK_PIN(BUTTON_C_PINS, BUTTON_C_PIN)){};
-  */
-  
 	// Perform page erase
   //boot_page_erase(address);
 	// Wait until the memory is erased

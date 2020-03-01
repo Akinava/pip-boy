@@ -5,8 +5,6 @@
 #include "pins.h"
 #include "sd.h"
 
-//#include "display.h"
-                                                                               
 #ifndef BOOT_H                                         
 #define BOOT_H
 

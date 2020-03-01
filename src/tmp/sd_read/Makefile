@@ -15,9 +15,9 @@ AVRDUDE_PROGRAMMER = usbasp
 #PROGRAMMER_PORT = usb
 
 BOOT = true
-# 4096 bytes
-BOOT_ADDRESS = 0x7000
-HIGH_FUSE=0xD8
+# 2048 bytes
+BOOT_ADDRESS = 0x7800
+HIGH_FUSE=0xDA
 
 LOW_FUSE = 0xFF
 EXTENDED_FUSE = 0xFD
@@ -25,13 +25,11 @@ EXTENDED_FUSE = 0xFD
 #=======================================
 
 LIB_SD = sd
-//LIB_DISPLAY = display
 
 #=======================================
 
 OBJECTS = $(TARGET).o
 OBJECTS += $(LIB_SD).o
-//OBJECTS += $(LIB_DISPLAY).o
 
 # Define all object files.                                                      
 #============================================================================
