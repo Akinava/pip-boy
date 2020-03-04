@@ -21,8 +21,6 @@
 
 int main(void){
   SET_DDR_OUT(LED_DDR, LED_PIN);
- 
-  while(1){
-    SET_HIGH(LED_PORT, LED_PIN);
-  }
+  SET_HIGH(LED_PORT, LED_PIN);
+  while(1);
 }
