@@ -14,7 +14,7 @@ AVRDUDE_PROGRAMMER = usbasp
 # programmer port
 #PROGRAMMER_PORT = usb
 
-#BOOT = true
+BOOT = true
 # 2048 bytes
 BOOT_ADDRESS = 0x7800
 HIGH_FUSE=0xDA
@@ -24,13 +24,10 @@ EXTENDED_FUSE = 0xFD
 
 #=======================================
 
-LIB_DISPLAY = display
 
 #=======================================
 
 OBJECTS = $(TARGET).o
-OBJECTS += $(LIB_DISPLAY).o
-
 
 # Define all object files.                                                      
 #============================================================================
@@ -106,7 +103,7 @@ FUSES = -U lfuse:w:$(LOW_FUSE):m -U hfuse:w:$(HIGH_FUSE):m -U efuse:w:$(EXTENDED
 
 ##---------------- Programming Options (avrdude) ----------------
 
-AVRDUDE_WRITE_FLASH = -U flash:w:$(TARGET).hex
+AVRDUDE_WRITE_FLASH = -U flash:w:
 AVRDUDE_READ_FLASH = -U flash:r:dump_$(TARGET).hex:i
 
 AVRDUDE_VERBOSE = -v -v
@@ -197,7 +194,9 @@ build: $(TARGET).hex
 #------------------
 #Program the device.
 program: $(TARGET).hex
-	$(AVRDUDE) $(AVRDUDE_FLAGS) $(AVRDUDE_WRITE_FLASH)
+	cp blink.part soft.hex
+	cat $(TARGET).hex >> soft.hex
+	$(AVRDUDE) $(AVRDUDE_FLAGS) $(AVRDUDE_WRITE_FLASH)soft.hex
 
 #------------------
 clean_msg:
