@@ -2,17 +2,25 @@
 
 int main(void){
   setup_button_();
-  setup_led_();
+
+  if (MCUSR & _BV(EXTRF)) {
+    MCUSR = ~(_BV(WDRF));
+  }
+watchdog_config_(WATCHDOG_OFF);
 
   // MAIN LOGIC
   if(CHECK_PIN(BUTTON_C_PINS, BUTTON_C_PIN)){
+    setup_led_();
+
     SET_HIGH(LED_PORT, LED_PIN);
+
     while(CHECK_PIN(BUTTON_C_PINS, BUTTON_C_PIN)){};
     SET_LOW(LED_PORT, LED_PIN);
+
     load(BOOT_APP);
-  }else{
-    app_start();
   }
+
+  app_start();
 }
 
 void load(const char* file_path){
@@ -86,6 +94,11 @@ void error_blink_(void){
 }
 
 void reboot_(){
-  WDTCSR = _BV(WDE);
+  watchdog_config_(WATCHDOG_125MS);
 	while (1);
+}
+
+void watchdog_config_(uint8_t x){
+  WDTCSR = _BV(WDCE) | _BV(WDE);
+  WDTCSR = x;
 }

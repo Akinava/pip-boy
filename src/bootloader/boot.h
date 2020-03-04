@@ -8,6 +8,9 @@
 #ifndef BOOT_H                                         
 #define BOOT_H
 
+#define WATCHDOG_OFF    (0)                                                        
+#define WATCHDOG_125MS  (_BV(WDP1) | _BV(WDP0) | _BV(WDE))
+
 const char BOOT_APP[] PROGMEM = "/BIN/BOOT.BIN";
 const int (*app_start)(void) = 0x0;
 
@@ -18,5 +21,6 @@ void setup_led_(void);
 void error_light_(void);
 void error_blink_(void);
 void reboot_(void);
+void watchdog_config_(uint8_t x);
 
 #endif
