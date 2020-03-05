@@ -17,7 +17,6 @@ int main(void){
 
     load(BOOT_APP);
   }
-
   app_start();
 }
 
