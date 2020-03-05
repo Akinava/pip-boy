@@ -3,10 +3,8 @@
 int main(void){
   setup_button_();
 
-  if (MCUSR & _BV(EXTRF)) {
-    MCUSR = ~(_BV(WDRF));
-  }
-watchdog_config_(WATCHDOG_OFF);
+  MCUSR = ~(_BV(WDRF));
+  watchdog_config_(WATCHDOG_RESET);
 
   // MAIN LOGIC
   if(CHECK_PIN(BUTTON_C_PINS, BUTTON_C_PIN)){
@@ -50,7 +48,9 @@ void load(const char* file_path){
   _delay_ms(100);
   SET_LOW(LED_PORT, LED_PIN);
 
-  reboot_();
+  // reset
+  watchdog_config_(WATCHDOG_125MS);
+	while (1);
  }
 
 void block_flash_load_(uint32_t* address, uint8_t page){
@@ -91,11 +91,6 @@ void error_blink_(void){
     TOGGLE(LED_PORT, LED_PIN);
     _delay_ms(1000);
   }
-}
-
-void reboot_(){
-  watchdog_config_(WATCHDOG_125MS);
-	while (1);
 }
 
 void watchdog_config_(uint8_t x){
