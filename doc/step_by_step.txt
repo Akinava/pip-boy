@@ -1,0 +1,7 @@
+1. assemble slave console
+2. to slave console from master console upload bootloader
+3. on slave console load sd formatter from master SD
+4. format slave SD card
+5. on slave console load file manager from master SD
+6. transfer all needed files from master console to slave console
+7. DONE
