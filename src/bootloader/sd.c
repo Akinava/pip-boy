@@ -22,7 +22,7 @@ uint8_t file_open(const char* file_path, file_t* file){
   file->cursor = 0;
 
   do{
-    c = pgm_read_byte_near(file_path + i);
+    c = pgm_read_byte(file_path + i);
     if (c == CHAR_SLASH || !c){
       if (i){
         if (!find_obj_by_name(file)){return 0;}
