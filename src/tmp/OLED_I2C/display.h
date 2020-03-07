@@ -10,6 +10,8 @@ void displayBegin(void);
 void displayClean(void);
 void displayUpdate(void);
 void print_char(uint8_t c, uint8_t x, uint8_t y);
+void print(uint8_t* str, uint8_t x, uint8_t y);
+void print_invert_char(uint8_t c, uint8_t x, uint8_t y);
 
 #define SSD1306_ADDR                              0x3C
 #define SSD1306_DISPLAY_OFF                       0xAE
@@ -42,5 +44,8 @@ void print_char(uint8_t c, uint8_t x, uint8_t y);
 void _initTWI(void);
 void _sendTWIcommand(uint8_t value); 
 uint8_t scrbuf[1024];
+uint8_t invert_text_;
+void print_char_(uint8_t c, uint8_t x, uint8_t y);
+void print_invert_char(uint8_t c, uint8_t x, uint8_t y);
 
 #endif

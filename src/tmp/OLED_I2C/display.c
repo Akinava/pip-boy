@@ -101,7 +101,7 @@ const uint8_t SmallFont[] PROGMEM = {
 0x00, 0x00, 0xFF, 0x00, 0x00,   // |
 0x00, 0x82, 0x7C, 0x10, 0x00,   // }
 0x00, 0x06, 0x09, 0x09, 0x06    // ~ (Degrees)
-};
+}; // 95
 
 void displayBegin(void){
   SET_DDR_OUT(DISPLAY_DDR, SDA);
@@ -213,46 +213,37 @@ void _sendTWIcommand(uint8_t value){
 }
 
 void print_char(uint8_t c, uint8_t x, uint8_t y){
-  //                             128         64
-  // 0,0 -> x
-  // |
-  // V
-  // y
-  if (x > 127 || y > 63){return;}
-  uint8_t c_id = (c - FONT_OFFSET)*FONT_WIDTH;
+  invert_text_ = 0;
+  print_char_(c, x, y);
+}
+
+void print_invert_char(uint8_t c, uint8_t x, uint8_t y){
+  invert_text_ = 1;
+  print_char_(c, x, y);
+}
+
+void print_char_(uint8_t c, uint8_t x, uint8_t y){
+  if (x > 127 || y > 63 || c < FONT_OFFSET){return;}
+  uint16_t c_offset = (c - FONT_OFFSET)*FONT_WIDTH;
   for (uint8_t i=0; i<FONT_WIDTH; i++){
     if (x+i > 127){continue;}
-    scrbuf[(y/8)*128+x+i] = pgm_read_byte(SmallFont+c_id+i) << y%8;
-  }   
-  if (y%8){
-    for (uint8_t i=0; i<FONT_WIDTH; i++){
-      if (x+i > 127){continue;}
-      scrbuf[(y/8+1)*128+x+i] = pgm_read_byte(SmallFont+c_id+i) >> (8-y%8);
+    uint8_t b = pgm_read_byte(SmallFont+c_offset+i);
+    if (invert_text_){b = ~b;}
+    scrbuf[(y/8)*128+x+i] = b << (y % FONT_HEIGHT);
+    if (y%FONT_HEIGHT){
+      // print bottom part of char
+      scrbuf[(y/8+1)*128+x+i] = b >> (FONT_HEIGHT - y % FONT_HEIGHT);
     }
   }
+}
 
-
-
-
-
-    /*
-		int font_idx = ((c - cfont.offset)*(cfont.x_size*(cfont.y_size/8)))+4;
-		for (int rowcnt=0; rowcnt<(cfont.y_size/8); rowcnt++)
-		{
-			for(int cnt=0; cnt<cfont.x_size; cnt++)
-			{
-				for (int b=0; b<8; b++)
-					if ((fontbyte(font_idx+cnt+(rowcnt*cfont.x_size)) & (1<<b))!=0)
-						if (cfont.inverted==0)
-							setPixel(x+cnt, y+(rowcnt*8)+b);
-						else
-							clrPixel(x+cnt, y+(rowcnt*8)+b);
-					else
-						if (cfont.inverted==0)
-							clrPixel(x+cnt, y+(rowcngTt*8)+b);
-						else
-							setPixel(x+cnt, y+(rowcnt*8)+b);
-			}
-		}
-    */
+void print(uint8_t* str, uint8_t x, uint8_t y){
+  uint8_t i=0;
+  invert_text_ = 0;
+  //while(str[i]){
+  //  print_char_(str[i], x*(FONT_WIDTH+1), y);
+  //}
+  print_char_('1', x, y);
+  print_char_('0', x+6, y);
+  print_char_('0', x+12, y);
 }
