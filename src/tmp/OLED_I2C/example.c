@@ -2,16 +2,12 @@
 
 int main(void){
   displayBegin();
-  for (uint8_t i=64; i<95; i++){
-    displayClean();
-    //uint8_t st[] = {'T', 'i', 'm', 'a', 0};
-
-    print_char(i+32, 0, 0);
-    displayUpdate();
-    _delay_ms(1000);
-  }
-  //displayClean();
-  //print_char('T', 0, 0);
-  //displayUpdate();
+  displayClean();
+  //uint8_t st[] = {'T', 'i', 'm', 'a', 0};
+  uint8_t st[] = "Hello my dear";
+  uint8_t st1[] = "hospital!";
+  print(st, 0, 0);
+  print(st1, 0, 10);
+  displayUpdate();
   while(1);
 }

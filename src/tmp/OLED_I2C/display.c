@@ -240,10 +240,8 @@ void print_char_(uint8_t c, uint8_t x, uint8_t y){
 void print(uint8_t* str, uint8_t x, uint8_t y){
   uint8_t i=0;
   invert_text_ = 0;
-  //while(str[i]){
-  //  print_char_(str[i], x*(FONT_WIDTH+1), y);
-  //}
-  print_char_('1', x, y);
-  print_char_('0', x+6, y);
-  print_char_('0', x+12, y);
+  while(str[i]){
+    print_char_(str[i], x+i*(FONT_WIDTH+1), y);
+    i++;
+  }
 }

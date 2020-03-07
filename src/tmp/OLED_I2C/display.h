@@ -9,8 +9,8 @@
 void displayBegin(void);
 void displayClean(void);
 void displayUpdate(void);
-void print_char(uint8_t c, uint8_t x, uint8_t y);
 void print(uint8_t* str, uint8_t x, uint8_t y);
+void print_char(uint8_t c, uint8_t x, uint8_t y);
 void print_invert_char(uint8_t c, uint8_t x, uint8_t y);
 
 #define SSD1306_ADDR                              0x3C
