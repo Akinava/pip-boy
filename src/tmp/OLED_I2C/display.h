@@ -10,6 +10,7 @@ void displayBegin(void);
 void displayClean(void);
 void displayUpdate(void);
 void print(uint8_t* str, uint8_t x, uint8_t y);
+void print_invert(uint8_t* str, uint8_t x, uint8_t y);
 void print_char(uint8_t c, uint8_t x, uint8_t y);
 void print_invert_char(uint8_t c, uint8_t x, uint8_t y);
 
@@ -46,6 +47,6 @@ void _sendTWIcommand(uint8_t value);
 uint8_t scrbuf[1024];
 uint8_t invert_text_;
 void print_char_(uint8_t c, uint8_t x, uint8_t y);
-void print_invert_char(uint8_t c, uint8_t x, uint8_t y);
+void print_string_(uint8_t* str, uint8_t x, uint8_t y);
 
 #endif

@@ -226,20 +226,35 @@ void print_char_(uint8_t c, uint8_t x, uint8_t y){
   if (x > 127 || y > 63 || c < FONT_OFFSET){return;}
   uint16_t c_offset = (c - FONT_OFFSET)*FONT_WIDTH;
   for (uint8_t i=0; i<FONT_WIDTH; i++){
-    if (x+i > 127){continue;}
+    if (x+i > 127){break;}
     uint8_t b = pgm_read_byte(SmallFont+c_offset+i);
     if (invert_text_){b = ~b;}
-    scrbuf[(y/8)*128+x+i] = b << (y % FONT_HEIGHT);
+      scrbuf[(y/8)*128+x+i] = b << (y % FONT_HEIGHT);
     if (y%FONT_HEIGHT){
       // print bottom part of char
       scrbuf[(y/8+1)*128+x+i] = b >> (FONT_HEIGHT - y % FONT_HEIGHT);
     }
   }
+  if (invert_text_ && x+FONT_WIDTH < 127){
+    scrbuf[(y/8)*128+x+FONT_WIDTH] = 0xff << (y % FONT_HEIGHT);
+    if (y%FONT_HEIGHT){
+      scrbuf[(y/8+1)*128+x+FONT_WIDTH] = 0xff >> (FONT_HEIGHT - y % FONT_HEIGHT);
+    }
+  }
 }
 
 void print(uint8_t* str, uint8_t x, uint8_t y){
-  uint8_t i=0;
   invert_text_ = 0;
+  print_string_(str, x, y);
+}
+
+void print_invert(uint8_t* str, uint8_t x, uint8_t y){
+  invert_text_ = 1;
+  print_string_(str, x, y);
+}
+
+void print_string_(uint8_t* str, uint8_t x, uint8_t y){
+  uint8_t i=0;
   while(str[i]){
     print_char_(str[i], x+i*(FONT_WIDTH+1), y);
     i++;
