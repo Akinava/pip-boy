@@ -44,6 +44,7 @@ void print_invert_char(uint8_t c, uint8_t x, uint8_t y);
 
 void _initTWI(void);
 void _sendTWIcommand(uint8_t value); 
+void _send_TWI_command_start(uint8_t command);
 uint8_t scrbuf[1024];
 uint8_t invert_text_;
 void print_char_(uint8_t c, uint8_t x, uint8_t y);

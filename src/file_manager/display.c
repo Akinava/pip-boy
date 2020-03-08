@@ -1,6 +1,34 @@
 #include "display.h"
 
-const uint8_t SmallFont[] PROGMEM = {
+const uint8_t OLED_INIT_COMMANDS[] PROGMEM = {
+  SSD1306_DISPLAY_OFF,
+  SSD1306_SET_DISPLAY_CLOCK_DIV_RATIO,
+  0x80,
+  SSD1306_SET_MULTIPLEX_RATIO,
+  0x3F,
+  SSD1306_SET_DISPLAY_OFFSET,
+  0x0,
+  SSD1306_SET_START_LINE | 0x0,
+  SSD1306_CHARGE_PUMP,
+  0x14,
+  SSD1306_MEMORY_ADDR_MODE,
+  0x00,
+  SSD1306_SET_SEGMENT_REMAP | 0x1,
+  SSD1306_COM_SCAN_DIR_DEC,
+  SSD1306_SET_COM_PINS,
+  0x12,
+  SSD1306_SET_CONTRAST_CONTROL,
+  0xCF,
+  SSD1306_SET_PRECHARGE_PERIOD,
+  0xF1,
+  SSD1306_SET_VCOM_DESELECT,
+  0x40,
+  SSD1306_DISPLAY_ALL_ON_RESUME,
+  SSD1306_NORMAL_DISPLAY,
+  SSD1306_DISPLAY_ON,
+};
+
+const uint8_t FONT[] PROGMEM = {
 0x00, 0x00, 0x00, 0x00, 0x00,   // sp
 0x00, 0x00, 0x2f, 0x00, 0x00,   // !
 0x00, 0x07, 0x00, 0x07, 0x00,   // "
@@ -107,32 +135,9 @@ void displayBegin(void){
   SET_DDR_OUT(DISPLAY_DDR, SDA);
   SET_DDR_OUT(DISPLAY_DDR, SCL);
   _initTWI();
-  _sendTWIcommand(SSD1306_DISPLAY_OFF);
-  _sendTWIcommand(SSD1306_SET_DISPLAY_CLOCK_DIV_RATIO);
-  _sendTWIcommand(0x80);
-  _sendTWIcommand(SSD1306_SET_MULTIPLEX_RATIO);
-  _sendTWIcommand(0x3F);
-  _sendTWIcommand(SSD1306_SET_DISPLAY_OFFSET);
-  _sendTWIcommand(0x0);
-  _sendTWIcommand(SSD1306_SET_START_LINE | 0x0);
-  _sendTWIcommand(SSD1306_CHARGE_PUMP);
-  _sendTWIcommand(0x14);
-  _sendTWIcommand(SSD1306_MEMORY_ADDR_MODE);
-  _sendTWIcommand(0x00);
-  _sendTWIcommand(SSD1306_SET_SEGMENT_REMAP | 0x1);
-  _sendTWIcommand(SSD1306_COM_SCAN_DIR_DEC);
-  _sendTWIcommand(SSD1306_SET_COM_PINS);
-  _sendTWIcommand(0x12);
-  _sendTWIcommand(SSD1306_SET_CONTRAST_CONTROL);
-  _sendTWIcommand(0xCF);
-  _sendTWIcommand(SSD1306_SET_PRECHARGE_PERIOD);
-  _sendTWIcommand(0xF1);
-  _sendTWIcommand(SSD1306_SET_VCOM_DESELECT);
-  _sendTWIcommand(0x40);
-  _sendTWIcommand(SSD1306_DISPLAY_ALL_ON_RESUME);
-  _sendTWIcommand(SSD1306_NORMAL_DISPLAY);
-  _sendTWIcommand(SSD1306_DISPLAY_ON);
-
+  for (uint8_t i=0; i<sizeof(OLED_INIT_COMMANDS); i++){
+    _sendTWIcommand(pgm_read_byte(OLED_INIT_COMMANDS+i));  
+  }
   displayClean();
   displayUpdate();
 }
@@ -156,15 +161,7 @@ void displayUpdate(void){
   
   // Send TWI Start
   // Send start address
-  TWCR = _BV(TWEN) | _BV(TWEA) | _BV(TWINT) | _BV(TWSTA);
-  while ((TWCR & _BV(TWINT)) == 0) {};
-  TWDR = SSD1306_ADDR<<1;
-  TWCR = _BV(TWEN) | _BV(TWINT) | _BV(TWEA);
-  while ((TWCR & _BV(TWINT)) == 0) {};
-  TWDR = SSD1306_DATA_CONTINUE;
-  TWCR = _BV(TWEN) | _BV(TWINT) | _BV(TWEA);
-  while ((TWCR & _BV(TWINT)) == 0) {};
-
+  _send_TWI_command_start(SSD1306_DATA_CONTINUE);
   for (int b=0; b<1024; b++){    // Send data
     TWDR = scrbuf[b];
     TWCR = _BV(TWEN) | _BV(TWINT) | _BV(TWEA);              // Clear TWINT to proceed
@@ -176,6 +173,27 @@ void displayUpdate(void){
   //interrupts();
 }
 
+void _sendTWIcommand(uint8_t value){
+  // Send start address
+  _send_TWI_command_start(SSD1306_COMMAND);
+  TWDR = value;
+  TWCR = _BV(TWEN) | _BV(TWINT) | _BV(TWEA);              // Clear TWINT to proceed
+  while ((TWCR & _BV(TWINT)) == 0) {};                    // Wait for TWI to be ready
+
+  TWCR = _BV(TWEN)| _BV(TWINT) | _BV(TWSTO);              // Send STOP
+}
+
+void _send_TWI_command_start(uint8_t command){
+  TWCR = _BV(TWEN) | _BV(TWEA) | _BV(TWINT) | _BV(TWSTA); // Send START
+  while ((TWCR & _BV(TWINT)) == 0) {};                    // Wait for TWI to be ready
+  TWDR = SSD1306_ADDR<<1;
+  TWCR = _BV(TWEN) | _BV(TWINT) | _BV(TWEA);              // Clear TWINT to proceed
+  while ((TWCR & _BV(TWINT)) == 0) {};                    // Wait for TWI to be ready
+
+  TWDR = command;
+  TWCR = _BV(TWEN) | _BV(TWINT) | _BV(TWEA);              // Clear TWINT to proceed
+  while ((TWCR & _BV(TWINT)) == 0) {};                    // Wait for TWI to be ready
+}
 
 void _initTWI(void){
   // activate internal pullups for twi.
@@ -194,24 +212,6 @@ void _initTWI(void){
 }
 
 
-void _sendTWIcommand(uint8_t value){
-  // Send start address
-  TWCR = _BV(TWEN) | _BV(TWEA) | _BV(TWINT) | _BV(TWSTA); // Send START
-  while ((TWCR & _BV(TWINT)) == 0) {};                    // Wait for TWI to be ready
-  TWDR = SSD1306_ADDR<<1;
-  TWCR = _BV(TWEN) | _BV(TWINT) | _BV(TWEA);              // Clear TWINT to proceed
-  while ((TWCR & _BV(TWINT)) == 0) {};                    // Wait for TWI to be ready
-
-  TWDR = SSD1306_COMMAND;
-  TWCR = _BV(TWEN) | _BV(TWINT) | _BV(TWEA);              // Clear TWINT to proceed
-  while ((TWCR & _BV(TWINT)) == 0) {};                    // Wait for TWI to be ready
-  TWDR = value;
-  TWCR = _BV(TWEN) | _BV(TWINT) | _BV(TWEA);              // Clear TWINT to proceed
-  while ((TWCR & _BV(TWINT)) == 0) {};                    // Wait for TWI to be ready
-
-  TWCR = _BV(TWEN)| _BV(TWINT) | _BV(TWSTO);              // Send STOP
-}
-
 void print_char(uint8_t c, uint8_t x, uint8_t y){
   invert_text_ = 0;
   print_char_(c, x, y);
@@ -227,7 +227,7 @@ void print_char_(uint8_t c, uint8_t x, uint8_t y){
   uint16_t c_offset = (c - FONT_OFFSET)*FONT_WIDTH;
   for (uint8_t i=0; i<FONT_WIDTH; i++){
     if (x+i > 127){break;}
-    uint8_t b = pgm_read_byte(SmallFont+c_offset+i);
+    uint8_t b = pgm_read_byte(FONT+c_offset+i);
     if (invert_text_){b = ~b;}
       scrbuf[(y/8)*128+x+i] = b << (y % FONT_HEIGHT);
     if (y%FONT_HEIGHT){
@@ -260,3 +260,13 @@ void print_string_(char* str, uint8_t x, uint8_t y){
     i++;
   }
 }
+
+/*
+void setpos(uint8_t x, uint8_t y){
+    send_command_start();
+    send_byte(0xb0 + y);
+    send_byte(((x & 0xf0) >> 4) | 0x10); // | 0x10
+    send_byte((x & 0x0f));               // | 0x01
+    send_command_stop();
+}
+*/
