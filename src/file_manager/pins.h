@@ -1,11 +1,29 @@
 #ifndef PINS_H                                            
 #define PINS_H
                                                                                 
-// DEFINE BUTTON C                                                                 
-#define BUTTON_C_DDR DDRC                                                         
-#define BUTTON_C_PORT PORTC                                                       
-#define BUTTON_C_PINS PINC                                                        
-#define BUTTON_C_PIN PC3                                                     
+// DEFINE BUTTON A
+#define BUTTON_A_DDR DDRD
+#define BUTTON_A_PORT PORTD
+#define BUTTON_A_PINS PIND
+#define BUTTON_A_PIN PD4
+
+// DEFINE BUTTON C
+#define BUTTON_C_DDR DDRC
+#define BUTTON_C_PORT PORTC
+#define BUTTON_C_PINS PINC
+#define BUTTON_C_PIN PC3
+
+// DEFINE BUTTON UP
+#define BUTTON_UP_DDR DDRB
+#define BUTTON_UP_PORT PORTB
+#define BUTTON_UP_PINS PINB
+#define BUTTON_UP_PIN PB1
+
+// DEFINE BUTTON DOWN
+#define BUTTON_DOWN_DDR DDRD
+#define BUTTON_DOWN_PORT PORTD
+#define BUTTON_DOWN_PINS PIND
+#define BUTTON_DOWN_PIN PD6
 
 // DEFINE LED
 #define LED_DDR DDRD

@@ -1,4 +1,5 @@
 #include <avr/io.h>
+#include <util/delay.h>
 #include <string.h>
 #include "display.h"
 #include "sd.h"
@@ -10,6 +11,8 @@
 
 void make_list(void);
 void show_list(void);
+void read_keyboard(void);
+void keys_setup(void);
 
 uint8_t full_path_buf[64];
 uint8_t list_lines;
