@@ -23,12 +23,11 @@ void show_list(void){
   displayClean();
   for (uint8_t y=0; y<list_lines; y++){
     if (y == cursor){
-      print_invert(list_buf[y], 0, y*8);
+      print_invert(list_buf[y], 0, y);
     }else{
-      print(list_buf[y], 0, y*8);
+      print(list_buf[y], 0, y);
     }
   }
-  displayUpdate();
 }
 
 void read_keyboard(void){
