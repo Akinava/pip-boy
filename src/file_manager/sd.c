@@ -1,54 +1,6 @@
 #include "sd.h"
 
-uint8_t file_read_sector(file_t* file){
-  // size of sector 512 byte
-  if (!read_sector_(file->sector)){return 0;}
-  file->cursor += sizeof(sector_buffer);
-  return 1;
-}
-
-uint8_t file_open(const char* file_path, file_t* file){
-  // parameters:
-  // file_path - in unix view exp: '/BIN/APP.BIN'
-  // file      - file sector, file size
-  //
-  // if file exist save in file file sector and size; return 1
-  // else retrn 0
-  uint8_t c;
-  uint8_t i = 0;
-  uint8_t obj_i = 0;
-
-  file->sector = root_sector_;
-  file->cursor = 0;
-
-  do{
-    c = pgm_read_byte(file_path + i);
-    if (c == CHAR_SLASH || !c){
-      if (i){
-        if (!find_obj_by_name(file)){return 0;}
-      }
-      obj_i = 0;
-      erase_obj_name_();
-    }else{
-      if (c == CHAR_DOT){
-        obj_i = 8;
-      }else{
-        obj_name_[obj_i] = c;
-        obj_i++;
-      }
-    }
-    i++;
-  }while(c);
-
-  return 1;
-}
-
-uint8_t sd_init(void){
-  if (!card_init_()){return 0;}
-  if (!vol_init_()){return 0;}
-  return 1;
-}
-
+/*
 uint8_t find_obj_by_name(file_t* file){
   // parameters:
   // obj_name - object name and ext in fat16 format cahr[8+3], exp: "APP     BIN"
@@ -77,58 +29,100 @@ uint8_t find_obj_by_name(file_t* file){
   }while(next_claster_(file));
   return 0;
 }
+*/
 
-uint8_t next_claster_(file_t* file){
-  if (file->sector == root_sector_){return 0;}
+uint8_t read_dir(uint8_t count, obj_data_t* objects_data){
+  objects_data[0].dir = 1;
+  objects_data[0].cluster = 0;
+  objects_data[0].sector = vol_info.root_sector;
+  objects_data[0].sector_offset = 0;
+  objects_data[0].data_cluster = 3;
+  strcpy(objects_data[0].name, "BIN     ");
+
+  objects_data[1].dir = 1;
+  objects_data[1].cluster = 0;
+  objects_data[1].sector = vol_info.root_sector;
+  objects_data[1].sector_offset = 32;
+  objects_data[1].data_cluster = 4;
+  strcpy(objects_data[1].name, "SAVE    ");
+
+  objects_data[2].dir = 1;
+  objects_data[2].cluster = 0;
+  objects_data[2].sector = vol_info.root_sector;
+  objects_data[2].sector_offset = 64;
+  objects_data[2].data_cluster = 5;
+  strcpy(objects_data[2].name, "FONT    ");
+
+  objects_data[3].dir = 0;
+  objects_data[3].cluster = 0;
+  objects_data[3].sector = vol_info.root_sector;
+  objects_data[3].sector_offset = 98;
+  objects_data[3].data_cluster = 6;
+  objects_data[3].name[0] = 'B';
+  objects_data[3].name[1] = 'O';
+  objects_data[3].name[2] = 'O';
+  objects_data[3].name[3] = 'T';
+  objects_data[3].name[4] = ' ';
+  objects_data[3].name[5] = ' ';
+  objects_data[3].name[6] = ' ';
+  objects_data[3].name[7] = ' ';
+  objects_data[3].name[8] = 'B';
+  objects_data[3].name[9] = 'I';
+  objects_data[3].name[10] = 'N';
+  return 4;
+}
+
+uint8_t next_claster_(obj_data_t* obj){
+  /*
+  // FIXME
+  //if (obj->sector == vol_info.root_sector){return 0;}
   uint16_t fat_cluster_size = sizeof(file->cluster);
   uint16_t fat_cluster_place = file->cluster*fat_cluster_size;
-  if (!read_sector_(fat_sector_)){return 0;}
+  if (!read_sector_(vol_info.fat_table_sector)){return 0;}
   file->cluster = *((uint32_t*)(sector_buffer + fat_cluster_place));
   if (file->sector >= END_OF_CLASTERCHAIN){return 0;}
-  get_sector_by_cluster_(file);
+  get_sector_by_cluster_(file->cluster);
+  */
   return 1;
 }
 
+/*
 void file_info_parce_(file_t* file, uint8_t* file_info){
   file->cluster = *((uint16_t*)(file_info + FILE_CLUSTER_OFFSET));
   file->size = *((uint32_t*)(file_info + FILE_SIZE_OFFSET));
   get_sector_by_cluster_(file);
 }
+*/
 
-void get_sector_by_cluster_(file_t* file){
-  file->sector = data_sector_ + ((file->cluster-2) * vol_info.sectors_per_claster);
+uint32_t get_sector_by_cluster_(uint16_t cluster){
+  return vol_info.data_sector + ((cluster-2) * vol_info.sectors_per_claster);
 }
 
+/*
 void cp_record_data_(uint8_t* buffer){
   for (uint8_t i=0; i<OBJECT_RECORD_SIZE; i++){
     *(obj_data_+i) = *(buffer+i);
   }
 }
+*/
 
-void erase_obj_name_(void){
-  for (uint8_t i=0; i<OBJECT_NAME_SIZE; i++){
-    obj_name_[i] = CHAR_SPACE;
-  }
-}
-
-uint8_t check_obj_has_name_(){
-  for (uint8_t i=0; i< OBJECT_NAME_SIZE; i++){
-    if (obj_data_[i] != obj_name_[i]){return 0;}
-  }
+uint8_t sd_init(void){
+  if (!card_init_()){return 0;}
+  if (!vol_init_()){return 0;}
   return 1;
 }
 
 uint8_t vol_init_(void){
   // volume address
   if(!read_sector_(0)){return 0;}
-  volume_sector_ = *((uint32_t*)(sector_buffer + VOL_ADDRESS_OFFSET));
+  vol_info.start_sector = *((uint32_t*)(sector_buffer + VOL_ADDRESS_OFFSET));
   // volume info
-  if(!read_sector_(volume_sector_)){return 0;}
+  if(!read_sector_(vol_info.start_sector)){return 0;}
   vol_info = *((vol_info_t*)(sector_buffer + VOL_INFO_OFFSET));
 
-  fat_sector_ = volume_sector_ + vol_info.reserved_sectors; 
-  root_sector_ = fat_sector_ + vol_info.sectors_per_FAT * vol_info.number_of_FATs;
-  data_sector_ = root_sector_ + vol_info.root_directory_entries * OBJECT_RECORD_SIZE / vol_info.bytes_per_sector;
+  vol_info.fat_table_sector = vol_info.start_sector + vol_info.reserved_sectors; 
+  vol_info.start_sector = vol_info.fat_table_sector + vol_info.sectors_per_FAT * vol_info.number_of_FATs;
+  vol_info.data_sector = vol_info.start_sector + vol_info.root_directory_entries * OBJECT_RECORD_SIZE / vol_info.bytes_per_sector;
   return 1;
 }
 

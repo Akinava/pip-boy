@@ -9,23 +9,25 @@
 #ifndef FILE_MANAGER_H                                         
 #define FILE_MANAGER_H
 
-void make_list(void);
+uint8_t make_list(void);
 void show_list(void);
 void read_keyboard(void);
 void keys_setup(void);
 
 uint8_t full_path_buf[64];
-uint8_t list_lines;
+uint8_t lines;
 uint8_t cursor;
-uint8_t top_line;
 
 /*
- * one recodr in dir is 32 bytes
- * one sector 512 bytes
- * 512/32=16 records per sector
+ * 8 line in display
  * 8 bytes name 3 bytes extension
  * +1 byte zero
  */
-char list_buf[16][8+3+1];
+uint16_t parents_cluster;
+
+#define LINES 8
+obj_data_t objects_data[LINES];
+
+void copy_line_(char* buf, uint8_t y);
 
 #endif

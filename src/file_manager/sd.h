@@ -2,6 +2,9 @@
 #include "macro.h"
 #include "pins.h"
 
+// FIXME
+#include <string.h>
+
 #ifndef SD_H
 #define SD_H
 
@@ -48,11 +51,13 @@
 #define SD_UNSET SET_HIGH
 
 typedef struct {
-  uint32_t sector; // start of file
-  uint32_t size;
-  uint16_t cluster;
-  uint32_t cursor;
-} file_t;
+  uint8_t dir;
+  uint16_t data_cluster;
+  uint16_t cluster;  // 0 for root dir
+  uint32_t sector;
+  uint8_t sector_offset;
+  char name[OBJECT_NAME_SIZE];
+} obj_data_t;
 
 uint8_t sector_buffer[512];
 
@@ -64,35 +69,28 @@ typedef struct {
   uint16_t root_directory_entries;
   uint16_t total_logical_sectors;
   uint8_t media_descriptor;
-  uint16_t sectors_per_FAT; 
+  uint16_t sectors_per_FAT;
+
+  uint32_t start_sector;
+  uint32_t fat_table_sector;
+  uint32_t root_sector;
+  uint32_t data_sector;
 } vol_info_t;
 
 vol_info_t vol_info;
 
 uint8_t sd_init(void);
-uint8_t file_open(const char* file_path, file_t* boot_file);
-uint8_t file_read_sector(file_t* file);
+uint8_t read_dir(uint8_t count, obj_data_t* objects_data);
 
 uint8_t card_init_(void);
 uint8_t vol_init_(void);
-uint8_t find_obj_by_name(file_t* file);
-uint8_t next_claster_(file_t* file);
-void get_sector_by_cluster_(file_t* file);
-uint8_t check_obj_has_name_(void);
-void cp_record_data_(uint8_t* buffer);
-void erase_obj_name_(void);
-void file_info_parce_(file_t* file, uint8_t* file_info);
+uint8_t next_claster_(obj_data_t* obj);
+uint32_t get_sector_by_cluster_(uint16_t cluster);
+//void cp_record_data_(uint8_t* buffer);
+//void file_info_parce_(file_t* file, uint8_t* file_info);
 void spi_send_(uint8_t data);
 void card_command_(uint8_t cmd, uint32_t arg, uint8_t crc);
 uint8_t wait_start_block_(void);
 uint8_t read_sector_(uint32_t sector);
-
-uint32_t volume_sector_;
-uint32_t fat_sector_;
-uint32_t root_sector_;
-uint32_t data_sector_;
-
-uint8_t obj_name_[OBJECT_NAME_SIZE];
-uint8_t obj_data_[OBJECT_RECORD_SIZE];
 
 #endif
