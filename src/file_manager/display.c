@@ -141,12 +141,11 @@ void displayBegin(void){
   displayClean();
 }
 
-
 void displayClean(void){
   memset(&buff_, 0, sizeof(buff_));
   for (uint16_t i=0; i<8; i++){
     display_update_(i);
-  }  
+  }
 }
 
 void display_update_(uint8_t y){

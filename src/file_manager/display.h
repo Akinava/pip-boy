@@ -35,6 +35,6 @@ void print_string_(char* str, uint8_t x, uint8_t y);
 void print_char_(uint8_t c, uint8_t buff_offset);
 void display_update_(uint8_t y);
 
-uint8_t buff_[127];
+uint8_t buff_[128];
 uint8_t invert_text_;
 #endif
