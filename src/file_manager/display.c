@@ -142,7 +142,6 @@ void display_begin(void){
     i2c_command_(pgm_read_byte(OLED_INIT_COMMANDS+i));
     i2c_stop_();
   }
-
   display_clean();
 }
 
@@ -184,10 +183,10 @@ void display_update_(uint8_t y){
   */
   i2c_start_();
   i2c_command_(SSD1306_COMMAND);
-  i2c_command_(0x21);
+  i2c_command_(SSD1306_SET_COLUMN_ADDR);
   i2c_command_(0);  // x
   i2c_command_(127);
-  i2c_command_(0x22); 
+  i2c_command_(SSD1306_SET_PAGE_ADDR); 
   i2c_command_(y);  // y
   i2c_command_(7);
   i2c_stop_();
