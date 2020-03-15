@@ -135,12 +135,14 @@ void display_begin(void){
   SET_DDR_OUT(DISPLAY_DDR, SDA);
   SET_DDR_OUT(DISPLAY_DDR, SCL);
   i2c_init_();
-  i2c_start_();
-  i2c_command_(SSD1306_COMMAND);
+  
   for (uint8_t i=0; i<sizeof(OLED_INIT_COMMANDS); i++){
+    i2c_start_();
+    i2c_command_(SSD1306_COMMAND);
     i2c_command_(pgm_read_byte(OLED_INIT_COMMANDS+i));
+    i2c_stop_();
   }
-  i2c_stop_();
+
   display_clean();
 }
 

@@ -84,7 +84,7 @@ uint8_t read_dir(uint8_t count, obj_data_t* objects_data);
 
 uint8_t card_init_(void);
 uint8_t vol_init_(void);
-uint8_t next_claster_(obj_data_t* obj);
+uint16_t next_claster_(uint16_t cluser);
 uint32_t get_sector_by_cluster_(uint16_t cluster);
 //void cp_record_data_(uint8_t* buffer);
 //void file_info_parce_(file_t* file, uint8_t* file_info);

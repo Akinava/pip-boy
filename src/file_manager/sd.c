@@ -31,48 +31,42 @@ uint8_t find_obj_by_name(file_t* file){
 }
 */
 
+
+
 uint8_t read_dir(uint8_t count, obj_data_t* objects_data){
+  /*
+  uint8_t i;
+  uint32_t max_sector = 0;
+  uint16_t max_cluster = 0;
+  uint8_t max_sector_offset = 0;
+  for (i=0; i<8; i++){
+    if (objects_data[i].cluster < max_cluster){continue;}
+    if (objects_data[i].sector < max_sector){continue;}
+    if (objects_data[i].sector_offset < max_sector_offset){continue;}
+    max_cluster = objects_data[i].cluster;
+    max_sector = objects_data[i].sector;
+    max_sector_offset = objects_data[i].sector_offset; 
+  }
+
+  do{
+    if(!read_sector_(max_sector)){return 0;}
+    for (uint8_t offset=0; offset<512; offset+=OBJECT_RECORD_SIZE){
+      // TODO do parce obj data
+    }
+  }while(next_claster_(max_cluster));
+  */
   objects_data[0].dir = 1;
   objects_data[0].cluster = 0;
-  objects_data[0].sector = vol_info.root_sector;
+  objects_data[0].sector = 0; //vol_info.root_sector;
   objects_data[0].sector_offset = 0;
   objects_data[0].data_cluster = 3;
-  strcpy(objects_data[0].name, "BIN     ");
+  strcpy(objects_data[0].name, "BIN       ");
 
-  objects_data[1].dir = 1;
-  objects_data[1].cluster = 0;
-  objects_data[1].sector = vol_info.root_sector;
-  objects_data[1].sector_offset = 32;
-  objects_data[1].data_cluster = 4;
-  strcpy(objects_data[1].name, "SAVE    ");
-
-  objects_data[2].dir = 1;
-  objects_data[2].cluster = 0;
-  objects_data[2].sector = vol_info.root_sector;
-  objects_data[2].sector_offset = 64;
-  objects_data[2].data_cluster = 5;
-  strcpy(objects_data[2].name, "FONT    ");
-
-  objects_data[3].dir = 0;
-  objects_data[3].cluster = 0;
-  objects_data[3].sector = vol_info.root_sector;
-  objects_data[3].sector_offset = 98;
-  objects_data[3].data_cluster = 6;
-  objects_data[3].name[0] = 'B';
-  objects_data[3].name[1] = 'O';
-  objects_data[3].name[2] = 'O';
-  objects_data[3].name[3] = 'T';
-  objects_data[3].name[4] = ' ';
-  objects_data[3].name[5] = ' ';
-  objects_data[3].name[6] = ' ';
-  objects_data[3].name[7] = ' ';
-  objects_data[3].name[8] = 'B';
-  objects_data[3].name[9] = 'I';
-  objects_data[3].name[10] = 'N';
-  return 4;
+  return 1;
 }
 
-uint8_t next_claster_(obj_data_t* obj){
+uint16_t next_claster_(uint16_t cluster){
+  if (cluster == 0){return 0;}
   /*
   // FIXME
   //if (obj->sector == vol_info.root_sector){return 0;}
