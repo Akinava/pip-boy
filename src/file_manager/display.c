@@ -131,69 +131,76 @@ const uint8_t FONT[] PROGMEM = {
   0x00, 0x06, 0x09, 0x09, 0x06    // ~ (Degrees)
 }; // 95
 
-void displayBegin(void){
+void display_begin(void){
   SET_DDR_OUT(DISPLAY_DDR, SDA);
   SET_DDR_OUT(DISPLAY_DDR, SCL);
-  _initTWI();
+  i2c_init_();
+  i2c_start_();
+  i2c_command_(SSD1306_COMMAND);
   for (uint8_t i=0; i<sizeof(OLED_INIT_COMMANDS); i++){
-    _sendTWIcommand(pgm_read_byte(OLED_INIT_COMMANDS+i));  
+    i2c_command_(pgm_read_byte(OLED_INIT_COMMANDS+i));
   }
-  displayClean();
+  i2c_stop_();
+  display_clean();
 }
 
-void displayClean(void){
-  memset(&buff_, 0, sizeof(buff_));
+void display_clean(void){
+  memset(&display_buff_, 0, sizeof(display_buff_));
   for (uint16_t i=0; i<8; i++){
-    display_update_(i);  
+    display_update_(i);
+
   }
 }
 
-void display_update_(uint8_t y){
-  //nointerrupts();
-  _sendTWIcommand(0x21);
-  _sendTWIcommand(0); 
-  _sendTWIcommand(127);
-
-  _sendTWIcommand(0x22); 
-  _sendTWIcommand(y);
-  _sendTWIcommand(7);
-  
-  // send twi start
-  // send start address
-  _send_TWI_command_start(SSD1306_DATA_CONTINUE); // 0x40
-  for (uint8_t i=0; i<127; i++){
-    TWDR = buff_[i];
-    TWCR = _BV(TWEN) | _BV(TWINT) | _BV(TWEA);              // clear twint to proceed
-    while ((TWCR & _BV(TWINT)) == 0) {};                    // wait for twi to be ready
-  }
-  // send twi stop
-  TWCR = _BV(TWEN)| _BV(TWINT) | _BV(TWSTO);                // send stop
-  //interrupts();
-}
-
-void _sendTWIcommand(uint8_t value){
-  // Send start address
-  _send_TWI_command_start(SSD1306_COMMAND);
-  TWDR = value;
+void i2c_command_(uint8_t command){
+  TWDR = command;
   TWCR = _BV(TWEN) | _BV(TWINT) | _BV(TWEA);              // Clear TWINT to proceed
-  while ((TWCR & _BV(TWINT)) == 0) {};                    // Wait for TWI to be ready
-
-  TWCR = _BV(TWEN)| _BV(TWINT) | _BV(TWSTO);              // Send STOP
+  while ((TWCR & _BV(TWINT)) == 0) {};
 }
 
-void _send_TWI_command_start(uint8_t command){
+void i2c_start_(void){
   TWCR = _BV(TWEN) | _BV(TWEA) | _BV(TWINT) | _BV(TWSTA); // Send START
   while ((TWCR & _BV(TWINT)) == 0) {};                    // Wait for TWI to be ready
   TWDR = SSD1306_ADDR<<1;
   TWCR = _BV(TWEN) | _BV(TWINT) | _BV(TWEA);              // Clear TWINT to proceed
   while ((TWCR & _BV(TWINT)) == 0) {};                    // Wait for TWI to be ready
-
-  TWDR = command;
-  TWCR = _BV(TWEN) | _BV(TWINT) | _BV(TWEA);              // Clear TWINT to proceed
-  while ((TWCR & _BV(TWINT)) == 0) {};                    // Wait for TWI to be ready
 }
 
-void _initTWI(void){
+void i2c_stop_(void){
+  TWCR = _BV(TWEN)| _BV(TWINT) | _BV(TWSTO);                // send stop
+}
+
+void display_update_(uint8_t y){
+  /*
+  i2c_start_();
+  i2c_command_(SSD1306_COMMAND);
+  i2c_command_(0xb0+y); // set y
+  i2c_command_(0x21);
+  i2c_command_(0);      // set x
+  i2c_command_(0x7f);
+  i2c_stop_();
+  */
+  i2c_start_();
+  i2c_command_(SSD1306_COMMAND);
+  i2c_command_(0x21);
+  i2c_command_(0);  // x
+  i2c_command_(127);
+  i2c_command_(0x22); 
+  i2c_command_(y);  // y
+  i2c_command_(7);
+  i2c_stop_();
+
+  i2c_start_();
+  i2c_command_(SSD1306_DATA);
+  for (uint8_t i=0; i<sizeof(display_buff_); i++){
+    TWDR = display_buff_[i];
+    TWCR = _BV(TWEN) | _BV(TWINT) | _BV(TWEA);              // clear twint to proceed
+    while ((TWCR & _BV(TWINT)) == 0) {};                    // wait for twi to be ready
+  }
+  i2c_stop_();
+}
+
+void i2c_init_(void){
   // activate internal pullups for twi.
   SET_HIGH(DISPLAY_PORT, SDA);
   SET_HIGH(DISPLAY_PORT, SCL);
@@ -221,7 +228,7 @@ void print_invert(char* str, uint8_t x, uint8_t y){
 
 void print_string_(char* str, uint8_t x, uint8_t y){
   if (x > 127 || y > 7){return;}
-  memset(&buff_, 0, sizeof(buff_));
+  memset(&display_buff_, 0, sizeof(display_buff_));
   uint8_t i=0;
   uint8_t buff_offset;
   while(str[i]){
@@ -238,9 +245,9 @@ void print_char_(uint8_t c, uint8_t buff_offset){
     if (buff_offset+i >= 127){return;}
     uint8_t b = pgm_read_byte(FONT+char_offset+i);
     if (invert_text_){b = ~b;}
-    buff_[buff_offset+i] = b;
+    display_buff_[buff_offset+i] = b;
   }
   if (invert_text_ && buff_offset+FONT_WIDTH <= 127){
-    buff_[buff_offset+FONT_WIDTH] = 0xff;
+    display_buff_[buff_offset+FONT_WIDTH] = 0xff;
   }
 }
