@@ -31,38 +31,30 @@ uint8_t find_obj_by_name(file_t* file){
 }
 */
 
-
+void cp_(char* dst, uint8_t* src, uint8_t length){
+  for (uint8_t i=0; i< length; i++){
+    *(dst+i) = *(src+i);
+  }
+}
 
 uint8_t read_dir(uint8_t count, obj_data_t* objects_data){
-  /*
-  uint8_t i;
-  uint32_t max_sector = 0;
-  uint16_t max_cluster = 0;
-  uint8_t max_sector_offset = 0;
-  for (i=0; i<8; i++){
-    if (objects_data[i].cluster < max_cluster){continue;}
-    if (objects_data[i].sector < max_sector){continue;}
-    if (objects_data[i].sector_offset < max_sector_offset){continue;}
-    max_cluster = objects_data[i].cluster;
-    max_sector = objects_data[i].sector;
-    max_sector_offset = objects_data[i].sector_offset; 
-  }
+  //do{
+  if(!read_sector_(vol_info.root_sector)){return 0;}
 
-  do{
-    if(!read_sector_(max_sector)){return 0;}
-    for (uint8_t offset=0; offset<512; offset+=OBJECT_RECORD_SIZE){
+  uint8_t item = 0;
+  for (uint8_t offset=0; offset<512; offset+=OBJECT_RECORD_SIZE){
+      if (*(sector_buffer+offset) == FLAG_REMOVED){continue;}
+
+      
+      cp_(objects_data[item].name, sector_buffer+offset, OBJECT_NAME_SIZE);
+      
+      item++;
+      if (item == count){break;}
       // TODO do parce obj data
-    }
-  }while(next_claster_(max_cluster));
-  */
-  objects_data[0].dir = 1;
-  objects_data[0].cluster = 0;
-  objects_data[0].sector = 0; //vol_info.root_sector;
-  objects_data[0].sector_offset = 0;
-  objects_data[0].data_cluster = 3;
-  strcpy(objects_data[0].name, "BIN       ");
+  }
+  //}while(next_claster_(max_cluster));
 
-  return 1;
+  return item;
 }
 
 uint16_t next_claster_(uint16_t cluster){

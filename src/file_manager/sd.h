@@ -29,23 +29,24 @@
 #define R1_IDLE_STATE 1
 
 /** start data token for read or write */
-#define DATA_START_BLOCK 0xfe
+#define DATA_START_BLOCK          0xfe
 
-#define VOL_ADDRESS_OFFSET 0x01c6
+#define VOL_ADDRESS_OFFSET        0x01c6
 
-#define VOL_INFO_OFFSET 0x0b
+#define VOL_INFO_OFFSET           0x0b
 
-#define FILE_CLUSTER_OFFSET 0x1a
-#define FILE_SIZE_OFFSET 0x1c
+#define FILE_CLUSTER_OFFSET       0x1a
+#define FILE_SIZE_OFFSET          0x1c
 
-#define OBJECT_RECORD_SIZE 32
-#define OBJECT_NAME_SIZE 8 + 3
+#define OBJECT_RECORD_SIZE        32
+#define OBJECT_NAME_SIZE          8+3
 
-#define END_OF_CLASTERCHAIN 0x0fff8
+#define END_OF_CLASTERCHAIN       0x0fff8
 
-#define CHAR_SLASH 0x2f
-#define CHAR_DOT 0x2e
-#define CHAR_SPACE 0x20
+#define FLAG_REMOVED              0xe5
+
+#define OBJ_ATTRIBUTES            0x0b
+#define OBJ_CATALOG               0x10
 
 #define SD_SET SET_LOW
 #define SD_UNSET SET_HIGH

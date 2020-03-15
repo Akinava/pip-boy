@@ -3,27 +3,20 @@
 int main(void){
   display_begin();
 
-  /*
   if (!sd_init()){
     display_clean();
     print("SD read fail", 26, 3);
     while(1);
   }
-  */
-  display_clean();
-  print("0", 0, 0);
-  while(1);
   
   keys_setup();
   cursor = 0;
   parents_cluster = 0;
-  print("3", 0, 0);
   for (uint8_t i=0; i<8; i++){
     objects_data[i].sector = vol_info.root_sector;
     objects_data[i].sector_offset = 0;
     objects_data[i].cluster = 0;
   }
-  print("4", 0, 0);
 
   while(1){
     if(make_list()){
@@ -33,10 +26,7 @@ int main(void){
 }
 
 uint8_t make_list(void){
-  print("1", 0, 0);
   lines = read_dir(LINES, objects_data);
-  print("2", 0, 1);
-  while(1);
   return 1;
 }
 
