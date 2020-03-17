@@ -31,17 +31,19 @@ uint8_t find_obj_by_name(file_t* file){
 }
 */
 
-void cp_obj_name_(char* dst, uint8_t buffer_offset){
+void cp_obj_name_(char* dst, uint16_t buffer_offset){
   for (uint8_t i=0; i< OBJECT_NAME_SIZE; i++){
     *(dst+i) = *(sector_buffer+buffer_offset+i);
   }
 }
 
-void parsing_obj_data_(obj_data_t* obj, uint8_t buffer_offset){
+void parsing_obj_data_(obj_data_t* obj, uint16_t buffer_offset){
   obj->dir = 0;
   if (*(sector_buffer+buffer_offset+OBJ_ATTRIBUTES_OFFSET) == OBJ_CATALOG){
     obj->dir = 1;
   }
+  obj->sector_offset = buffer_offset;
+  obj->data_cluster = *((uint16_t*)(sector_buffer+buffer_offset+DATA_CLUSTER_OFFSET));
 }
 
 uint8_t read_dir(uint8_t count, obj_data_t* objects_data){
@@ -49,15 +51,18 @@ uint8_t read_dir(uint8_t count, obj_data_t* objects_data){
   if(!read_sector_(vol_info.root_sector)){return 0;}
 
   uint8_t item = 0;
-  for (uint8_t offset=0; offset<512; offset+=OBJECT_RECORD_SIZE){
+  for (uint16_t offset=0; offset<512; offset+=OBJECT_RECORD_SIZE){
       if (*(sector_buffer+offset) == FLAG_REMOVED){continue;}
       
       parsing_obj_data_(&objects_data[item], offset);
       cp_obj_name_(objects_data[item].name, offset);
+      //objects_data[item].cluster
+      //objects_data[item].sector
 
       item++;
       if (item == count){break;}
   }
+
   //}while(next_claster_(max_cluster));
 
   return item;

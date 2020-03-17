@@ -35,8 +35,7 @@
 
 #define VOL_INFO_OFFSET           0x0b
 
-#define FILE_CLUSTER_OFFSET       0x1a
-#define FILE_SIZE_OFFSET          0x1c
+#define DATA_CLUSTER_OFFSET       0x1a
 
 #define OBJECT_RECORD_SIZE        32
 #define OBJECT_NAME_SIZE          8+3
@@ -85,8 +84,8 @@ uint8_t read_dir(uint8_t count, obj_data_t* objects_data);
 
 uint8_t card_init_(void);
 uint8_t vol_init_(void);
-void cp_obj_name_(char* dst, uint8_t buffer_offset);
-void parsing_obj_data(obj_data_t* obj); 
+void cp_obj_name_(char* dst, uint16_t buffer_offset);
+void parsing_obj_data_(obj_data_t* obj, uint16_t buffer_offset);
 uint16_t next_claster_(uint16_t cluser);
 uint32_t get_sector_by_cluster_(uint16_t cluster);
 void spi_send_(uint8_t data);
