@@ -3,7 +3,7 @@
 #include "pins.h"
 
 // FIXME
-#include <string.h>
+#include "display.h"
 
 #ifndef SD_H
 #define SD_H
@@ -45,7 +45,7 @@
 
 #define FLAG_REMOVED              0xe5
 
-#define OBJ_ATTRIBUTES            0x0b
+#define OBJ_ATTRIBUTES_OFFSET     0x0b
 #define OBJ_CATALOG               0x10
 
 #define SD_SET SET_LOW
@@ -85,10 +85,10 @@ uint8_t read_dir(uint8_t count, obj_data_t* objects_data);
 
 uint8_t card_init_(void);
 uint8_t vol_init_(void);
+void cp_obj_name_(char* dst, uint8_t buffer_offset);
+void parsing_obj_data(obj_data_t* obj); 
 uint16_t next_claster_(uint16_t cluser);
 uint32_t get_sector_by_cluster_(uint16_t cluster);
-//void cp_record_data_(uint8_t* buffer);
-//void file_info_parce_(file_t* file, uint8_t* file_info);
 void spi_send_(uint8_t data);
 void card_command_(uint8_t cmd, uint32_t arg, uint8_t crc);
 uint8_t wait_start_block_(void);

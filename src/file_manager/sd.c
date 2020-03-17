@@ -31,9 +31,16 @@ uint8_t find_obj_by_name(file_t* file){
 }
 */
 
-void cp_(char* dst, uint8_t* src, uint8_t length){
-  for (uint8_t i=0; i< length; i++){
-    *(dst+i) = *(src+i);
+void cp_obj_name_(char* dst, uint8_t buffer_offset){
+  for (uint8_t i=0; i< OBJECT_NAME_SIZE; i++){
+    *(dst+i) = *(sector_buffer+buffer_offset+i);
+  }
+}
+
+void parsing_obj_data_(obj_data_t* obj, uint8_t buffer_offset){
+  obj->dir = 0;
+  if (*(sector_buffer+buffer_offset+OBJ_ATTRIBUTES_OFFSET) == OBJ_CATALOG){
+    obj->dir = 1;
   }
 }
 
@@ -44,13 +51,12 @@ uint8_t read_dir(uint8_t count, obj_data_t* objects_data){
   uint8_t item = 0;
   for (uint8_t offset=0; offset<512; offset+=OBJECT_RECORD_SIZE){
       if (*(sector_buffer+offset) == FLAG_REMOVED){continue;}
+      
+      parsing_obj_data_(&objects_data[item], offset);
+      cp_obj_name_(objects_data[item].name, offset);
 
-      
-      cp_(objects_data[item].name, sector_buffer+offset, OBJECT_NAME_SIZE);
-      
       item++;
       if (item == count){break;}
-      // TODO do parce obj data
   }
   //}while(next_claster_(max_cluster));
 
@@ -101,14 +107,16 @@ uint8_t sd_init(void){
 uint8_t vol_init_(void){
   // volume address
   if(!read_sector_(0)){return 0;}
-  vol_info.start_sector = *((uint32_t*)(sector_buffer + VOL_ADDRESS_OFFSET));
+  uint32_t start_sector = *((uint32_t*)(sector_buffer + VOL_ADDRESS_OFFSET));
+
   // volume info
-  if(!read_sector_(vol_info.start_sector)){return 0;}
+  if(!read_sector_(start_sector)){return 0;}
   vol_info = *((vol_info_t*)(sector_buffer + VOL_INFO_OFFSET));
 
+  vol_info.start_sector = start_sector;
   vol_info.fat_table_sector = vol_info.start_sector + vol_info.reserved_sectors; 
-  vol_info.start_sector = vol_info.fat_table_sector + vol_info.sectors_per_FAT * vol_info.number_of_FATs;
-  vol_info.data_sector = vol_info.start_sector + vol_info.root_directory_entries * OBJECT_RECORD_SIZE / vol_info.bytes_per_sector;
+  vol_info.root_sector = vol_info.fat_table_sector + vol_info.sectors_per_FAT * vol_info.number_of_FATs;
+  vol_info.data_sector = vol_info.root_sector + vol_info.root_directory_entries * OBJECT_RECORD_SIZE / vol_info.bytes_per_sector;
   return 1;
 }
 

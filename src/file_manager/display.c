@@ -252,3 +252,27 @@ void print_char_(uint8_t c, uint8_t buff_offset){
     display_buff_[buff_offset+FONT_WIDTH] = 0xff;
   }
 }
+
+
+// FIXME
+void print8(uint8_t n, uint8_t x, uint8_t y){
+  uint8_t c;
+  if ((n>>4) < 10){c = (n>>4) + 16 + FONT_OFFSET;}
+  else{c = (n>>4) + 23 + FONT_OFFSET;}
+  print_char_(c, x);
+  if ((n&0xf) < 10){c = (n&0xf) + 16 + FONT_OFFSET;}
+  else{c = (n&0xf) + 23 + FONT_OFFSET;}
+  print_char_(c, x+8);
+  display_update_(y);
+}
+
+void print16(uint16_t n, uint8_t x, uint8_t y){
+  print8(n>>8, x, y);
+  print8(n&0xFF, x+16, y);
+}
+
+void print32(uint32_t n, uint8_t x, uint8_t y){
+  print16(n>>16, x, y);
+  print16(n&0xFFFF, x+32, y);
+}
+
