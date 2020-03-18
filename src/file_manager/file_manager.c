@@ -33,11 +33,12 @@ int main(void){
 }
 
 uint8_t make_list(void){
-  lines = read_dir(LINES, objects_data);
+  lines = read_dir(LINES, objects_data, cursor);
   return 1;
 }
 
 void show_list(void){
+  if (cursor == -1 || cursor == LINES){cursor = 0;}
   display_clean();
   char buf[1+8+1+3+1];
   for (uint8_t y=0; y<lines; y++){

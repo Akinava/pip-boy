@@ -46,12 +46,16 @@ void parsing_obj_data_(obj_data_t* obj, uint16_t buffer_offset){
   obj->data_cluster = *((uint16_t*)(sector_buffer+buffer_offset+DATA_CLUSTER_OFFSET));
 }
 
-uint8_t read_dir(uint8_t count, obj_data_t* objects_data){
+uint8_t read_dir(uint8_t count, obj_data_t* objects_data, int8_t cursor){
+  // which sector and sector_offset
+  uint32_t next_sector = vol_info.root_sector;
+  uint16_t next_offset = 0;
+  uint8_t read_direction = READ_DOWN;
   //do{
-  if(!read_sector_(vol_info.root_sector)){return 0;}
+  if(!read_sector_(next_sector)){return 0;}
 
   uint8_t item = 0;
-  for (uint16_t offset=0; offset<512; offset+=OBJECT_RECORD_SIZE){
+  for (uint16_t offset=next_offset; offset<vol_info.bytes_per_sector; offset+=OBJECT_RECORD_SIZE*read_direction){
       if (*(sector_buffer+offset) == FLAG_REMOVED){continue;}
       
       parsing_obj_data_(&objects_data[item], offset);

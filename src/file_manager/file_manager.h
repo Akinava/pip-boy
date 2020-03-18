@@ -16,7 +16,7 @@ void keys_setup(void);
 
 uint8_t full_path_buf[64];
 uint8_t lines;
-uint8_t cursor;
+int8_t cursor;
 
 /*
  * 8 line in display

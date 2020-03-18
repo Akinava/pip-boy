@@ -50,12 +50,15 @@
 #define SD_SET SET_LOW
 #define SD_UNSET SET_HIGH
 
+#define READ_UP   -1
+#define READ_DOWN 1
+
 typedef struct {
   uint8_t dir;
   uint16_t data_cluster;
   uint16_t cluster;  // 0 for root dir
   uint32_t sector;
-  uint8_t sector_offset;
+  uint16_t sector_offset;
   char name[OBJECT_NAME_SIZE];
 } obj_data_t;
 
@@ -80,7 +83,7 @@ typedef struct {
 vol_info_t vol_info;
 
 uint8_t sd_init(void);
-uint8_t read_dir(uint8_t count, obj_data_t* objects_data);
+uint8_t read_dir(uint8_t count, obj_data_t* objects_data, int8_t cursor);
 
 uint8_t card_init_(void);
 uint8_t vol_init_(void);
