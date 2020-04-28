@@ -46,16 +46,76 @@ void parsing_obj_data_(obj_data_t* obj, uint16_t buffer_offset){
   obj->data_cluster = *((uint16_t*)(sector_buffer+buffer_offset+DATA_CLUSTER_OFFSET));
 }
 
+void find_min_obj_(uint8_t* read_direction, obj_data_t* last_obj, obj_data_t* objects_data){
+  for (int8_t i=7; i>=0; i--){
+    if (objects_data[i].cluster > last_obj->cluster){continue;}
+    if (objects_data[i].sector > last_obj->sector){continue;}
+    if (objects_data[i].sector_offset > last_obj->sector_offset){continue;}
+
+    objects_data[i].cluster = last_obj->cluster;
+    objects_data[i].sector = last_obj->sector;
+    objects_data[i].sector_offset = last_obj->sector_offset;
+  }
+}
+
+void find_max_obj_(uint8_t* read_direction, obj_data_t* last_obj, obj_data_t* objects_data){
+  *read_direction = READ_DOWN;
+
+  for (int8_t i=0; i<8; i++){
+    if (objects_data[i].cluster < last_obj->cluster){continue;}
+    if (objects_data[i].sector < last_obj->sector){continue;}
+    if (objects_data[i].sector_offset < last_obj->sector_offset){continue;}
+
+    objects_data[i].cluster = last_obj->cluster;
+    objects_data[i].sector = last_obj->sector;
+    objects_data[i].sector_offset = last_obj->sector_offset;
+  }
+}
+
+obj_data_t next_sector_(uint8_t *read_direction, obj_data_t* last_obj){
+  obj_data_t next_obj;
+  if (last_obj->sector == vol_info.root_sector &&
+      last_obj->sector_offset == 0 &&
+      *read_direction == READ_UP){
+    *read_direction = READ_DOWN;
+    next_obj = *last_obj;
+  }
+
+  return next_obj;
+}
+
 uint8_t read_dir(uint8_t count, obj_data_t* objects_data, int8_t cursor){
   // which sector and sector_offset
-  uint32_t next_sector = vol_info.root_sector;
-  uint16_t next_offset = 0;
-  uint8_t read_direction = READ_DOWN;
+
+  obj_data_t last_obj;
+  last_obj.sector = vol_info.root_sector;
+  last_obj.sector_offset = 0;
+  last_obj.cluster = 0;
+  uint8_t read_direction;
+
+  clean_buf(); 
+  print32(last_obj.sector, 0, 0);
+  clean_buf();
+  print16(last_obj.sector_offset, 0, 1);
+  clean_buf();
+  print16(last_obj.cluster, 10, 2);
+  while(1);
+
+  if (cursor == -1){
+    read_direction = READ_UP;
+    find_min_obj_(&read_direction, &last_obj, objects_data);
+  }else{
+    read_direction = READ_DOWN;
+    find_max_obj_(&read_direction, &last_obj, objects_data);
+  }
+
   //do{
-  if(!read_sector_(next_sector)){return 0;}
+  obj_data_t next_obj = next_sector_(&read_direction, &last_obj);
+
+  if(!read_sector_(next_obj.sector)){return 0;}
 
   uint8_t item = 0;
-  for (uint16_t offset=next_offset; offset<vol_info.bytes_per_sector; offset+=OBJECT_RECORD_SIZE*read_direction){
+  for (uint16_t offset=next_obj.sector_offset; offset<vol_info.bytes_per_sector; offset+=OBJECT_RECORD_SIZE*read_direction){
       if (*(sector_buffer+offset) == FLAG_REMOVED){continue;}
       
       parsing_obj_data_(&objects_data[item], offset);
@@ -68,6 +128,9 @@ uint8_t read_dir(uint8_t count, obj_data_t* objects_data, int8_t cursor){
   }
 
   //}while(next_claster_(max_cluster));
+  if (item < count){
+    // TODO clean rest objects
+  }
 
   return item;
 }

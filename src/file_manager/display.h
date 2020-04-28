@@ -7,6 +7,7 @@
 #define DISPLAY_H
 
 // FIXME
+void clean_buf(void);
 void print8(uint8_t n, uint8_t x, uint8_t y);
 void print16(uint16_t n, uint8_t x, uint8_t y);
 void print32(uint32_t n, uint8_t x, uint8_t y);

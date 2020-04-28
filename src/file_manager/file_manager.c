@@ -21,7 +21,7 @@ int main(void){
   */
 
   keys_setup();
-  cursor = 0;
+  cursor = -1;
   parents_cluster = 0;
   clean_obj_data_();
 
@@ -78,11 +78,8 @@ void keys_setup(void){
 }
 
 void clean_obj_data_(void){
-  for (uint8_t i=0; i<8; i++){
-    objects_data[i].sector = vol_info.root_sector;
-    objects_data[i].sector_offset = 0;
-    objects_data[i].cluster = 0;
-  }
+  objects_data[0].sector = vol_info.root_sector;
+  objects_data[0].sector_offset = 0;
 }
 
 void copy_line_(char* buf, uint8_t y){

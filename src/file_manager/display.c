@@ -255,15 +255,20 @@ void print_char_(uint8_t c, uint8_t buff_offset){
 
 
 // FIXME
-void print8(uint8_t n, uint8_t x, uint8_t y){
-  uint8_t c;
-  if ((n>>4) < 10){c = (n>>4) + 16 + FONT_OFFSET;}
-  else{c = (n>>4) + 23 + FONT_OFFSET;}
+void clean_buf(void){
+  memset(&display_buff_, 0, sizeof(display_buff_));
+}
+
+void print_c(uint8_t c, uint8_t x, uint8_t y){
+  if (c < 10){c += (16 + FONT_OFFSET);}
+  else{c +=  (23 + FONT_OFFSET);}
   print_char_(c, x);
-  if ((n&0xf) < 10){c = (n&0xf) + 16 + FONT_OFFSET;}
-  else{c = (n&0xf) + 23 + FONT_OFFSET;}
-  print_char_(c, x+8);
   display_update_(y);
+}
+
+void print8(uint8_t n, uint8_t x, uint8_t y){
+  print_c(n>>4, x, y);
+  print_c(n&0xf, x+8, y);
 }
 
 void print16(uint16_t n, uint8_t x, uint8_t y){
@@ -275,4 +280,3 @@ void print32(uint32_t n, uint8_t x, uint8_t y){
   print16(n>>16, x, y);
   print16(n&0xFFFF, x+32, y);
 }
-
