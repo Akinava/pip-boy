@@ -1,36 +1,5 @@
 #include "sd.h"
 
-/*
-uint8_t find_obj_by_name(file_t* file){
-  // parameters:
-  // obj_name - object name and ext in fat16 format cahr[8+3], exp: "APP     BIN"
-  // file     -  file sector and file size
-  uint8_t sectors = vol_info.root_directory_entries * OBJECT_RECORD_SIZE / vol_info.bytes_per_sector; 
-
-  if (file->sector != root_sector_){
-     sectors = vol_info.sectors_per_claster;
-  }
-
-  uint8_t records_per_sector = vol_info.bytes_per_sector / OBJECT_RECORD_SIZE;
-
-  do{
-    for (uint8_t sector_offset = 0; sector_offset < sectors; sector_offset++){
-      if (!read_sector_(file->sector+sector_offset)){return 0;}
-
-      for (uint8_t record_offset = 0; record_offset < records_per_sector; record_offset++){
-        cp_record_data_(sector_buffer + record_offset * 32);
-
-        if (check_obj_has_name_()){
-          file_info_parce_(file, obj_data_);
-          return 1;
-        }
-      }
-    }
-  }while(next_claster_(file));
-  return 0;
-}
-*/
-
 void cp_obj_name_(char* dst, uint16_t buffer_offset){
   for (uint8_t i=0; i< OBJECT_NAME_SIZE; i++){
     *(dst+i) = *(sector_buffer+buffer_offset+i);
