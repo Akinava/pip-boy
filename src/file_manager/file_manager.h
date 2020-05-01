@@ -29,6 +29,5 @@ uint16_t parents_cluster;
 obj_data_t objects_data[LINES];
 
 void copy_line_(char* buf, uint8_t y);
-void clean_obj_data_(void);
 
 #endif

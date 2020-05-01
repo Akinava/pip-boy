@@ -50,7 +50,7 @@
 #define SD_SET SET_LOW
 #define SD_UNSET SET_HIGH
 
-#define READ_UP   -1
+#define READ_UP   0
 #define READ_DOWN 1
 
 typedef struct {
@@ -95,5 +95,7 @@ void spi_send_(uint8_t data);
 void card_command_(uint8_t cmd, uint32_t arg, uint8_t crc);
 uint8_t wait_start_block_(void);
 uint8_t read_sector_(uint32_t sector);
+void find_prev_obj_(obj_data_t* next_obj, obj_data_t* prev_object);
+void find_next_obj_(obj_data_t* next_obj, obj_data_t* prev_object);
 
 #endif

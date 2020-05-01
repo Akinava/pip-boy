@@ -2,28 +2,26 @@
 
 int main(void){
   display_begin();
+  display_clean();
 
   if (!sd_init()){
-    display_clean();
     print("SD read fail", 26, 3);
     while(1);
   }
-  
-  display_clean();
 
   /*
   print32(vol_info.start_sector, 0, 0);      // 0x0800
   print32(vol_info.fat_table_sector, 0, 1);  // 0x0800+0x0400=0x0840
   print32(vol_info.root_sector, 0, 2);       // 0x0840+0x0100*0x02=0x0a40
   print32(vol_info.data_sector, 0, 3);       // 0x0a40+0x0400*32/0x0200=0x0a80
-  
-  while(1);
   */
 
   keys_setup();
-  cursor = -1;
+
+  cursor = 0;
   parents_cluster = 0;
-  clean_obj_data_();
+  objects_data[0].sector = vol_info.root_sector;
+  objects_data[0].sector_offset = 0;
 
   while(1){
     if(make_list()){
@@ -75,11 +73,6 @@ void keys_setup(void){
 
   SET_DDR_IN(BUTTON_DOWN_DDR, BUTTON_DOWN_PIN);
   SET_PULLUP(BUTTON_DOWN_PORT, BUTTON_DOWN_PIN);
-}
-
-void clean_obj_data_(void){
-  objects_data[0].sector = vol_info.root_sector;
-  objects_data[0].sector_offset = 0;
 }
 
 void copy_line_(char* buf, uint8_t y){
