@@ -20,21 +20,23 @@ int main(void){
 
   cursor = 0;
   parents_cluster = ROOT_CLUSTER;
+  make_list();
 
   while(1){
-    if(make_list()){
-      show_list();}
-    read_keyboard();
+    show_list();
+    if (read_keyboard()){
+      make_list();
+    }
   }
 }
 
-uint8_t make_list(void){
+void make_list(void){
   lines = read_dir(LINES, objects_data, cursor);
-  return 1;
 }
 
 void show_list(void){
-  if (cursor == -1 || cursor == LINES){cursor = 0;}
+  if (cursor == LINES){cursor = 0;}
+  if (cursor == -1){cursor = LINES-1;}
   display_clean();
   //       dir_flag  name  dot ext  0x0
   char buf[1+        8+    1+  3+   1];
@@ -48,19 +50,21 @@ void show_list(void){
   }
 }
 
-void read_keyboard(void){
+uint8_t read_keyboard(void){
   // avoid from contact bounce
   _delay_ms(150);
   while(1){
     if(CHECK_PIN(BUTTON_UP_PINS, BUTTON_UP_PIN)){
       cursor--;
-      return;
+      break;
     }
     if(CHECK_PIN(BUTTON_DOWN_PINS, BUTTON_DOWN_PIN)){
       cursor++;
-      return;
+      break;
     }
   }
+  if (cursor == -1 || cursor == LINES){return 1;}
+  return 0;
 }
 
 void keys_setup(void){

@@ -9,9 +9,9 @@
 #ifndef FILE_MANAGER_H                                         
 #define FILE_MANAGER_H
 
-uint8_t make_list(void);
+void make_list(void);
 void show_list(void);
-void read_keyboard(void);
+uint8_t read_keyboard(void);
 void keys_setup(void);
 
 uint8_t full_path_buf[64];
