@@ -228,16 +228,12 @@ uint8_t card_init_(void){
   for (uint16_t retry = 0; ; retry++) {
     card_command_(CMD55, 0, 0xFF);
     card_command_(ACMD41, 0x40000000, 0xFF);
-    if (SPDR == R1_READY_STATE)break;
-    if (retry == 1000) {
-      return 0;
-    }
+    if (SPDR == R1_READY_STATE){break;}
+    if (retry == 1000){return 0;}
   }
 
   card_command_(CMD58, 0, 0xFF );
-  if(SPDR){
-      return 0;
-  }
+  if(SPDR){return 0;}
 
   for (uint8_t i = 0; i < 4; i++){
     spi_send_(0xFF);
