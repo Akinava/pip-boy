@@ -19,9 +19,7 @@ int main(void){
   keys_setup();
 
   cursor = 0;
-  parents_cluster = 0;
-  objects_data[0].sector = vol_info.root_sector;
-  objects_data[0].sector_offset = 0;
+  parents_cluster = ROOT_CLUSTER;
 
   while(1){
     if(make_list()){
@@ -38,7 +36,8 @@ uint8_t make_list(void){
 void show_list(void){
   if (cursor == -1 || cursor == LINES){cursor = 0;}
   display_clean();
-  char buf[1+8+1+3+1];
+  //       dir_flag  name  dot ext  0x0
+  char buf[1+        8+    1+  3+   1];
   for (uint8_t y=0; y<lines; y++){
     copy_line_(buf, y);
     if (y == cursor){
@@ -99,9 +98,9 @@ void copy_line_(char* buf, uint8_t y){
   }
   // copy ext
   if (objects_data[y].dir){return;}
-  // dot
+  // add dot
   *(buf+end_of_obj_name+2) = '.';
-  // ext
+  // add ext
   uint8_t ext_cour = end_of_obj_name+3;
   for (i=0; i<3; i++){
     *(buf+ext_cour+i) = objects_data[y].name[8+i];

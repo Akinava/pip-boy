@@ -1,4 +1,5 @@
-#include <avr/pgmspace.h>
+//#include <avr/pgmspace.h>
+#include <string.h>
 #include "macro.h"
 #include "pins.h"
 
@@ -40,9 +41,9 @@
 #define OBJECT_RECORD_SIZE        32
 #define OBJECT_NAME_SIZE          8+3
 
-#define END_OF_CLASTERCHAIN       0x0fff8
+#define END_OF_CLUSTERCHAIN       0x0fff8
 
-#define FLAG_REMOVED              0xe5
+#define OBJECT_IS_DELETED         0xe5
 
 #define OBJ_ATTRIBUTES_OFFSET     0x0b
 #define OBJ_CATALOG               0x10
@@ -52,6 +53,11 @@
 
 #define READ_UP   0
 #define READ_DOWN 1
+
+#define FILE_FLAG 0
+#define DIR_FLAG 1
+
+#define ROOT_CLUSTER 0
 
 typedef struct {
   uint8_t dir;
@@ -65,19 +71,19 @@ typedef struct {
 uint8_t sector_buffer[512];
 
 typedef struct {
-  uint16_t bytes_per_sector;
-  uint8_t sectors_per_claster;
-  uint16_t reserved_sectors;
-  uint8_t number_of_FATs;
-  uint16_t root_directory_entries;
-  uint16_t total_logical_sectors;
+  uint16_t bytes_per_sector;       // 0x0200    512
+  uint8_t sectors_per_cluster;     // 0x40      64
+  uint16_t reserved_sectors;       // 0x040
+  uint8_t number_of_FATs;          // 0x02
+  uint16_t root_directory_entries; // 0x0400
+  uint16_t total_logical_sectors;  
   uint8_t media_descriptor;
-  uint16_t sectors_per_FAT;
+  uint16_t sectors_per_FAT;        // 0x0100
 
-  uint32_t start_sector;
-  uint32_t fat_table_sector;
-  uint32_t root_sector;
-  uint32_t data_sector;
+  uint32_t start_sector;           // 0x0800 
+  uint32_t fat_table_sector;       // 0x0840
+  uint32_t root_sector;            // 0x0a40 
+  uint32_t data_sector;            // 0x0a80
 } vol_info_t;
 
 vol_info_t vol_info;
@@ -88,8 +94,8 @@ uint8_t read_dir(uint8_t count, obj_data_t* objects_data, int8_t cursor);
 uint8_t card_init_(void);
 uint8_t vol_init_(void);
 void cp_obj_name_(char* dst, uint16_t buffer_offset);
-void parsing_obj_data_(obj_data_t* obj, uint16_t buffer_offset);
-uint16_t next_claster_(uint16_t cluser);
+uint8_t parsing_obj_data_(obj_data_t* obj, uint16_t buffer_offset);
+uint8_t next_cluster_by_fat_(obj_data_t* prev_object, obj_data_t* next_object);
 uint32_t get_sector_by_cluster_(uint16_t cluster);
 void spi_send_(uint8_t data);
 void card_command_(uint8_t cmd, uint32_t arg, uint8_t crc);
