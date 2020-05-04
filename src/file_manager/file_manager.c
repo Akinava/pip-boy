@@ -51,7 +51,7 @@ void show_list(void){
 }
 
 uint8_t read_keyboard(void){
-  // avoid from contact bounce
+  // for the contact bounce
   _delay_ms(150);
   while(1){
     if(CHECK_PIN(BUTTON_UP_PINS, BUTTON_UP_PIN)){
@@ -62,6 +62,10 @@ uint8_t read_keyboard(void){
       cursor++;
       break;
     }
+  }
+  if (lines < LINES && cursor == lines){
+    // this is the last page where lines less then LINES
+    cursor = lines - 1;
   }
   if (cursor == -1 || cursor == LINES){return 1;}
   return 0;

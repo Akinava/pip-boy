@@ -29,6 +29,8 @@
 /** status for card in the idle state */
 #define R1_IDLE_STATE 1
 
+#define SECTOR_SIZE               512
+
 /** start data token for read or write */
 #define DATA_START_BLOCK          0xfe
 
@@ -44,6 +46,7 @@
 #define END_OF_CLUSTERCHAIN       0x0fff8
 
 #define OBJECT_IS_DELETED         0xe5
+#define OBJECT_NOT_EXIST          0x0
 
 #define OBJ_ATTRIBUTES_OFFSET     0x0b
 #define OBJ_CATALOG               0x10
@@ -68,7 +71,7 @@ typedef struct {
   char name[OBJECT_NAME_SIZE];
 } obj_data_t;
 
-uint8_t sector_buffer[512];
+uint8_t sector_buffer[SECTOR_SIZE];
 
 typedef struct {
   uint16_t bytes_per_sector;       // 0x0200    512
@@ -94,14 +97,12 @@ uint8_t read_dir(uint8_t count, obj_data_t* objects_data, int8_t cursor);
 uint8_t card_init_(void);
 uint8_t vol_init_(void);
 void cp_obj_name_(char* dst, uint16_t buffer_offset);
-uint8_t parsing_obj_data_(obj_data_t* obj, uint16_t buffer_offset);
+uint8_t parsing_obj_data_(obj_data_t* dst_obj, obj_data_t* src_obj);
 uint8_t next_cluster_by_fat_(obj_data_t* prev_object, obj_data_t* next_object);
 uint32_t get_sector_by_cluster_(uint16_t cluster);
 void spi_send_(uint8_t data);
 void card_command_(uint8_t cmd, uint32_t arg, uint8_t crc);
 uint8_t wait_start_block_(void);
 uint8_t read_sector_(uint32_t sector);
-void find_prev_obj_(obj_data_t* next_obj, obj_data_t* prev_object);
-void find_next_obj_(obj_data_t* next_obj, obj_data_t* prev_object);
 
 #endif
