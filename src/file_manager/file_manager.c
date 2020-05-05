@@ -20,18 +20,26 @@ int main(void){
 
   cursor = 0;
   parents_cluster = ROOT_CLUSTER;
-  make_list();
-
-  while(1){
+  if (make_list()){
     show_list();
-    if (read_keyboard()){
-      make_list();
+  }
+ 
+  while(1){
+    read_keyboard();
+    if (!check_cursor_in_board()){
+      if (make_list()){
+        show_list();
+      }else{
+        set_cursor_in_board();
+      }
+    }else{
+      show_list();
     }
   }
 }
 
-void make_list(void){
-  lines = read_dir(LINES, objects_data, cursor);
+uint8_t make_list(void){
+  return read_dir(&lines, LINES, objects_data, cursor);
 }
 
 void show_list(void){
@@ -50,7 +58,25 @@ void show_list(void){
   }
 }
 
-uint8_t read_keyboard(void){
+void set_cursor_in_board(void){
+  if (cursor == -1){cursor = 0;}
+  if (cursor == LINES){cursor = LINES - 1;}
+}
+
+uint8_t check_cursor_in_board(void){
+  if (lines < LINES && cursor == lines){
+    // this is the last page where lines less then LINES
+    cursor = lines - 1;
+  }
+  // update list
+  if (cursor == -1 || cursor == LINES){
+    return 0;
+  }
+  // update cursor
+  return 1;
+}
+
+void read_keyboard(void){
   // for the contact bounce
   _delay_ms(150);
   while(1){
@@ -63,12 +89,6 @@ uint8_t read_keyboard(void){
       break;
     }
   }
-  if (lines < LINES && cursor == lines){
-    // this is the last page where lines less then LINES
-    cursor = lines - 1;
-  }
-  if (cursor == -1 || cursor == LINES){return 1;}
-  return 0;
 }
 
 void keys_setup(void){

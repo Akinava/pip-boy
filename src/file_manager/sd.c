@@ -88,8 +88,8 @@ void next_sector_offset_(obj_data_t* prev_object, obj_data_t* next_object){
   }
 }
 
-void clean_objects_data(uint8_t count, obj_data_t* objects_data){
-  for (uint8_t i=0; i<count; i++){
+void clean_objects_data(uint8_t items, uint8_t count, obj_data_t* objects_data){
+  for (uint8_t i=items; i<count; i++){
     (objects_data+i)->dir = FILE_FLAG;
     (objects_data+i)->data_cluster = 0;
     (objects_data+i)->cluster = 0;
@@ -135,15 +135,14 @@ uint8_t check_object_exist(obj_data_t obj){
   return 1;
 }
 
-uint8_t read_dir(uint8_t count, obj_data_t* objects_data, int8_t cursor){
+uint8_t read_dir(uint8_t* items, uint8_t count, obj_data_t* objects_data, int8_t cursor){
   obj_data_t prev_obj;
   obj_data_t next_obj;
   uint8_t read_direction = find_read_direction(count, cursor);
   get_prev_obj(objects_data, &prev_obj, cursor, count);
 
   // init
-  clean_objects_data(count, objects_data);
-  uint8_t  item = 0;
+  *items = 0;
   if (cursor == 0){
     get_zero_obj_(&next_obj);
   }else{
@@ -153,9 +152,9 @@ uint8_t read_dir(uint8_t count, obj_data_t* objects_data, int8_t cursor){
   }
   if (!read_sector_(next_obj.sector)){return 0;}
 
-  while (item < count){
+  while (*items < count){
     if (!check_object_exist(next_obj)){break;}
-    if (parsing_obj_data_(&objects_data[item], &next_obj)){item++;}
+    if (parsing_obj_data_(&objects_data[*items], &next_obj)){(*items)++;}
   
     prev_obj = next_obj;
     if (!get_next_obj_(&prev_obj, &next_obj, read_direction)){break;}
@@ -164,7 +163,13 @@ uint8_t read_dir(uint8_t count, obj_data_t* objects_data, int8_t cursor){
       if (!read_sector_(next_obj.sector)){break;}
     }
   }
-  return item;
+
+  if (cursor != 0 && *items == 0){
+    *items =  count;
+    return 0;
+  }
+  clean_objects_data(*items, count, objects_data);
+  return 1;
 }
 
 /*
