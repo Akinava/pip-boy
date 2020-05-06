@@ -39,6 +39,8 @@
 #define VOL_INFO_OFFSET           0x0b
 
 #define DATA_CLUSTER_OFFSET       0x1a
+#define FAT_CLUSTER_SIZE          2  
+#define FAT_CLUSTER_SKIP          2
 
 #define OBJECT_RECORD_SIZE        32
 #define OBJECT_NAME_SIZE          8+3
@@ -83,6 +85,7 @@ typedef struct {
   uint8_t media_descriptor;
   uint16_t sectors_per_FAT;        // 0x0100
 
+  uint32_t clusters_total;         // sectors_per_FAT * bytes_per_sector / sizeof(uint16_t) =  
   uint32_t start_sector;           // 0x0800 
   uint32_t fat_table_sector;       // 0x0840
   uint32_t root_sector;            // 0x0a40 

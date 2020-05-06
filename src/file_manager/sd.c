@@ -35,13 +35,33 @@ uint32_t get_root_last_sector(){
 }
 
 uint8_t next_cluster_by_fat_(obj_data_t* prev_object, obj_data_t* next_object){                              
-  uint16_t fat_cluster_size = sizeof(prev_object->cluster);                            
-  uint16_t fat_cluster_place = prev_object->cluster*fat_cluster_size;                  
-  if (!read_sector_(vol_info.fat_table_sector)){return 0;}                                    
+  // if (prev_object->cluster > vol_info.clusters_total){return 0;}
+  uint16_t fat_cluster_place = prev_object->cluster*FAT_CLUSTER_SIZE;
+  uint16_t fat_sector_offset = fat_cluster_place / vol_info.bytes_per_sector; 
+  if (!read_sector_(vol_info.fat_table_sector+fat_sector_offset)){return 0;}                                    
   next_object->cluster = *((uint32_t*)(sector_buffer + fat_cluster_place));            
   if (next_object->sector >= END_OF_CLUSTERCHAIN){return 0;}                           
   return 1;                                                                     
 } 
+
+uint8_t prev_cluster_by_fat_(obj_data_t* prev_object, obj_data_t* next_object){
+  // for by fat sectors
+  for (uint16_t fat_sector = vol_info.fat_table_sector; fat_sector < vol_info.fat_table_sector+vol_info.sectors_per_FAT; fat_sector++){
+    if (!read_sector_(vol_info.fat_table_sector)){return 0;}
+    uint8_t buffer_start = 0;
+    // the first fat sector doesn't have first two records
+    if (fat_sector == vol_info.fat_table_sector){buffer_start = FAT_CLUSTER_SKIP;}
+    // for by fat sector
+    for (uint16_t buffer_offset = buffer_start; buffer_offset < vol_info.bytes_per_sector; buffer_offset+=FAT_CLUSTER_SIZE){
+      // if the variable of record equal of search cluster that means index of this uint16_t number is a previous cluster
+      if (prev_object->cluster == *((uint16_t*)(sector_buffer + buffer_offset))){
+        next_object->sector = ((fat_sector - vol_info.fat_table_sector) * vol_info.bytes_per_sector + buffer_offset) / FAT_CLUSTER_SIZE;
+        return 1;
+      }
+    }
+  }
+  return 0;
+}
 
 uint8_t next_cluster_(obj_data_t* prev_object, obj_data_t* next_object){
   // check overflow offset
@@ -54,17 +74,43 @@ uint8_t next_cluster_(obj_data_t* prev_object, obj_data_t* next_object){
   if (prev_object->cluster == ROOT_CLUSTER){
     // root cluster
     if (prev_object->sector+1 < get_root_last_sector()){
-      next_object->cluster = prev_object->sector+1;
+      next_object->cluster = prev_object->sector + 1;
       return 1;
     }
   }else{
     // data cluster
     /* current sector of cluster - first sector of cluster + 1           */
     if (prev_object->sector-get_sector_by_cluster_(prev_object->cluster)+1 < vol_info.sectors_per_cluster){
-      next_object->cluster = prev_object->cluster+1;
+      next_object->cluster = prev_object->cluster + 1;
       return 1;
     }else{
       if (next_cluster_by_fat_(prev_object, next_object)){
+        return 1;
+      }
+    }
+  }
+  return 0;
+}
+
+uint8_t prev_cluster_(obj_data_t* prev_object, obj_data_t* next_object){
+  // check overflow offset
+  if (prev_object->sector_offset != 0){
+    next_object->cluster = prev_object->cluster;
+    return 1;
+  }
+  // check overflow sectors
+  if (prev_object->cluster == ROOT_CLUSTER){
+    if (prev_object->sector > vol_info.root_sector){
+      next_object->cluster = prev_object->sector - 1;
+      return 1;
+    }
+  }else{
+    /*  current sector ofcluster | first sector of cluster               */
+    if (prev_object->sector > get_sector_by_cluster_(prev_object->cluster)){
+      next_object->cluster = prev_object->cluster - 1;
+      return 1;
+    }else{
+      if (prev_cluster_by_fat_(prev_object, next_object)){
         return 1;
       }
     }
@@ -76,15 +122,31 @@ void next_sector_(obj_data_t* prev_object, obj_data_t* next_object){
   if (prev_object->sector_offset+OBJECT_RECORD_SIZE < vol_info.bytes_per_sector){
     next_object->sector = prev_object->sector;
   }else{
-    next_object->sector = prev_object->sector+1;
+    next_object->sector = prev_object->sector + 1;
+  }
+}
+
+void prev_sector_(obj_data_t* prev_object, obj_data_t* next_object){
+  if (prev_object->sector_offset != 0){
+    next_object->sector = prev_object->sector;
+  }else{
+    next_object->sector = prev_object->sector - 1;
   }
 }
 
 void next_sector_offset_(obj_data_t* prev_object, obj_data_t* next_object){
   if (prev_object->sector_offset+OBJECT_RECORD_SIZE < vol_info.bytes_per_sector){
-    next_object->sector_offset = prev_object->sector_offset+OBJECT_RECORD_SIZE;
+    next_object->sector_offset = prev_object->sector_offset + OBJECT_RECORD_SIZE;
   }else{
     next_object->sector_offset = 0;  
+  }
+}
+
+void prev_sector_offset_(obj_data_t* prev_object, obj_data_t* next_object){
+  if (prev_object->sector_offset == 0){
+    next_object->sector_offset = vol_info.bytes_per_sector - OBJECT_RECORD_SIZE;
+  }else{
+    next_object->sector_offset = prev_object->sector_offset - OBJECT_RECORD_SIZE;
   }
 }
 
@@ -108,16 +170,18 @@ void get_prev_obj(obj_data_t* objects_data, obj_data_t* prev_obj, uint8_t cursor
 }
 
 uint8_t get_next_obj_(obj_data_t* prev_obj, obj_data_t* next_obj, uint8_t read_direction){
+  // READ DOWN
   if (read_direction == READ_DOWN){
-    if (!next_cluster_(prev_obj, next_obj)){
-      return 0;
-    }
+    if (!next_cluster_(prev_obj, next_obj)){return 0;}
     next_sector_(prev_obj, next_obj);
     next_sector_offset_(prev_obj, next_obj);
     return 1;
   }
-  // FIXME READ UP
-  return 0;
+  // READ UP
+  if (!prev_cluster_(prev_obj, next_obj)){return 0;}
+  prev_sector_(prev_obj, next_obj);
+  prev_sector_offset_(prev_obj, next_obj);
+  return 1;
 
 }
 
@@ -211,6 +275,7 @@ uint8_t vol_init_(void){
   vol_info.fat_table_sector = vol_info.start_sector + vol_info.reserved_sectors; 
   vol_info.root_sector = vol_info.fat_table_sector + vol_info.sectors_per_FAT * vol_info.number_of_FATs;
   vol_info.data_sector = vol_info.root_sector + vol_info.root_directory_entries * OBJECT_RECORD_SIZE / vol_info.bytes_per_sector;
+  vol_info.clusters_total = vol_info.sectors_per_FAT * vol_info.bytes_per_sector / FAT_CLUSTER_SIZE - FAT_CLUSTER_SKIP; 
   return 1;
 }
 

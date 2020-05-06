@@ -16,6 +16,7 @@ void keys_setup(void);
 uint8_t check_cursor_in_board(void);
 void set_cursor_in_board(void);
 
+// max forders nesting is 6
 uint8_t full_path_buf[64];
 uint8_t lines;
 int8_t cursor;
