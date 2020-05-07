@@ -19,7 +19,6 @@ int main(void){
   keys_setup();
 
   cursor = 0;
-  parents_cluster = ROOT_CLUSTER;
   if (make_list()){
     show_list();
   }
@@ -39,6 +38,12 @@ int main(void){
 }
 
 uint8_t make_list(void){
+  // menu.
+  /*  lines           how mach lines got back
+   *  LINES           how nach lines is requared
+   *  objects_data    objects data
+   *  cursor          where is cursor
+   */
   return read_dir(&lines, LINES, objects_data, cursor);
 }
 
@@ -86,6 +91,11 @@ void read_keyboard(void){
     }
     if(CHECK_PIN(BUTTON_DOWN_PINS, BUTTON_DOWN_PIN)){
       cursor++;
+      break;
+    }
+    if(CHECK_PIN(BUTTON_A_PINS, BUTTON_A_PIN)){
+      cursor = 0;
+      // inter in dir (set vol_info.primary_dir_cluster = obj cluster) or load file
       break;
     }
   }

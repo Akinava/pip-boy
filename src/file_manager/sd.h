@@ -85,14 +85,16 @@ typedef struct {
   uint8_t media_descriptor;
   uint16_t sectors_per_FAT;        // 0x0100
 
-  uint32_t clusters_total;         // sectors_per_FAT * bytes_per_sector / sizeof(uint16_t) =  
   uint32_t start_sector;           // 0x0800 
   uint32_t fat_table_sector;       // 0x0840
   uint32_t root_sector;            // 0x0a40 
   uint32_t data_sector;            // 0x0a80
+  uint16_t primary_dir_cluster;
 } vol_info_t;
 
 vol_info_t vol_info;
+
+// first cluster of current directory
 
 uint8_t sd_init(void);
 uint8_t read_dir(uint8_t* items, uint8_t count, obj_data_t* objects_data, int8_t cursor);
@@ -102,7 +104,7 @@ uint8_t vol_init_(void);
 void cp_obj_name_(char* dst, uint16_t buffer_offset);
 uint8_t parsing_obj_data_(obj_data_t* dst_obj, obj_data_t* src_obj);
 uint8_t next_cluster_by_fat_(obj_data_t* prev_object, obj_data_t* next_object);
-uint32_t get_sector_by_cluster_(uint16_t cluster);
+uint32_t get_sector_by_cluster_(obj_data_t* object);
 void spi_send_(uint8_t data);
 void card_command_(uint8_t cmd, uint32_t arg, uint8_t crc);
 uint8_t wait_start_block_(void);

@@ -35,7 +35,6 @@ uint32_t get_root_last_sector(){
 }
 
 uint8_t next_cluster_by_fat_(obj_data_t* prev_object, obj_data_t* next_object){                              
-  // if (prev_object->cluster > vol_info.clusters_total){return 0;}
   uint16_t fat_cluster_place = prev_object->cluster*FAT_CLUSTER_SIZE;
   uint16_t fat_sector_offset = fat_cluster_place / vol_info.bytes_per_sector; 
   if (!read_sector_(vol_info.fat_table_sector+fat_sector_offset)){return 0;}                                    
@@ -45,22 +44,16 @@ uint8_t next_cluster_by_fat_(obj_data_t* prev_object, obj_data_t* next_object){
 } 
 
 uint8_t prev_cluster_by_fat_(obj_data_t* prev_object, obj_data_t* next_object){
-  // for by fat sectors
-  for (uint16_t fat_sector = vol_info.fat_table_sector; fat_sector < vol_info.fat_table_sector+vol_info.sectors_per_FAT; fat_sector++){
-    if (!read_sector_(vol_info.fat_table_sector)){return 0;}
-    uint8_t buffer_start = 0;
-    // the first fat sector doesn't have first two records
-    if (fat_sector == vol_info.fat_table_sector){buffer_start = FAT_CLUSTER_SKIP;}
-    // for by fat sector
-    for (uint16_t buffer_offset = buffer_start; buffer_offset < vol_info.bytes_per_sector; buffer_offset+=FAT_CLUSTER_SIZE){
-      // if the variable of record equal of search cluster that means index of this uint16_t number is a previous cluster
-      if (prev_object->cluster == *((uint16_t*)(sector_buffer + buffer_offset))){
-        next_object->sector = ((fat_sector - vol_info.fat_table_sector) * vol_info.bytes_per_sector + buffer_offset) / FAT_CLUSTER_SIZE;
-        return 1;
-      }
-    }
+  if (prev_object->cluster == vol_info.primary_dir_cluster){return 0;}
+  obj_data_t tmp_obj;
+  tmp_obj.cluster = vol_info.primary_dir_cluster;
+  *next_object = tmp_obj;
+  while(tmp_obj.cluster != prev_object->cluster){
+    *next_object = tmp_obj;
+    //                   prev         next
+    if (!next_cluster_by_fat_(next_object, &tmp_obj)){return 0;}
   }
-  return 0;
+  return 1;
 }
 
 uint8_t next_cluster_(obj_data_t* prev_object, obj_data_t* next_object){
@@ -80,7 +73,7 @@ uint8_t next_cluster_(obj_data_t* prev_object, obj_data_t* next_object){
   }else{
     // data cluster
     /* current sector of cluster - first sector of cluster + 1           */
-    if (prev_object->sector-get_sector_by_cluster_(prev_object->cluster)+1 < vol_info.sectors_per_cluster){
+    if (prev_object->sector-get_sector_by_cluster_(prev_object)+1 < vol_info.sectors_per_cluster){
       next_object->cluster = prev_object->cluster + 1;
       return 1;
     }else{
@@ -98,15 +91,17 @@ uint8_t prev_cluster_(obj_data_t* prev_object, obj_data_t* next_object){
     next_object->cluster = prev_object->cluster;
     return 1;
   }
-  // check overflow sectors
+  
   if (prev_object->cluster == ROOT_CLUSTER){
+    // check overflow sectors in rood directory
     if (prev_object->sector > vol_info.root_sector){
       next_object->cluster = prev_object->sector - 1;
       return 1;
     }
   }else{
-    /*  current sector ofcluster | first sector of cluster               */
-    if (prev_object->sector > get_sector_by_cluster_(prev_object->cluster)){
+    // check overflow sectors in data directory
+    /*  current sector of cluster | first sector of cluster               */
+    if (prev_object->sector > get_sector_by_cluster_(prev_object)){
       next_object->cluster = prev_object->cluster - 1;
       return 1;
     }else{
@@ -115,6 +110,7 @@ uint8_t prev_cluster_(obj_data_t* prev_object, obj_data_t* next_object){
       }
     }
   }
+  // this is the first cluster
   return 0;
 }
 
@@ -186,8 +182,8 @@ uint8_t get_next_obj_(obj_data_t* prev_obj, obj_data_t* next_obj, uint8_t read_d
 }
 
 void get_zero_obj_(obj_data_t* next_obj){
-  next_obj->cluster = ROOT_CLUSTER;
-  next_obj->sector = vol_info.root_sector;
+  next_obj->cluster = vol_info.primary_dir_cluster;
+  next_obj->sector = get_sector_by_cluster_(next_obj);
   next_obj->sector_offset = 0;
 }
 
@@ -208,6 +204,7 @@ uint8_t read_dir(uint8_t* items, uint8_t count, obj_data_t* objects_data, int8_t
   // init
   *items = 0;
   if (cursor == 0){
+    // cluster saved in first object
     get_zero_obj_(&next_obj);
   }else{
     if (!get_next_obj_(&prev_obj, &next_obj, read_direction)){
@@ -244,8 +241,11 @@ void file_info_parce_(file_t* file, uint8_t* file_info){
 }
 */
 
-uint32_t get_sector_by_cluster_(uint16_t cluster){
-  return vol_info.data_sector + ((cluster-2) * vol_info.sectors_per_cluster);
+uint32_t get_sector_by_cluster_(obj_data_t* object){
+  if (object->cluster == ROOT_CLUSTER){
+    return vol_info.root_sector;
+  }
+  return vol_info.data_sector + ((object->cluster-2) * vol_info.sectors_per_cluster);
 }
 
 /*
@@ -275,7 +275,7 @@ uint8_t vol_init_(void){
   vol_info.fat_table_sector = vol_info.start_sector + vol_info.reserved_sectors; 
   vol_info.root_sector = vol_info.fat_table_sector + vol_info.sectors_per_FAT * vol_info.number_of_FATs;
   vol_info.data_sector = vol_info.root_sector + vol_info.root_directory_entries * OBJECT_RECORD_SIZE / vol_info.bytes_per_sector;
-  vol_info.clusters_total = vol_info.sectors_per_FAT * vol_info.bytes_per_sector / FAT_CLUSTER_SIZE - FAT_CLUSTER_SKIP; 
+  vol_info.primary_dir_cluster = ROOT_CLUSTER; 
   return 1;
 }
 

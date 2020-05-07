@@ -26,7 +26,6 @@ int8_t cursor;
  * 8 bytes name 3 bytes extension
  * +1 byte zero
  */
-uint16_t parents_cluster;
 
 #define LINES 8
 obj_data_t objects_data[LINES];
