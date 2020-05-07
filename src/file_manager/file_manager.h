@@ -5,6 +5,7 @@
 #include "sd.h"
 #include "macro.h"
 #include "pins.h"
+#include "menu.h"
 
 #ifndef FILE_MANAGER_H                                         
 #define FILE_MANAGER_H
@@ -18,8 +19,6 @@ void set_cursor_in_board(void);
 
 // max forders nesting is 6
 uint8_t full_path_buf[64];
-uint8_t lines;
-int8_t cursor;
 
 /*
  * 8 line in display

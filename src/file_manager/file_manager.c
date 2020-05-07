@@ -18,7 +18,9 @@ int main(void){
 
   keys_setup();
 
-  cursor = 0;
+  menu.cursor = 0;
+  menu.max_lines = LINES;
+
   if (make_list()){
     show_list();
   }
@@ -44,18 +46,18 @@ uint8_t make_list(void){
    *  objects_data    objects data
    *  cursor          where is cursor
    */
-  return read_dir(&lines, LINES, objects_data, cursor);
+  return read_dir(&menu, objects_data);
 }
 
 void show_list(void){
-  if (cursor == LINES){cursor = 0;}
-  if (cursor == -1){cursor = LINES-1;}
+  if (menu.cursor == LINES){menu.cursor = 0;}
+  if (menu.cursor == -1){menu.cursor = menu.max_lines-1;}
   display_clean();
   //       dir_flag  name  dot ext  0x0
   char buf[1+        8+    1+  3+   1];
-  for (uint8_t y=0; y<lines; y++){
+  for (uint8_t y=0; y<menu.lines; y++){
     copy_line_(buf, y);
-    if (y == cursor){
+    if (y == menu.cursor){
       print_invert(buf, 0, y);
     }else{
       print(buf, 0, y);
@@ -64,17 +66,17 @@ void show_list(void){
 }
 
 void set_cursor_in_board(void){
-  if (cursor == -1){cursor = 0;}
-  if (cursor == LINES){cursor = LINES - 1;}
+  if (menu.cursor == -1){menu.cursor = 0;}
+  if (menu.cursor == menu.max_lines){menu.cursor = menu.max_lines - 1;}
 }
 
 uint8_t check_cursor_in_board(void){
-  if (lines < LINES && cursor == lines){
+  if (menu.lines < menu.max_lines && menu.cursor == menu.lines){
     // this is the last page where lines less then LINES
-    cursor = lines - 1;
+    menu.cursor = menu.lines - 1;
   }
   // update list
-  if (cursor == -1 || cursor == LINES){
+  if (menu.cursor == -1 || menu.cursor == menu.max_lines){
     return 0;
   }
   // update cursor
@@ -86,15 +88,15 @@ void read_keyboard(void){
   _delay_ms(150);
   while(1){
     if(CHECK_PIN(BUTTON_UP_PINS, BUTTON_UP_PIN)){
-      cursor--;
+      menu.cursor--;
       break;
     }
     if(CHECK_PIN(BUTTON_DOWN_PINS, BUTTON_DOWN_PIN)){
-      cursor++;
+      menu.cursor++;
       break;
     }
     if(CHECK_PIN(BUTTON_A_PINS, BUTTON_A_PIN)){
-      cursor = 0;
+      menu.cursor = 0;
       // inter in dir (set vol_info.primary_dir_cluster = obj cluster) or load file
       break;
     }

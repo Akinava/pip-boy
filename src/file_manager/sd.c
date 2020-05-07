@@ -22,8 +22,8 @@ uint8_t parsing_obj_data_(obj_data_t* dst_obj, obj_data_t* src_obj){
   return 1;
 }
 
-uint8_t find_read_direction(uint8_t count, int8_t cursor){
-  if (cursor == -1){
+uint8_t find_read_direction(menu_t* menu){
+  if (menu->cursor == -1){
     return READ_UP;
   }
   return READ_DOWN;
@@ -146,8 +146,8 @@ void prev_sector_offset_(obj_data_t* prev_object, obj_data_t* next_object){
   }
 }
 
-void clean_objects_data(uint8_t items, uint8_t count, obj_data_t* objects_data){
-  for (uint8_t i=items; i<count; i++){
+void clean_objects_data(menu_t* menu, obj_data_t* objects_data){
+  for (uint8_t i=menu->lines; i<menu->max_lines; i++){
     (objects_data+i)->dir = FILE_FLAG;
     (objects_data+i)->data_cluster = 0;
     (objects_data+i)->cluster = 0;
@@ -157,9 +157,9 @@ void clean_objects_data(uint8_t items, uint8_t count, obj_data_t* objects_data){
   }
 }
 
-void get_prev_obj(obj_data_t* objects_data, obj_data_t* prev_obj, uint8_t cursor, uint8_t count){
-  if (cursor == count){
-    *prev_obj = objects_data[count-1];
+void get_prev_obj(obj_data_t* objects_data, obj_data_t* prev_obj, menu_t* menu){
+  if (menu->cursor == menu->max_lines){
+    *prev_obj = objects_data[menu->max_lines-1];
     return;
   }
   *prev_obj = objects_data[0];
@@ -195,15 +195,15 @@ uint8_t check_object_exist(obj_data_t obj){
   return 1;
 }
 
-uint8_t read_dir(uint8_t* items, uint8_t count, obj_data_t* objects_data, int8_t cursor){
+uint8_t read_dir(menu_t* menu, obj_data_t* objects_data){
   obj_data_t prev_obj;
   obj_data_t next_obj;
-  uint8_t read_direction = find_read_direction(count, cursor);
-  get_prev_obj(objects_data, &prev_obj, cursor, count);
+  uint8_t read_direction = find_read_direction(menu);
+  get_prev_obj(objects_data, &prev_obj, menu);
 
   // init
-  *items = 0;
-  if (cursor == 0){
+  menu->lines = 0;
+  if (menu->cursor == 0){
     // cluster saved in first object
     get_zero_obj_(&next_obj);
   }else{
@@ -213,9 +213,9 @@ uint8_t read_dir(uint8_t* items, uint8_t count, obj_data_t* objects_data, int8_t
   }
   if (!read_sector_(next_obj.sector)){return 0;}
 
-  while (*items < count){
+  while (menu->lines < menu->max_lines){
     if (!check_object_exist(next_obj)){break;}
-    if (parsing_obj_data_(&objects_data[*items], &next_obj)){(*items)++;}
+    if (parsing_obj_data_(&objects_data[menu->lines], &next_obj)){(menu->lines)++;}
   
     prev_obj = next_obj;
     if (!get_next_obj_(&prev_obj, &next_obj, read_direction)){break;}
@@ -225,11 +225,11 @@ uint8_t read_dir(uint8_t* items, uint8_t count, obj_data_t* objects_data, int8_t
     }
   }
 
-  if (cursor != 0 && *items == 0){
-    *items =  count;
+  if (menu->cursor != 0 && menu->lines == 0){
+    menu->lines = menu->max_lines;
     return 0;
   }
-  clean_objects_data(*items, count, objects_data);
+  clean_objects_data(menu, objects_data);
   return 1;
 }
 

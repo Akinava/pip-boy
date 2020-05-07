@@ -2,6 +2,7 @@
 #include <string.h>
 #include "macro.h"
 #include "pins.h"
+#include "menu.h"
 
 // FIXME
 #include "display.h"
@@ -97,7 +98,7 @@ vol_info_t vol_info;
 // first cluster of current directory
 
 uint8_t sd_init(void);
-uint8_t read_dir(uint8_t* items, uint8_t count, obj_data_t* objects_data, int8_t cursor);
+uint8_t read_dir(menu_t* menu, obj_data_t* objects_data);
 
 uint8_t card_init_(void);
 uint8_t vol_init_(void);
