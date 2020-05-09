@@ -6,10 +6,15 @@ void cp_obj_name_(char* dst, uint16_t buffer_offset){
   }
 }
 
-uint8_t parsing_obj_data_(obj_data_t* dst_obj, obj_data_t* src_obj){
+uint8_t copy_obj_to_page_(obj_data_t* objects_data, obj_data_t* src_obj, menu_t* menu){
   if (*(sector_buffer+src_obj->sector_offset) == OBJECT_IS_DELETED){
     return 0;
   }
+  uint8_t src_object_index = menu->lines;
+  if (menu->next_page == ABOVE){
+    src_object_index = menu->max_lines - menu->lines - 1;
+  }
+  obj_data_t* dst_obj = objects_data + src_object_index;
   dst_obj->cluster = src_obj->cluster;
   dst_obj->sector = src_obj->sector;
   dst_obj->dir = FILE_FLAG;
@@ -22,11 +27,11 @@ uint8_t parsing_obj_data_(obj_data_t* dst_obj, obj_data_t* src_obj){
   return 1;
 }
 
-uint8_t find_read_direction(menu_t* menu){
+void find_read_direction(menu_t* menu){
   if (menu->cursor == -1){
-    return READ_UP;
+    menu->next_page = ABOVE;
   }
-  return READ_DOWN;
+  menu->next_page = BELOW;
 }
 
 uint32_t get_root_last_sector(){
@@ -165,15 +170,15 @@ void get_prev_obj(obj_data_t* objects_data, obj_data_t* prev_obj, menu_t* menu){
   *prev_obj = objects_data[0];
 }
 
-uint8_t get_next_obj_(obj_data_t* prev_obj, obj_data_t* next_obj, uint8_t read_direction){
-  // READ DOWN
-  if (read_direction == READ_DOWN){
+uint8_t get_next_obj_(obj_data_t* prev_obj, obj_data_t* next_obj, menu_t* menu){
+  // BELOW PAGE
+  if (menu->next_page == BELOW){
     if (!next_cluster_(prev_obj, next_obj)){return 0;}
     next_sector_(prev_obj, next_obj);
     next_sector_offset_(prev_obj, next_obj);
     return 1;
   }
-  // READ UP
+  // ABOVE PAGE
   if (!prev_cluster_(prev_obj, next_obj)){return 0;}
   prev_sector_(prev_obj, next_obj);
   prev_sector_offset_(prev_obj, next_obj);
@@ -195,10 +200,10 @@ uint8_t check_object_exist(obj_data_t obj){
   return 1;
 }
 
-uint8_t read_dir(menu_t* menu, obj_data_t* objects_data){
+uint8_t read_directory_page(menu_t* menu, obj_data_t* objects_data){
   obj_data_t prev_obj;
   obj_data_t next_obj;
-  uint8_t read_direction = find_read_direction(menu);
+  find_read_direction(menu);
   get_prev_obj(objects_data, &prev_obj, menu);
 
   // init
@@ -207,7 +212,7 @@ uint8_t read_dir(menu_t* menu, obj_data_t* objects_data){
     // cluster saved in first object
     get_zero_obj_(&next_obj);
   }else{
-    if (!get_next_obj_(&prev_obj, &next_obj, read_direction)){
+    if (!get_next_obj_(&prev_obj, &next_obj, menu)){
       return 0;  
     }
   }
@@ -215,10 +220,10 @@ uint8_t read_dir(menu_t* menu, obj_data_t* objects_data){
 
   while (menu->lines < menu->max_lines){
     if (!check_object_exist(next_obj)){break;}
-    if (parsing_obj_data_(&objects_data[menu->lines], &next_obj)){(menu->lines)++;}
+    if (copy_obj_to_page_(objects_data, &next_obj, menu)){(menu->lines)++;}
   
     prev_obj = next_obj;
-    if (!get_next_obj_(&prev_obj, &next_obj, read_direction)){break;}
+    if (!get_next_obj_(&prev_obj, &next_obj, menu)){break;}
     // if the same secror we do not need read it again
     if (prev_obj.sector != next_obj.sector){
       if (!read_sector_(next_obj.sector)){break;}

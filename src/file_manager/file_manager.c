@@ -20,6 +20,7 @@ int main(void){
 
   menu.cursor = 0;
   menu.max_lines = LINES;
+  menu.next_page = CURRENT;
 
   if (make_list()){
     show_list();
@@ -46,7 +47,7 @@ uint8_t make_list(void){
    *  objects_data    objects data
    *  cursor          where is cursor
    */
-  return read_dir(&menu, objects_data);
+  return read_directory_page(&menu, objects_data);
 }
 
 void show_list(void){

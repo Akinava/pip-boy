@@ -57,9 +57,6 @@
 #define SD_SET SET_LOW
 #define SD_UNSET SET_HIGH
 
-#define READ_UP   0
-#define READ_DOWN 1
-
 #define FILE_FLAG 0
 #define DIR_FLAG 1
 
@@ -98,12 +95,12 @@ vol_info_t vol_info;
 // first cluster of current directory
 
 uint8_t sd_init(void);
-uint8_t read_dir(menu_t* menu, obj_data_t* objects_data);
+uint8_t read_directory_page(menu_t* menu, obj_data_t* objects_data);
 
 uint8_t card_init_(void);
 uint8_t vol_init_(void);
 void cp_obj_name_(char* dst, uint16_t buffer_offset);
-uint8_t parsing_obj_data_(obj_data_t* dst_obj, obj_data_t* src_obj);
+uint8_t copy_obj_to_page_(obj_data_t* objects_data, obj_data_t* src_obj, menu_t* menu);
 uint8_t next_cluster_by_fat_(obj_data_t* prev_object, obj_data_t* next_object);
 uint32_t get_sector_by_cluster_(obj_data_t* object);
 void spi_send_(uint8_t data);
