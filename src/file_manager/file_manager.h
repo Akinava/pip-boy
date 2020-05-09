@@ -11,12 +11,12 @@
 #define FILE_MANAGER_H
 
 uint8_t make_list(void);
-void show_list(void);
+void show_page(void);
 void read_keyboard(void);
 void keys_setup(void);
-uint8_t check_cursor_in_board(void);
-void set_cursor_in_board(void);
-
+void jump_cursor(void);
+void step_cursor_back(void);
+uint8_t cursor_in_page(void);
 // max forders nesting is 6
 uint8_t full_path_buf[64];
 

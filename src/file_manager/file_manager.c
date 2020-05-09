@@ -20,39 +20,27 @@ int main(void){
 
   menu.cursor = 0;
   menu.max_lines = LINES;
-  menu.next_page = CURRENT;
+  menu.next_page = BELOW;
 
-  if (make_list()){
-    show_list();
-  }
- 
   while(1){
-    read_keyboard();
-    if (!check_cursor_in_board()){
-      if (make_list()){
-        show_list();
-      }else{
-        set_cursor_in_board();
-      }
+    if (make_list()){
+      jump_cursor();
     }else{
-      show_list();
+      step_cursor_back();
+    }
+
+    while (cursor_in_page()){
+      show_page();
+      read_keyboard();
     }
   }
 }
 
 uint8_t make_list(void){
-  // menu.
-  /*  lines           how mach lines got back
-   *  LINES           how nach lines is requared
-   *  objects_data    objects data
-   *  cursor          where is cursor
-   */
   return read_directory_page(&menu, objects_data);
 }
 
-void show_list(void){
-  if (menu.cursor == LINES){menu.cursor = 0;}
-  if (menu.cursor == -1){menu.cursor = menu.max_lines-1;}
+void show_page(void){
   display_clean();
   //       dir_flag  name  dot ext  0x0
   char buf[1+        8+    1+  3+   1];
@@ -66,22 +54,38 @@ void show_list(void){
   }
 }
 
-void set_cursor_in_board(void){
-  if (menu.cursor == -1){menu.cursor = 0;}
-  if (menu.cursor == menu.max_lines){menu.cursor = menu.max_lines - 1;}
+void define_next_page(){
+  if (menu.cursor == -1){
+    menu.next_page = ABOVE;
+    return;
+  }
+  menu.next_page = BELOW;
 }
 
-uint8_t check_cursor_in_board(void){
-  if (menu.lines < menu.max_lines && menu.cursor == menu.lines){
-    // this is the last page where lines less then LINES
-    menu.cursor = menu.lines - 1;
-  }
-  // update list
-  if (menu.cursor == -1 || menu.cursor == menu.max_lines){
+uint8_t cursor_in_page(){
+  if (menu.cursor < 0 || menu.cursor == menu.max_lines){
+    define_next_page();
     return 0;
   }
-  // update cursor
+
+  // if lines < max_lines it means this is the last page
+  if (menu.cursor == menu.lines){
+    step_cursor_back();
+  }
   return 1;
+}
+
+void step_cursor_back(){
+  if (menu.cursor == -1){
+    menu.cursor = 0;
+    return;
+  }
+  menu.cursor -= 1;
+}
+
+void jump_cursor(void){
+  if (menu.cursor == -1){menu.cursor = menu.max_lines -1;}
+  if (menu.cursor == menu.max_lines){menu.cursor = 0;}
 }
 
 void read_keyboard(void){
@@ -146,5 +150,4 @@ void copy_line_(char* buf, uint8_t y){
   for (i=0; i<3; i++){
     *(buf+ext_cour+i) = objects_data[y].name[8+i];
   }
-
 }

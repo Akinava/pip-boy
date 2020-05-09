@@ -3,9 +3,8 @@
 #ifndef MENU_H                                         
 #define MENU_H
 
-#define ABOVE 1
-#define CURRENT 0
-#define BELOW 2
+#define ABOVE 0
+#define BELOW 1
 
 typedef struct {
   int8_t cursor;

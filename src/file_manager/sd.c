@@ -27,13 +27,6 @@ uint8_t copy_obj_to_page_(obj_data_t* objects_data, obj_data_t* src_obj, menu_t*
   return 1;
 }
 
-void find_read_direction(menu_t* menu){
-  if (menu->cursor == -1){
-    menu->next_page = ABOVE;
-  }
-  menu->next_page = BELOW;
-}
-
 uint32_t get_root_last_sector(){
   /*                            /------------------------  0x400 * 32 / 0x200 = 64 ----------------------------\   */
   return vol_info.root_sector + vol_info.root_directory_entries * OBJECT_RECORD_SIZE / vol_info.bytes_per_sector; 
@@ -151,6 +144,7 @@ void prev_sector_offset_(obj_data_t* prev_object, obj_data_t* next_object){
   }
 }
 
+/*
 void clean_objects_data(menu_t* menu, obj_data_t* objects_data){
   for (uint8_t i=menu->lines; i<menu->max_lines; i++){
     (objects_data+i)->dir = FILE_FLAG;
@@ -161,6 +155,7 @@ void clean_objects_data(menu_t* menu, obj_data_t* objects_data){
     memset((objects_data+i)->name, ' ', OBJECT_NAME_SIZE);
   }
 }
+*/
 
 void get_prev_obj(obj_data_t* objects_data, obj_data_t* prev_obj, menu_t* menu){
   if (menu->cursor == menu->max_lines){
@@ -171,29 +166,30 @@ void get_prev_obj(obj_data_t* objects_data, obj_data_t* prev_obj, menu_t* menu){
 }
 
 uint8_t get_next_obj_(obj_data_t* prev_obj, obj_data_t* next_obj, menu_t* menu){
-  // BELOW PAGE
-  if (menu->next_page == BELOW){
-    if (!next_cluster_(prev_obj, next_obj)){return 0;}
-    next_sector_(prev_obj, next_obj);
-    next_sector_offset_(prev_obj, next_obj);
+  // ABOVE PAGE
+  if (menu->next_page == ABOVE){
+    if (!prev_cluster_(prev_obj, next_obj)){return 0;}
+    prev_sector_(prev_obj, next_obj);
+    prev_sector_offset_(prev_obj, next_obj);
     return 1;
   }
-  // ABOVE PAGE
-  if (!prev_cluster_(prev_obj, next_obj)){return 0;}
-  prev_sector_(prev_obj, next_obj);
-  prev_sector_offset_(prev_obj, next_obj);
+  // BELOW PAGE
+  if (!next_cluster_(prev_obj, next_obj)){return 0;}
+  next_sector_(prev_obj, next_obj);
+  next_sector_offset_(prev_obj, next_obj);
   return 1;
-
-}
+ }
 
 void get_zero_obj_(obj_data_t* next_obj){
-  next_obj->cluster = vol_info.primary_dir_cluster;
+  // ROOT DIR
+  next_obj->cluster = vol_info.primary_dir_cluster;  // WTF???
   next_obj->sector = get_sector_by_cluster_(next_obj);
   next_obj->sector_offset = 0;
+  // DATA DIR
+  // save paran claster
 }
 
 uint8_t check_object_exist(obj_data_t obj){
-  // FIXME it does not work properly
   if (sector_buffer[obj.sector_offset] == OBJECT_NOT_EXIST){
     return 0;
   }
@@ -203,11 +199,8 @@ uint8_t check_object_exist(obj_data_t obj){
 uint8_t read_directory_page(menu_t* menu, obj_data_t* objects_data){
   obj_data_t prev_obj;
   obj_data_t next_obj;
-  find_read_direction(menu);
   get_prev_obj(objects_data, &prev_obj, menu);
 
-  // init
-  menu->lines = 0;
   if (menu->cursor == 0){
     // cluster saved in first object
     get_zero_obj_(&next_obj);
@@ -218,6 +211,7 @@ uint8_t read_directory_page(menu_t* menu, obj_data_t* objects_data){
   }
   if (!read_sector_(next_obj.sector)){return 0;}
 
+  menu->lines = 0;
   while (menu->lines < menu->max_lines){
     if (!check_object_exist(next_obj)){break;}
     if (copy_obj_to_page_(objects_data, &next_obj, menu)){(menu->lines)++;}
@@ -234,7 +228,7 @@ uint8_t read_directory_page(menu_t* menu, obj_data_t* objects_data){
     menu->lines = menu->max_lines;
     return 0;
   }
-  clean_objects_data(menu, objects_data);
+  //clean_objects_data(menu, objects_data);
   return 1;
 }
 
