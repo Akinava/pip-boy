@@ -18,6 +18,8 @@ int main(void){
 
   keys_setup();
 
+  memset(&load_app_path, 0, APP_PATH_BUFF_SIZE);
+
   menu.cursor = 0;
   menu.max_lines = LINES;
   menu.next_page = BELOW;
@@ -31,7 +33,9 @@ int main(void){
 
     while (cursor_in_page()){
       show_page();
-      read_keyboard();
+      if (read_keyboard()){
+        break;
+      }
     }
   }
 }
@@ -88,24 +92,56 @@ void jump_cursor(void){
   if (menu.cursor == menu.max_lines){menu.cursor = 0;}
 }
 
-void read_keyboard(void){
+void set_dirirectory_as_current(void){
+  obj_data_t obj = objects_data[menu.cursor];
+  vol_info.primary_dir_cluster = obj.data_cluster;
+  menu.cursor = 0;
+}
+
+void add_obj_to_load_path(void){
+  // TODO
+  // compose_obj_name(obj_data_t obj, char* buff_dst)
+}
+
+void load_app(void){
+  display_clean();
+  print("load app", 26, 3);
+  print(load_app_path, 0, 4);
+  while(1);
+}
+
+void select_obj(void){
+  add_obj_to_load_path();
+  if (objects_data[menu.cursor].dir == FILE_FLAG){
+    load_app();
+  }else{
+    set_dirirectory_as_current();
+  }
+}
+
+uint8_t read_keyboard(void){
   // for the contact bounce
   _delay_ms(150);
   while(1){
     if(CHECK_PIN(BUTTON_UP_PINS, BUTTON_UP_PIN)){
       menu.cursor--;
-      break;
+      return 0;
     }
     if(CHECK_PIN(BUTTON_DOWN_PINS, BUTTON_DOWN_PIN)){
       menu.cursor++;
-      break;
+      return 0;
     }
     if(CHECK_PIN(BUTTON_A_PINS, BUTTON_A_PIN)){
-      menu.cursor = 0;
-      // inter in dir (set vol_info.primary_dir_cluster = obj cluster) or load file
+      select_obj();
       break;
     }
-  }
+    if(CHECK_PIN(BUTTON_C_PINS, BUTTON_A_PIN)){
+      menu.cursor = 0;
+      // goto parent dir;
+      break;
+    }
+   }
+  return 1;
 }
 
 void keys_setup(void){
@@ -128,26 +164,28 @@ void copy_line_(char* buf, uint8_t y){
   }else{
     *(buf) = ' ';
   }
-  // search end of obj name
-  uint8_t end_of_obj_name;
-  uint8_t i;
-  for(i=7; i>=0; i--){
-    if (objects_data[y].name[i] != ' '){
-      end_of_obj_name = i;
-      break;
-    }
+
+  compose_obj_name(objects_data[y], buf+1);
+}
+
+uint8_t compose_obj_name(obj_data_t obj, char* buff_dst){
+  uint8_t length = 0;
+  // search end of obj name and copy
+  while (obj.name[length] != ' ' && length < 8){
+    buff_dst[length] = obj.name[length];
+    length++;
   }
-  // copy name
-  for (i=0; i<=end_of_obj_name; i++){
-    *(buf+i+1) = objects_data[y].name[i];
-  }
+
   // copy ext
-  if (objects_data[y].dir){return;}
+  if (obj.dir){return length;}
   // add dot
-  *(buf+end_of_obj_name+2) = '.';
+  buff_dst[length++] = '.';
+
   // add ext
-  uint8_t ext_cour = end_of_obj_name+3;
-  for (i=0; i<3; i++){
-    *(buf+ext_cour+i) = objects_data[y].name[8+i];
+  
+  uint8_t i = 8;
+  while((i < OBJECT_NAME_SIZE) && (obj.name[i] != ' ')){
+    buff_dst[length++] = obj.name[i++];
   }
+  return length;
 }

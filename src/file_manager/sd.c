@@ -181,12 +181,9 @@ uint8_t get_next_obj_(obj_data_t* prev_obj, obj_data_t* next_obj, menu_t* menu){
  }
 
 void get_zero_obj_(obj_data_t* next_obj){
-  // ROOT DIR
-  next_obj->cluster = vol_info.primary_dir_cluster;  // WTF???
+  next_obj->cluster = vol_info.primary_dir_cluster;
   next_obj->sector = get_sector_by_cluster_(next_obj);
   next_obj->sector_offset = 0;
-  // DATA DIR
-  // save paran claster
 }
 
 uint8_t check_object_exist(obj_data_t obj){

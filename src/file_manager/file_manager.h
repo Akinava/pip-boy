@@ -12,13 +12,14 @@
 
 uint8_t make_list(void);
 void show_page(void);
-void read_keyboard(void);
+uint8_t read_keyboard(void);
 void keys_setup(void);
 void jump_cursor(void);
 void step_cursor_back(void);
 uint8_t cursor_in_page(void);
 // max forders nesting is 6
-uint8_t full_path_buf[64];
+#define APP_PATH_BUFF_SIZE 64
+char load_app_path[APP_PATH_BUFF_SIZE];
 
 /*
  * 8 line in display
@@ -30,5 +31,6 @@ uint8_t full_path_buf[64];
 obj_data_t objects_data[LINES];
 
 void copy_line_(char* buf, uint8_t y);
+uint8_t compose_obj_name(obj_data_t obj, char* buff_dst);
 
 #endif
