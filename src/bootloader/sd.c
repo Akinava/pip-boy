@@ -7,7 +7,7 @@ uint8_t file_read_sector(file_t* file){
   return 1;
 }
 
-uint8_t file_open(const char* file_path, file_t* file){
+uint8_t find_file_by_path(const char* file_path, file_t* file){
   // parameters:
   // file_path - in unix view exp: '/BIN/APP.BIN'
   // file      - file sector, file size

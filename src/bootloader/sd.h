@@ -70,7 +70,7 @@ typedef struct {
 vol_info_t vol_info;
 
 uint8_t sd_init(void);
-uint8_t file_open(const char* file_path, file_t* boot_file);
+uint8_t find_file_by_path(const char* file_path, file_t* boot_file);
 uint8_t file_read_sector(file_t* file);
 
 static inline uint8_t card_init_(void);

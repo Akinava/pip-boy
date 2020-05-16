@@ -15,24 +15,42 @@ int main(void){
     while(CHECK_PIN(BUTTON_C_PINS, BUTTON_C_PIN)){};
     SET_LOW(LED_PORT, LED_PIN);
 
-    load(BOOT_APP);
+    load_default_app();
   }
   app_start();
 }
 
-void load(const char* file_path){
+void load_default_app(void){
+  load_app_by_name(BOOT_APP);
+}
+
+void load_app_by_name(const char* file_path){
   setup_led_();
-
-  uint32_t address = 0;
-
   if (!sd_init()){
     error_light_();
   }
 
   file_t boot_file;
-  if (!file_open(file_path, &boot_file)){
+  if (!find_file_by_path(file_path, &boot_file)){
     error_blink_();
   }
+
+  load_app_by_cluster(boot_file.cluster, boot_file.size);
+}
+
+void load_app_by_cluster(uint16_t cluster, uint32_t size){
+  setup_led_();
+  if (!sd_init()){
+    error_light_();
+  }
+
+  file_t boot_file;
+  boot_file.cluster = cluster;
+  boot_file.size = size;
+  boot_file.cursor = 0;
+  get_sector_by_cluster_(&boot_file);
+
+  uint32_t address = 0;
 
   while(boot_file.cursor < boot_file.size){
     if (!file_read_sector(&boot_file)){
