@@ -54,6 +54,8 @@
 #define OBJ_ATTRIBUTES_OFFSET     0x0b
 #define OBJ_CATALOG               0x10
 
+#define OBJ_SIZE_OFFSET           0x1c
+
 #define SD_SET SET_LOW
 #define SD_UNSET SET_HIGH
 
@@ -69,6 +71,7 @@ typedef struct {
   uint32_t sector;
   uint16_t sector_offset;
   char name[OBJECT_NAME_SIZE];
+  uint32_t size;
 } obj_data_t;
 
 uint8_t sector_buffer[SECTOR_SIZE];
@@ -91,8 +94,6 @@ typedef struct {
 } vol_info_t;
 
 vol_info_t vol_info;
-
-// first cluster of current directory
 
 uint8_t sd_init(void);
 uint8_t read_directory_page(menu_t* menu, obj_data_t* objects_data);

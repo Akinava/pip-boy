@@ -13,13 +13,10 @@
 uint8_t make_list(void);
 void show_page(void);
 uint8_t read_keyboard(void);
-void keys_setup(void);
+void setup_keys(void);
 void jump_cursor(void);
 void step_cursor_back(void);
-uint8_t cursor_in_page(void);
-// max forders nesting is 6
-#define APP_PATH_BUFF_SIZE 64
-char load_app_path[APP_PATH_BUFF_SIZE];
+uint8_t check_cursor_in_page(void);
 
 /*
  * 8 line in display

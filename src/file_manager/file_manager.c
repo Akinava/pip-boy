@@ -9,20 +9,10 @@ int main(void){
     while(1);
   }
 
-  /*
-  print32(vol_info.start_sector, 0, 0);      // 0x0800
-  print32(vol_info.fat_table_sector, 0, 1);  // 0x0800+0x0400=0x0840
-  print32(vol_info.root_sector, 0, 2);       // 0x0840+0x0100*0x02=0x0a40
-  print32(vol_info.data_sector, 0, 3);       // 0x0a40+0x0400*32/0x0200=0x0a80
-  */
-
-  keys_setup();
-
-  memset(&load_app_path, 0, APP_PATH_BUFF_SIZE);
+  setup_keys();
 
   menu.cursor = 0;
   menu.max_lines = LINES;
-  menu.next_page = BELOW;
 
   while(1){
     if (make_list()){
@@ -31,7 +21,7 @@ int main(void){
       step_cursor_back();
     }
 
-    while (cursor_in_page()){
+    while (check_cursor_in_page()){
       show_page();
       if (read_keyboard()){
         break;
@@ -58,17 +48,20 @@ void show_page(void){
   }
 }
 
-void define_next_page(){
+uint8_t check_jump_to_next_page(){
   if (menu.cursor == -1){
     menu.next_page = ABOVE;
-    return;
+    return 1;
   }
-  menu.next_page = BELOW;
+  if (menu.cursor == menu.max_lines){
+    menu.next_page = BELOW;
+    return 1;
+  }
+  return 0;
 }
 
-uint8_t cursor_in_page(){
-  if (menu.cursor < 0 || menu.cursor == menu.max_lines){
-    define_next_page();
+uint8_t check_cursor_in_page(){
+  if (check_jump_to_next_page()){
     return 0;
   }
 
@@ -98,20 +91,23 @@ void set_dirirectory_as_current(void){
   menu.cursor = 0;
 }
 
-void add_obj_to_load_path(void){
-  // TODO
-  // compose_obj_name(obj_data_t obj, char* buff_dst)
-}
-
 void load_app(void){
+  obj_data_t obj = objects_data[menu.cursor];
+
   display_clean();
   print("load app", 26, 3);
-  print(load_app_path, 0, 4);
+  clean_buf();
+  for (uint8_t i=0; i<8+3; i++){
+    print_char_(obj.name[i], 8*i);
+  }
+  display_update_(4);
+  clean_buf();
+  print16(obj.data_cluster, 0, 5);
+  print32(obj.size, 0, 6);
   while(1);
 }
 
 void select_obj(void){
-  add_obj_to_load_path();
   if (objects_data[menu.cursor].dir == FILE_FLAG){
     load_app();
   }else{
@@ -144,7 +140,7 @@ uint8_t read_keyboard(void){
   return 1;
 }
 
-void keys_setup(void){
+void setup_keys(void){
   SET_DDR_IN(BUTTON_A_DDR, BUTTON_A_PIN);
   SET_PULLUP(BUTTON_A_PORT, BUTTON_A_PIN);
 
@@ -158,7 +154,7 @@ void keys_setup(void){
 void copy_line_(char* buf, uint8_t y){
   memset(buf, ' ', 1+8+1+3);
   *(buf+1+8+1+3) = 0;
-  // mark * for dir
+  // add "*" symbol to makr a dir
   if (objects_data[y].dir){
     *(buf) = '*';
   }else{

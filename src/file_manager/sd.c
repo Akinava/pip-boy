@@ -23,6 +23,7 @@ uint8_t copy_obj_to_page_(obj_data_t* objects_data, obj_data_t* src_obj, menu_t*
   }
   dst_obj->sector_offset = src_obj->sector_offset;
   dst_obj->data_cluster = *((uint16_t*)(sector_buffer+src_obj->sector_offset+DATA_CLUSTER_OFFSET));
+  dst_obj->size = *((uint32_t*)(sector_buffer+src_obj->sector_offset+OBJ_SIZE_OFFSET)); 
   cp_obj_name_(dst_obj->name, src_obj->sector_offset);
   return 1;
 }
@@ -144,19 +145,6 @@ void prev_sector_offset_(obj_data_t* prev_object, obj_data_t* next_object){
   }
 }
 
-/*
-void clean_objects_data(menu_t* menu, obj_data_t* objects_data){
-  for (uint8_t i=menu->lines; i<menu->max_lines; i++){
-    (objects_data+i)->dir = FILE_FLAG;
-    (objects_data+i)->data_cluster = 0;
-    (objects_data+i)->cluster = 0;
-    (objects_data+i)->sector = 0;
-    (objects_data+i)->sector_offset = 0;
-    memset((objects_data+i)->name, ' ', OBJECT_NAME_SIZE);
-  }
-}
-*/
-
 void get_prev_obj(obj_data_t* objects_data, obj_data_t* prev_obj, menu_t* menu){
   if (menu->cursor == menu->max_lines){
     *prev_obj = objects_data[menu->max_lines-1];
@@ -199,6 +187,7 @@ uint8_t read_directory_page(menu_t* menu, obj_data_t* objects_data){
   get_prev_obj(objects_data, &prev_obj, menu);
 
   if (menu->cursor == 0){
+    menu->next_page = BELOW;
     // cluster saved in first object
     get_zero_obj_(&next_obj);
   }else{
@@ -225,17 +214,8 @@ uint8_t read_directory_page(menu_t* menu, obj_data_t* objects_data){
     menu->lines = menu->max_lines;
     return 0;
   }
-  //clean_objects_data(menu, objects_data);
   return 1;
 }
-
-/*
-void file_info_parce_(file_t* file, uint8_t* file_info){
-  file->cluster = *((uint16_t*)(file_info + FILE_CLUSTER_OFFSET));
-  file->size = *((uint32_t*)(file_info + FILE_SIZE_OFFSET));
-  get_sector_by_cluster_(file);
-}
-*/
 
 uint32_t get_sector_by_cluster_(obj_data_t* object){
   if (object->cluster == ROOT_CLUSTER){
@@ -243,14 +223,6 @@ uint32_t get_sector_by_cluster_(obj_data_t* object){
   }
   return vol_info.data_sector + ((object->cluster-2) * vol_info.sectors_per_cluster);
 }
-
-/*
-void cp_record_data_(uint8_t* buffer){
-  for (uint8_t i=0; i<OBJECT_RECORD_SIZE; i++){
-    *(obj_data_+i) = *(buffer+i);
-  }
-}
-*/
 
 uint8_t sd_init(void){
   if (!card_init_()){return 0;}
