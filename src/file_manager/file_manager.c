@@ -93,6 +93,7 @@ void set_dirirectory_as_current(void){
 
 void load_app(void){
   obj_data_t obj = objects_data[menu.cursor];
+  // TODO load_app_by_cluster(obj.data_cluster, obj.size);
 
   display_clean();
   print("load app", 26, 3);
