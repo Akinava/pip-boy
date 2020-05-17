@@ -167,3 +167,37 @@ uint8_t   0 to 255
 int8_t    -128 to +127
 uint16_t  0 to 65535
 int16_t   -32768 to +32767
+
+===============================================================================
+### soft
+! sd bootloader
+radio bootloader
+! file manager / create copy move delete
+! spi boot writer
+! radio link / can be part of file manager
+! sd formater / fdisk
+
+# IDE
+file editor / hex txt utf8 - mode
+asm compiler
+
+# doc writer
+doc reader / txt + netpbm 
+
+# graphics editor https://en.wikipedia.org/wiki/Netpbm
+graphics editor / netpbm format
+
+# net link soft
+walkie talkie
+pager
+text chat
+voice chat
+radio broadcast
+
+# games
+
+### haddware
+arduino pc      / main board + keyboard + IDC Cable 
+radio relay     / atiny85 + nrf24l01
+network gateway / raspberry pi zero w + nrf24l01
+===============================================================================
