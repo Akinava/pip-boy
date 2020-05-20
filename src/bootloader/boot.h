@@ -1,54 +1,17 @@
 #include <avr/pgmspace.h>
 #include <avr/boot.h>
 #include <util/delay.h>
-
-
-// defeine MACRO
-// DDR Data Direction Register                                                  
-#define SET_DDR_OUT(DDR, PIN) DDR |= _BV(PIN)                                   
-#define SET_DDR_IN(DDR, PIN) DDR &= ~ _BV(PIN)                                  
-#define SET_PULLUP(PORTS, PIN) PORTS |= _BV(PIN)                                
-                                                                                 
-// PORTS Data Register                                                          
-#define SET_HIGH(PORTS, PIN) PORTS |= _BV(PIN)                                  
-#define SET_LOW(PORTS, PIN) PORTS &= ~ _BV(PIN)                                 
-#define TOGGLE(PORTS, PIN) PORTS ^= _BV(PIN);                                   
-                                                                               
-// PINS Input Pins Register                                                     
-#define CHECK_PIN(PINS, PIN) !(PINS & _BV(PIN))                                 
-
-
-// define PINS
-// DEFINE BUTTON C                                                                 
-#define BUTTON_C_DDR DDRC                                                         
-#define BUTTON_C_PORT PORTC                                                       
-#define BUTTON_C_PINS PINC                                                        
-#define BUTTON_C_PIN PC3                                                     
-
-// DEFINE LED
-#define LED_DDR DDRD
-#define LED_PORT PORTD
-#define LED_PIN PD5
-
-// DISPLAY
-#define DISPLAY_DDR DDRC
-#define DISPLAY_PORT PORTC
-#define SDA PC4
-#define SCL PC5
-
-// SD
-#define SD_DDR DDRB
-#define SD_PORT PORTB
-#define SD_CS PB2
-#define MOSI PB3
-#define MISO PB4
-#define SCK PB5
+#include "display.h"
+#include "macro.h"
+#include "pins.h"
 
 // define BOOT
 #define WATCHDOG_RESET  (_BV(WDIE) | _BV(WDP2) | _BV(WDP1))
 #define WATCHDOG_125MS  (_BV(WDP1) | _BV(WDP0) | _BV(WDE))
 
-const char BOOT_APP[] PROGMEM = "/BIN/FM.BIN";
+//const char BOOT_APP[] PROGMEM = "/BIN/FM.BIN";
+const char BOOT_APP[] PROGMEM = "/TEMP/FM.BIN";
+//const char BOOT_APP[] PROGMEM = "/FM.BIN";
 const int (*app_start)(void) = 0x0;
 
 void load_default_app(void);
@@ -119,14 +82,14 @@ file_t file;
 uint8_t sector_buffer[SECTOR_BUFFER_SIZE];
 
 typedef struct {
-  uint16_t bytes_per_sector;
-  uint8_t sectors_per_claster;
-  uint16_t reserved_sectors;
-  uint8_t number_of_FATs;
-  uint16_t root_directory_entries;
+  uint16_t bytes_per_sector;        // 0x0200
+  uint8_t sectors_per_claster;      // 0x40
+  uint16_t reserved_sectors;        // 0x0040
+  uint8_t number_of_FATs;           // 0x02
+  uint16_t root_directory_entries;  // 0x0400 
   uint16_t total_logical_sectors;
   uint8_t media_descriptor;
-  uint16_t sectors_per_FAT; 
+  uint16_t sectors_per_FAT;         // 0x0100
 } vol_info_t;
 
 vol_info_t vol_info;
@@ -135,6 +98,8 @@ uint8_t sd_init(void);
 uint8_t read_file_sector(file_t* file);
 uint8_t find_file_by_path(const char* file_path);
 
+void __display_name__(void);
+void save_obj_to_file(uint8_t* buf);
 uint8_t next_cluster_(void);
 uint8_t copy_file_name(uint8_t* cursor, const char* file_path);
 uint8_t next_claster_(void);
