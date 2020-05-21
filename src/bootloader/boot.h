@@ -3,7 +3,6 @@
 #include <util/delay.h>
 #include "macro.h"
 #include "pins.h"
-#include "sd.h"
 
 // define BOOT
 #define WATCHDOG_RESET  (_BV(WDIE) | _BV(WDP2) | _BV(WDP1))
