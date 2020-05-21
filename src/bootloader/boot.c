@@ -1,9 +1,6 @@
 #include "boot.h"
 
 int main(void){
-  display_begin();
-  display_clean();
-
   setup_button_();
 
   MCUSR = ~(_BV(WDRF));
@@ -11,8 +8,8 @@ int main(void){
 
   // MAIN LOGIC
   setup_button_();
-  // TODO
-  // if(CHECK_PIN(BUTTON_C_PINS, BUTTON_C_PIN)){
+  
+  if(CHECK_PIN(BUTTON_C_PINS, BUTTON_C_PIN)){
     setup_led_();
     SET_HIGH(LED_PORT, LED_PIN);
 
@@ -20,7 +17,7 @@ int main(void){
     SET_LOW(LED_PORT, LED_PIN);
 
     load_default_app();
-  // }
+  }
   app_start();
 }
 
@@ -38,13 +35,6 @@ void load_app_by_name(const char* file_path){
   if (!find_file_by_path(file_path)){
     error_blink_();
   }
- 
-  // FIXME
-  display_clean(); 
-  print16(file.cluster, 0, 0);
-  print32(file.size, 0, 1);
-  while(1);
-
   load_app_by_cluster(file.cluster, file.size);
 }
 
@@ -54,19 +44,19 @@ void load_app_by_cluster(uint16_t cluster, uint32_t size){
   if (!sd_init()){
     error_light_();
   }
-  uint32_t sector = get_sector_by_cluster_(cluster);
 
+  uint32_t sector = get_sector_by_cluster_(cluster);
   uint32_t address = 0;
 
-  while(address < size && address % SPM_PAGESIZE == 0 && address != 0){
+  uint8_t page_cursor = SPM_PAGESIZE;
+  
+  do{
     if (address % SECTOR_BUFFER_SIZE == 0){
-    // read file sector
-      if (!read_sector_(file.sector)){error_blink_();}
+      if (!read_sector_(sector)){error_blink_();}
       sector++;
     }
-    // write page
-    if (address % SPM_PAGESIZE == 0 && address != 0){
-	    // Perform page erase
+    if (page_cursor == 0){
+  	  // Perform page erase
       //boot_page_erase(address);
 	    // Wait until the memory is erased
       //boot_spm_busy_wait();		
@@ -76,13 +66,17 @@ void load_app_by_cluster(uint16_t cluster, uint32_t size){
       boot_spm_busy_wait();
 	    // Re-enable the RWW section 
       //boot_rww_enable();
+      //
+      page_cursor = SPM_PAGESIZE;
+      if (address >= size){break;}
     }
+    // read word
+    uint16_t temp_word = *((uint16_t*)(sector_buffer + address%SECTOR_BUFFER_SIZE));
+    boot_page_fill(address % SPM_PAGESIZE, temp_word);
 
-    // add word
-    uint16_t temp_word = *((uint16_t*)(sector_buffer + address));
-    boot_page_fill(address, temp_word);
     address += 2;
-  }
+    page_cursor -= 2;
+  }while(1);
 
   SET_HIGH(LED_PORT, LED_PIN);
   _delay_ms(100);
@@ -139,27 +133,6 @@ uint8_t find_file_by_path(const char* file_path){
       return 0;
     }
     if (!pgm_read_byte(file_path + file_path_cursor)){return 1;}
-
-
-    // FIXME
-    /*
-    if (file_path_cursor > 4){ 
-      clean_buf();
-      print_char('=', 0, 0);
-      for(uint8_t i=0; i<11; i++){
-        print_char(obj_name_[i], i+1, 0);
-      }
-      print_char('=', 11, 0);
-      clean_buf();
-      print16(file.cluster, 0, 1);
-      print32(file.size, 0, 2);
-      clean_buf();
-      print8(file_path_cursor, 0, 3);
-      while(1);
-    }
-    */
-
-
   }
   return 0;
 }
@@ -180,68 +153,24 @@ uint8_t copy_file_name(uint8_t* file_path_cursor, const char* file_path){
       name_index++;
     }
   }while(1);
-
-  // FIXME
-  /*
-  if (*file_path_cursor > 4){
-    __display_name__();
-    while(1);
-  }
-  */
-
   return 1;
 }
-
-void __display_name__(void){
-  display_clean();
-  print_char('=', 0, 0);
-  for(uint8_t i=0; i<OBJECT_NAME_SIZE+OBJECT_EXT_SIZE; i++){
-    print_char(obj_name_[i], i+1, 0);
-  }
-  print_char('=', OBJECT_NAME_SIZE+OBJECT_EXT_SIZE+1, 0);
-  print(" 01234567012", 0, 1);
-  clean_buf();
-}
-
 
 uint8_t find_obj_by_name(void){
   uint16_t sector_offset;
 
   do{
     if(!read_sector_(file.sector)){return 0;}
-
-    //FIXME
-    display_clean();
-    print("read sector", 0, 0);
-    clean_buf();
-    print16(file.cluster, 0, 1);
-    print32(file.sector, 0, 2);
-    _delay_ms(1000);
-    //
-
     // go through sector
     for (sector_offset=0; sector_offset<vol_info.bytes_per_sector; sector_offset+=OBJECT_RECORD_SIZE){
       // if record_is_empty
       if (!*(sector_buffer+sector_offset)){return 0;}
       if(compare_name(sector_buffer+sector_offset)){
         save_obj_to_file(sector_buffer+sector_offset);
-
-        // FIXME
-        display_clean();
-        print("record is found", 0, 0);
-        clean_buf();
-        print16(file.cluster, 0, 1);
-        print32(file.sector, 0, 2);
-        _delay_ms(10000);
-        //
- 
         return 1;
       }
     }
   }while(next_sector());
-
-  print("record not fount", 0, 2);
-
   return 0;
 }
 
@@ -249,18 +178,6 @@ void save_obj_to_file(uint8_t* buf){
   file.cluster = *((uint16_t*)(buf+FILE_CLUSTER_OFFSET));
   file.size = *((uint32_t*)(buf+FILE_SIZE_OFFSET));
   file.sector = get_sector_by_cluster_(file.cluster);
-  
-  // FIXME
-  /*
-  __display_name__();
-  clean_buf();
-  print16(file.cluster, 0, 1);
-  print32(file.size, 0, 2);
-  print32(file.sector, 0, 3);
-  while(1);
-  */
-  //
-
 }
 
 void erase_obj_name_(void){

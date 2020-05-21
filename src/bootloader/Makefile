@@ -16,24 +16,23 @@ AVRDUDE_PROGRAMMER = usbasp
 
 BOOT = true
 # 2048 bytes
-#BOOT_ADDRESS = 0x7800
-#HIGH_FUSE=0xDA
+BOOT_ADDRESS = 0x7800
+HIGH_FUSE=0xDA
 # 4096 bytes
-BOOT_ADDRESS = 0x7000
-HIGH_FUSE=0xD8
+#BOOT_ADDRESS = 0x7000
+#HIGH_FUSE=0xD8
 
 LOW_FUSE = 0xFF
 EXTENDED_FUSE = 0xFD
 
 #=======================================
 
-DISPLAY = display
+SD_LIB = sd
 
 #=======================================
 
 OBJECTS = $(TARGET).o
-OBJECTS += $(DISPLAY).o
-
+OBJECTS += $(SD_LIB).o
 
 # Define all object files.                                                      
 #============================================================================

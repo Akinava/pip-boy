@@ -1,17 +1,15 @@
 #include <avr/pgmspace.h>
 #include <avr/boot.h>
 #include <util/delay.h>
-#include "display.h"
 #include "macro.h"
 #include "pins.h"
+#include "sd.h"
 
 // define BOOT
 #define WATCHDOG_RESET  (_BV(WDIE) | _BV(WDP2) | _BV(WDP1))
 #define WATCHDOG_125MS  (_BV(WDP1) | _BV(WDP0) | _BV(WDE))
 
-//const char BOOT_APP[] PROGMEM = "/BIN/FM.BIN";
-const char BOOT_APP[] PROGMEM = "/TEMP/FM.BIN";
-//const char BOOT_APP[] PROGMEM = "/FM.BIN";
+const char BOOT_APP[] PROGMEM = "/BIN/FM.BIN";
 const int (*app_start)(void) = 0x0;
 
 void load_default_app(void);
