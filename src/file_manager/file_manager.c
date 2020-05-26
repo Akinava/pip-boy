@@ -105,7 +105,8 @@ void load_app(void){
   clean_buf();
   print16(obj.data_cluster, 0, 5);
   print32(obj.size, 0, 6);
-  while(1);
+  _delay_ms(2000);
+  load_app_by_cluster(obj.data_cluster, obj.size);
 }
 
 void select_obj(void){

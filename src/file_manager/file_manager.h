@@ -10,6 +10,9 @@
 #ifndef FILE_MANAGER_H                                         
 #define FILE_MANAGER_H
 
+#define load_app_by_cluster_addr 0x7880
+#define load_app_by_cluster (*((void(*)(uint16_t cluster, uint32_t size))(load_app_by_cluster_addr/2)))
+
 uint8_t make_list(void);
 void show_page(void);
 uint8_t read_keyboard(void);

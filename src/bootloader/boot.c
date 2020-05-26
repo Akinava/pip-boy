@@ -1,7 +1,6 @@
 #include "boot.h"
 
 int main(void){
-  setup_button_();
 
   MCUSR = ~(_BV(WDRF));
   watchdog_config_(WATCHDOG_RESET);
@@ -40,43 +39,39 @@ void load_app_by_name(const char* file_path){
 
 void load_app_by_cluster(uint16_t cluster, uint32_t size){
   setup_led_();
-
-  if (!sd_init()){
-    error_light_();
-  }
+  if (!sd_init()){error_light_();}
 
   uint32_t sector = get_sector_by_cluster_(cluster);
   uint32_t address = 0;
-
   uint8_t page_cursor = SPM_PAGESIZE;
-  
-  do{
-    if (address % SECTOR_BUFFER_SIZE == 0){
+
+  while(1){
+    uint16_t sector_offset = address % SECTOR_BUFFER_SIZE;
+    // read next sector
+    if (sector_offset == 0){
       if (!read_sector_(sector)){error_blink_();}
       sector++;
     }
+    // read word
+    uint16_t temp_word = *((uint16_t*)(sector_buffer + sector_offset));
+    boot_page_fill(address % SPM_PAGESIZE, temp_word);
+    address += 2;
+    page_cursor -= 2;
+    // write page
     if (page_cursor == 0){
   	  // Perform page erase
       //boot_page_erase(address);
 	    // Wait until the memory is erased
       //boot_spm_busy_wait();		
-
       boot_page_write(address-SPM_PAGESIZE);
 	    // wait until finished writing
       boot_spm_busy_wait();
-	    // Re-enable the RWW section 
+      // Re-enable the RWW section 
       //boot_rww_enable();
-      //
       page_cursor = SPM_PAGESIZE;
       if (address >= size){break;}
     }
-    // read word
-    uint16_t temp_word = *((uint16_t*)(sector_buffer + address%SECTOR_BUFFER_SIZE));
-    boot_page_fill(address % SPM_PAGESIZE, temp_word);
-
-    address += 2;
-    page_cursor -= 2;
-  }while(1);
+  }
 
   SET_HIGH(LED_PORT, LED_PIN);
   _delay_ms(100);
@@ -84,7 +79,7 @@ void load_app_by_cluster(uint16_t cluster, uint32_t size){
 
   // reset
   watchdog_config_(WATCHDOG_125MS);
-	while (1);
+	while(1);
  }
 
 void setup_button_(void){
