@@ -10,7 +10,7 @@
 #ifndef FILE_MANAGER_H                                         
 #define FILE_MANAGER_H
 
-#define load_app_by_cluster_addr 0x7880
+#define load_app_by_cluster_addr 0x7b9a
 #define load_app_by_cluster (*((void(*)(uint16_t cluster, uint32_t size))(load_app_by_cluster_addr/2)))
 
 uint8_t make_list(void);

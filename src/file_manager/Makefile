@@ -2,6 +2,7 @@
 
 # Name of the project
 TARGET = file_manager
+APP_NAME = FM
 
 # tipe of MK
 MCU  = atmega328p
@@ -233,7 +234,10 @@ $(TARGET).hex: $(TARGET).elf
 
 # цели отладки:
 disasm:	$(TARGET).elf
-	avr-objdump -d $(TARGET).elf
+	$(OBJDUMP) -d $(TARGET).elf
 
 cpp:
 	$(COMPILE) -E $(TARGET).c
+
+bin: $(TARGET).hex
+	$(OBJCOPY) -I ihex -O binary $(TARGET).hex $(APP_NAME).BIN
