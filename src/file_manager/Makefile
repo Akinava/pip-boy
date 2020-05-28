@@ -195,7 +195,7 @@ clean_msg:
 	@echo $(MSG_CLEANING)
 
 clean_all:
-	rm -f *.hex *.elf $(OBJECTS)
+	rm -f *.hex *.elf $(OBJECTS) *.BIN
 
 clean: clean_msg clean_all
 #------------------
