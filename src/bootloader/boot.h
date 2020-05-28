@@ -11,15 +11,15 @@
 const char BOOT_APP[] PROGMEM = "/BIN/FM.BIN";
 const int (*app_start)(void) = 0x0;
 
-void load_default_app(void);
-void load_app_by_name(const char* file_path);
+static inline void load_default_app(void);
+static inline void load_app_by_name(const char* file_path);
 void load_app_by_cluster(uint16_t cluster, uint32_t size);
 
-void setup_button_(void);
-void setup_led_(void);
-void error_light_(void);
+static inline void setup_button_(void);
+static inline void setup_led_(void);
+static inline void error_light_(void);
 void error_blink_(void);
-void watchdog_config_(uint8_t x);
+static inline void watchdog_config_(uint8_t x);
 
 // SD card commands
 /** GO_IDLE_STATE - init card in spi mode if CS low */
@@ -91,29 +91,27 @@ typedef struct {
 
 vol_info_t vol_info;
 
-uint8_t sd_init(void);
+static inline uint8_t sd_init(void);
 uint8_t read_file_sector(file_t* file);
-uint8_t find_file_by_path(const char* file_path);
+static inline uint8_t find_file_by_path(const char* file_path);
 
-void __display_name__(void);
-void save_obj_to_file(uint8_t* buf);
-uint8_t next_cluster_(void);
-uint8_t copy_file_name(uint8_t* cursor, const char* file_path);
-uint8_t next_claster_(void);
+static inline void save_obj_to_file(uint8_t* buf);
+static inline uint8_t copy_file_name(uint8_t* cursor, const char* file_path);
+static inline uint8_t next_cluster_(void);
 uint8_t compare_name(uint8_t* buf);
-uint8_t next_sector(void);
-uint8_t card_init_(void);
-uint8_t vol_init_(void);
-uint8_t find_obj_by_name(void);
+static inline uint8_t next_sector(void);
+static inline uint8_t card_init_(void);
+static inline uint8_t vol_init_(void);
+static inline uint8_t find_obj_by_name(void);
 uint32_t get_sector_by_cluster_(uint16_t cluster);
 uint8_t check_obj_has_name_(void);
 void cp_record_data_(uint8_t* buffer);
-void erase_obj_name_(void);
+static inline void erase_obj_name_(void);
 void file_info_parce_(file_t* file, uint8_t* file_info);
-void spi_send_(uint8_t data);
-void card_command_(uint8_t cmd, uint32_t arg, uint8_t crc);
-uint8_t wait_start_block_(void);
-uint8_t read_sector_(uint32_t sector);
+static inline void spi_send_(uint8_t data);
+static inline void card_command_(uint8_t cmd, uint32_t arg, uint8_t crc);
+static inline uint8_t wait_start_block_(void);
+static inline uint8_t read_sector_(uint32_t sector);
 
 static uint32_t volume_sector_;
 static uint32_t fat_sector_;

@@ -20,11 +20,11 @@ int main(void){
   app_start();
 }
 
-void load_default_app(void){
+static inline void load_default_app(void){
   load_app_by_name(BOOT_APP);
 }
 
-void load_app_by_name(const char* file_path){
+static inline void load_app_by_name(const char* file_path){
   setup_led_();
 
   if (!sd_init()){
@@ -54,18 +54,22 @@ void load_app_by_cluster(uint16_t cluster, uint32_t size){
     }
     // read word
     uint16_t temp_word = *((uint16_t*)(sector_buffer + sector_offset));
-    boot_page_fill(address % SPM_PAGESIZE, temp_word);
+    boot_page_fill(address, temp_word);
+
     address += 2;
     page_cursor -= 2;
+
+
     // write page
     if (page_cursor == 0){
   	  // Perform page erase
-      //boot_page_erase(address);
+      boot_page_erase(address-SPM_PAGESIZE);
 	    // Wait until the memory is erased
-      //boot_spm_busy_wait();		
+      boot_spm_busy_wait();		
       boot_page_write(address-SPM_PAGESIZE);
 	    // wait until finished writing
       boot_spm_busy_wait();
+
       // Re-enable the RWW section 
       //boot_rww_enable();
       page_cursor = SPM_PAGESIZE;
@@ -82,17 +86,17 @@ void load_app_by_cluster(uint16_t cluster, uint32_t size){
 	while(1);
  }
 
-void setup_button_(void){
+static inline void setup_button_(void){
   SET_DDR_IN(BUTTON_C_DDR, BUTTON_C_PIN);
   SET_PULLUP(BUTTON_C_PORT, BUTTON_C_PIN);
 }
 
-void setup_led_(void){
+static inline void setup_led_(void){
   SET_DDR_OUT(LED_DDR, LED_PIN);
   SET_LOW(LED_PORT, LED_PIN);
 }
 
-void error_light_(void){
+static inline void error_light_(void){
   SET_HIGH(LED_PORT, LED_PIN);
   while(1);
 }
@@ -104,14 +108,14 @@ void error_blink_(void){
   }
 }
 
-void watchdog_config_(uint8_t x){
+static inline void watchdog_config_(uint8_t x){
   WDTCSR = _BV(WDCE) | _BV(WDE);
   WDTCSR = x;
 }
 
 // ===== SD ===== //
 
-uint8_t find_file_by_path(const char* file_path){
+static inline uint8_t find_file_by_path(const char* file_path){
   // parameters:
   // file_path - in unix view exp: '/BIN/APP.BIN'
   // file      - file sector, file size
@@ -132,7 +136,7 @@ uint8_t find_file_by_path(const char* file_path){
   return 0;
 }
 
-uint8_t copy_file_name(uint8_t* file_path_cursor, const char* file_path){
+static inline uint8_t copy_file_name(uint8_t* file_path_cursor, const char* file_path){
   erase_obj_name_();
   uint8_t name_index = 0;
   uint8_t c;
@@ -151,7 +155,7 @@ uint8_t copy_file_name(uint8_t* file_path_cursor, const char* file_path){
   return 1;
 }
 
-uint8_t find_obj_by_name(void){
+static inline uint8_t find_obj_by_name(void){
   uint16_t sector_offset;
 
   do{
@@ -169,13 +173,13 @@ uint8_t find_obj_by_name(void){
   return 0;
 }
 
-void save_obj_to_file(uint8_t* buf){
+static inline void save_obj_to_file(uint8_t* buf){
   file.cluster = *((uint16_t*)(buf+FILE_CLUSTER_OFFSET));
   file.size = *((uint32_t*)(buf+FILE_SIZE_OFFSET));
   file.sector = get_sector_by_cluster_(file.cluster);
 }
 
-void erase_obj_name_(void){
+static inline void erase_obj_name_(void){
   for (uint8_t i=0; i<OBJECT_NAME_SIZE+OBJECT_EXT_SIZE; i++){
     obj_name_[i] = CHAR_SPACE;
   }
@@ -188,7 +192,7 @@ uint8_t compare_name(uint8_t* buf){
   return 1;
 }
 
-uint8_t next_sector(void){
+static inline uint8_t next_sector(void){
   file.sector++;
 
   if (file.cluster == ROOT_CLUSTER){
@@ -206,7 +210,7 @@ uint8_t next_sector(void){
   return 0;
 }
 
-uint8_t next_cluster_(void){
+static inline uint8_t next_cluster_(void){
   uint16_t fat_cluster_place = file.cluster * sizeof(file.cluster);
   if (!read_sector_(fat_sector_)){return 0;}
   file.cluster = *((uint32_t*)(sector_buffer + fat_cluster_place));
@@ -221,13 +225,13 @@ uint32_t get_sector_by_cluster_(uint16_t cluster){
 
 //============================== sd func ====================================//
 
-uint8_t sd_init(void){
+static inline uint8_t sd_init(void){
   if (!card_init_()){return 0;}
   if (!vol_init_()){return 0;}
   return 1;
 }
 
-uint8_t vol_init_(void){
+static inline uint8_t vol_init_(void){
   // volume address
   if(!read_sector_(0)){return 0;}
   volume_sector_ = *((uint32_t*)(sector_buffer + VOL_ADDRESS_OFFSET));
@@ -241,7 +245,7 @@ uint8_t vol_init_(void){
   return 1;
 }
 
-uint8_t card_init_(void){
+static inline uint8_t card_init_(void){
   // Set MOSI, SCK, CS as Output
   SD_DDR |= _BV(MOSI)|_BV(SCK)|_BV(SD_CS);
   // set sd cs off
@@ -295,12 +299,12 @@ uint8_t card_init_(void){
   return 1;
 }
 
-void spi_send_(uint8_t data){
+static inline void spi_send_(uint8_t data){
   SPDR = data;
   while(!(SPSR & (1<<SPIF)));
 }
 
-void card_command_(uint8_t cmd, uint32_t arg, uint8_t crc){
+static inline void card_command_(uint8_t cmd, uint32_t arg, uint8_t crc){
   // end read if in partialBlockRead mode
   spi_send_(0xFF);
   //select card
@@ -323,7 +327,7 @@ void card_command_(uint8_t cmd, uint32_t arg, uint8_t crc){
   }
 }
 
-uint8_t wait_start_block_(void){
+static inline uint8_t wait_start_block_(void){
   uint16_t retry = 10000;
   do{
     spi_send_(0xFF);
@@ -332,7 +336,7 @@ uint8_t wait_start_block_(void){
   return 0;
 }
 
-uint8_t read_sector_(uint32_t sector){
+static inline uint8_t read_sector_(uint32_t sector){
   card_command_(CMD17, sector, 0xFF);
   if (SPDR || !wait_start_block_()){
     return 0;
