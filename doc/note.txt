@@ -170,7 +170,7 @@ int16_t   -32768 to +32767
 
 ===============================================================================
 ### soft
-! sd bootloader
++ sd bootloader
 radio bootloader
 ! file manager / create copy move delete
 ! spi boot writer
