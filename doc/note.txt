@@ -173,7 +173,7 @@ int16_t   -32768 to +32767
 + sd bootloader
 radio bootloader
 ! file manager / create copy move delete
-! spi boot writer
+! spi boot writer + fuse writer
 ! radio link / can be part of file manager
 ! sd formater / fdisk
 
