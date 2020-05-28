@@ -2,6 +2,7 @@
 
 # Name of the project
 TARGET = boot
+APP_NAME = BOOT
 
 # tipe of MK
 MCU  = atmega328p
@@ -245,3 +246,6 @@ disasm:	$(TARGET).elf
 
 cpp:
 	$(COMPILE) -E $(TARGET).c
+
+bin: $(TARGET).hex
+	$(OBJCOPY) -I ihex -O binary $(TARGET).hex $(APP_NAME).BIN
