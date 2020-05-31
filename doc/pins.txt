@@ -4,7 +4,7 @@ N  ARD pin  descr
 02   0 PD0  CE  NRF24L01
 03   1 PD1  CSN NRF24L01
 04   2 PD2  Button B
-05   3 PD3  Buzzer
+05   3 PD3  SPEAKER
 06   4 PD4  Button A
 07     VCC  VCC
 08     GND  GND
