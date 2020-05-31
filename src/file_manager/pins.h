@@ -1,11 +1,19 @@
-#ifndef PINS_H                                            
+#include <avr/io.h>
+
+#ifndef PINS_H
 #define PINS_H
-                                                                                
+
 // DEFINE BUTTON A
 #define BUTTON_A_DDR DDRD
 #define BUTTON_A_PORT PORTD
 #define BUTTON_A_PINS PIND
 #define BUTTON_A_PIN PD4
+
+// DEFINE BUTTON B
+#define BUTTON_B_DDR DDRD
+#define BUTTON_B_PORT PORTD
+#define BUTTON_B_PINS PIND
+#define BUTTON_B_PIN PD2
 
 // DEFINE BUTTON C
 #define BUTTON_C_DDR DDRC
@@ -24,6 +32,18 @@
 #define BUTTON_DOWN_PORT PORTD
 #define BUTTON_DOWN_PINS PIND
 #define BUTTON_DOWN_PIN PD6
+
+// DEFINE BUTTON LEFT
+#define BUTTON_LEFT_DDR DDRB
+#define BUTTON_LEFT_PORT PORTB
+#define BUTTON_LEFT_PINS PINB
+#define BUTTON_LEFT_PIN PB0
+
+// DEFINE BUTTON RIGHT
+#define BUTTON_RIGHT_DDR DDRD
+#define BUTTON_RIGHT_PORT PORTD
+#define BUTTON_RIGHT_PINS PIND
+#define BUTTON_RIGHT_PIN PD7
 
 // DEFINE LED
 #define LED_DDR DDRD
