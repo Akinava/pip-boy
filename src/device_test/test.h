@@ -80,6 +80,7 @@ void react_bat_menu(void);
 void show_vibro_led_menu(void);
 void react_vibro_led_menu(void);
 void play_sound(void);
+void test_mic(void);
 void init_mic(void);
 void read_mic(void);
 

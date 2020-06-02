@@ -192,9 +192,8 @@ void react_sound_menu(void){
 }
 
 void show_mic_menu(void){
-  /* Enable the ADC */
   print("microphone test", 0, 0);
-  init_mic();
+  test_mic();
 }
 
 void react_mic_menu(void){
@@ -241,6 +240,15 @@ void play_sound(void){
   SET_LOW(SPEAKER_PORT, SPEAKER_PIN);
 }
 
+void test_mic(void){
+  init_mic();
+  while(!CHECK_PIN(BUTTON_C_PINS, BUTTON_C_PIN)){
+    clean_buf();
+    read_mic();
+    _delay_ms(30); 
+  }
+}
+
 void init_mic(void){
   // ADMUX
   // set V AVCC
@@ -265,12 +273,6 @@ void init_mic(void){
   SET(ADCSRA, ADPS2);
   SET(ADCSRA, ADPS1);
   SET(ADCSRA, ADPS0);
-
-  while(!CHECK_PIN(BUTTON_C_PINS, BUTTON_C_PIN)){
-    clean_buf();
-    read_mic();
-    _delay_ms(30); 
-  }
 }
 
 void read_mic(void){
