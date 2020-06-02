@@ -79,7 +79,8 @@ void show_bat_menu(void);
 void react_bat_menu(void);
 void show_vibro_led_menu(void);
 void react_vibro_led_menu(void);
-
 void play_sound(void);
+void init_mic(void);
+void read_mic(void);
 
 #endif

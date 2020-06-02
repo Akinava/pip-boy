@@ -193,7 +193,8 @@ void react_sound_menu(void){
 
 void show_mic_menu(void){
   /* Enable the ADC */
-	ADCSRA |= _BV(ADEN);
+  print("microphone test", 0, 0);
+  init_mic();
 }
 
 void react_mic_menu(void){
@@ -238,4 +239,55 @@ void play_sound(void){
     if (i%150){TOGGLE(SPEAKER_PORT, SPEAKER_PIN);}
   }
   SET_LOW(SPEAKER_PORT, SPEAKER_PIN);
+}
+
+void init_mic(void){
+  // ADMUX
+  // set V AVCC
+  UNSET(ADMUX, REFS1);
+  SET(ADMUX, REFS0);
+  // set V AREF
+  //UNSET(ADMUX, REFS1);
+  //UNSET(ADMUX, REFS0);
+
+  // read bits direction
+  UNSET(ADMUX, ADLAR);
+  // set read ADC1
+  UNSET(ADMUX, MUX3);
+  UNSET(ADMUX, MUX2);
+  UNSET(ADMUX, MUX1);
+  SET(ADMUX, MUX0);
+
+  // ADCSRA
+  // set ADC on
+  SET(ADCSRA, ADEN);
+  // set ADPS
+  SET(ADCSRA, ADPS2);
+  SET(ADCSRA, ADPS1);
+  SET(ADCSRA, ADPS0);
+
+  while(!CHECK_PIN(BUTTON_C_PINS, BUTTON_C_PIN)){
+    clean_buf();
+    read_mic();
+    _delay_ms(30); 
+  }
+}
+
+void read_mic(void){
+  uint16_t vol1024;
+  uint8_t vol127;
+  // run DAC
+  SET(ADCSRA, ADSC);
+  // wait
+  while(!(ADCSRA & (1 << ADIF)));
+  // read
+  vol1024 = (ADCL | ADCH << 8);
+
+  // cast 1024 to 127
+  vol127 = vol1024*127/1024;
+  // show the line
+  for (uint8_t i=0;i<vol127; i++){
+    display_buff_[i] = 0xff;
+  }
+  display_update_(2);
 }
