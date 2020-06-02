@@ -57,6 +57,9 @@ void react_event(void){
     case TEST_VIBRO:
       react_vibro_led_menu();
       break;
+    case TEST_RADIO:
+      react_radio_menu();
+      break;
   }
   event = NOOP;
 }
@@ -201,6 +204,10 @@ void react_mic_menu(void){
 }
 
 void show_radio_menu(void){
+  print("radio test", 0, 0);
+  print("select:", 0, 2);
+  print("A master", 0, 3);
+  print("B slave", 0, 4);
 }
 
 void react_radio_menu(void){
