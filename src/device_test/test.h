@@ -83,5 +83,8 @@ void play_sound(void);
 void test_mic(void);
 void init_mic(void);
 void read_mic(void);
+void test_bat_lvl(void);
+void init_bat_lvl(void);
+void read_bat_lvl(void);
 
 #endif

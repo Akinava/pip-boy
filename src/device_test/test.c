@@ -158,7 +158,7 @@ void react_keys_menu(void){
       print("key A", 0, 3);
       break;
     case B_KEY_PRESSED:
-      print("key B", 0, 3); 
+      print("key B", 0, 3);
       break;
     case C_KEY_PRESSED:
       print("key C", 0, 3);
@@ -208,6 +208,8 @@ void react_radio_menu(void){
 }
 
 void show_bat_menu(void){
+  print("battery lvl test", 0, 0);
+  test_bat_lvl();
 }
 
 void react_bat_menu(void){
@@ -217,7 +219,7 @@ void react_bat_menu(void){
 void show_vibro_led_menu(void){
   print("for test press:", 0, 0);
   print("A - led", 0, 2);
-  print("B - vibro", 0, 3);  
+  print("B - vibro", 0, 3);
 }
 void react_vibro_led_menu(void){
   if (event == C_KEY_PRESSED){menu.page = PAGE_MAIN;}
@@ -245,7 +247,7 @@ void test_mic(void){
   while(!CHECK_PIN(BUTTON_C_PINS, BUTTON_C_PIN)){
     clean_buf();
     read_mic();
-    _delay_ms(30); 
+    _delay_ms(30);
   }
 }
 
@@ -254,6 +256,7 @@ void init_mic(void){
   // set V AVCC
   UNSET(ADMUX, REFS1);
   SET(ADMUX, REFS0);
+
   // set V AREF
   //UNSET(ADMUX, REFS1);
   //UNSET(ADMUX, REFS0);
@@ -269,7 +272,7 @@ void init_mic(void){
   // ADCSRA
   // set ADC on
   SET(ADCSRA, ADEN);
-  // set ADPS
+  // set ADPS 128
   SET(ADCSRA, ADPS2);
   SET(ADCSRA, ADPS1);
   SET(ADCSRA, ADPS0);
@@ -292,4 +295,50 @@ void read_mic(void){
     display_buff_[i] = 0xff;
   }
   display_update_(2);
+}
+
+void test_bat_lvl(void){
+  init_bat_lvl();
+  while(!CHECK_PIN(BUTTON_C_PINS, BUTTON_C_PIN)){
+    clean_buf();
+    read_bat_lvl();
+    _delay_ms(50);
+  }
+}
+
+void init_bat_lvl(void){
+  // ADMUX
+  // set V AVCC
+  UNSET(ADMUX, REFS1);
+  SET(ADMUX, REFS0);
+
+  // set V AREF
+  //UNSET(ADMUX, REFS1);
+  //UNSET(ADMUX, REFS0);
+
+  // read bits direction
+  UNSET(ADMUX, ADLAR);
+  // set read ADC0
+  UNSET(ADMUX, MUX3);
+  UNSET(ADMUX, MUX2);
+  UNSET(ADMUX, MUX1);
+  UNSET(ADMUX, MUX0);
+
+  // ADCSRA
+  // set ADC on
+  SET(ADCSRA, ADEN);
+  // set ADPS 128
+  SET(ADCSRA, ADPS2);
+  SET(ADCSRA, ADPS1);
+  SET(ADCSRA, ADPS0);
+}
+
+void read_bat_lvl(void){
+  // run DAC
+  SET(ADCSRA, ADSC);
+  // wait
+  while(!(ADCSRA & (1 << ADIF)));
+  // read
+  print8(ADCH, 0, 2);
+  print8(ADCL, 20, 2);
 }
