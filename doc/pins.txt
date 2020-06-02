@@ -19,7 +19,7 @@ N  ARD pin  descr
 17  11 PB3  MOSI
 18  12 PB4  MISO
 19  13 PB5  SCK
-20     VCC  VCC
+20     AVCC  VCC
 21     AREF VCC
 22     GND  GND
 23  14 PC0(ADC0) Battery level
