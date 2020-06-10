@@ -19,12 +19,14 @@ AVRDUDE_PROGRAMMER = usbasp
 
 LIB_DISPLAY = display
 LIB_SD = sd
+LIB_RADIO = radio
 
 #=======================================
 
 OBJECTS = $(TARGET).o
-OBJECTS += $(LIB_DISPLAY).o
 OBJECTS += $(LIB_SD).o
+OBJECTS += $(LIB_RADIO).o
+OBJECTS += $(LIB_DISPLAY).o
 
 # Define all object files.                                                      
 #============================================================================
@@ -223,6 +225,7 @@ dump: $(TARGET).hex
 
 
 $(TARGET).elf: $(OBJECTS)
+	echo $(OBJECTS)
 	$(COMPILE) -o $(TARGET).elf $(OBJECTS)
 
 $(TARGET).hex: $(TARGET).elf

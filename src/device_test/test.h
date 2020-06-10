@@ -4,6 +4,7 @@
 #include "sd.h"
 #include "macro.h"
 #include "pins.h"
+#include "radio.h"
 
 #ifndef TEST_H                                         
 #define TEST_H
@@ -39,7 +40,7 @@ char* TEST_LIST[] = {
   "keys       ",
   "sound      ",
   "microphon  ",
-  "radio link ",
+  "radio      ",
   "battery lvl",
   "vibro & led"
 };

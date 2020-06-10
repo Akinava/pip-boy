@@ -2,9 +2,17 @@
 
 uint8_t card_init(void){
   // Set MOSI, SCK, CS as Output
-  SD_DDR |= _BV(MOSI)|_BV(SCK)|_BV(SD_CS);
+  SPI_DDR |= _BV(MOSI)|_BV(SCK)|_BV(SD_CS);
   // set sd cs off
-  SD_UNSET(SD_PORT, SD_CS);
+  SPI_UNSET(SD_PORT, SD_CS);
+
+  // set radio
+  RADIO_DDR |= _BV(RADIO_CSN);
+  RADIO_DDR |= _BV(RADIO_CE);
+  // disable radio 
+  SPI_UNSET(RADIO_PORT, RADIO_CSN);
+  SET_LOW(RADIO_PORT, RADIO_CE);
+
   // Enable SPI, Set as Master
   //Prescaler: Fosc/16, Enable Interrupts
   SPCR = _BV(SPE)|_BV(MSTR)|_BV(SPR0); // | (1 << SPR1)
@@ -46,7 +54,7 @@ uint8_t card_init(void){
   //use max SPI frequency
   SPCR &= ~((1 << SPR1) | (1 << SPR0)); // f_OSC/4
   SPSR |= (1 << SPI2X); // Doubled Clock Frequency: f_OSC/2
-  SD_UNSET(SD_PORT, SD_CS);
+  SPI_UNSET(SD_PORT, SD_CS);
   return 1;
 }
 
@@ -59,7 +67,7 @@ void card_command_(uint8_t cmd, uint32_t arg, uint8_t crc){
   // end read if in partialBlockRead mode
   spi_send_(0xFF);
   //select card
-  SD_SET(SD_PORT, SD_CS);
+  SPI_SET(SD_PORT, SD_CS);
   // send command
   spi_send_(cmd | 0x40);
   //send argument

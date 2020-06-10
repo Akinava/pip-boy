@@ -205,9 +205,12 @@ void react_mic_menu(void){
 
 void show_radio_menu(void){
   print("radio test", 0, 0);
-  print("select:", 0, 2);
-  print("A master", 0, 3);
-  print("B slave", 0, 4);
+
+  if (radio_test()){
+    print("test passed", 0, 2);
+  }else{
+    print("test failed", 0, 2);
+  }
 }
 
 void react_radio_menu(void){

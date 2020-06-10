@@ -17,4 +17,8 @@
 // PINS Input Pins Register
 #define CHECK_PIN(PINS, PIN) !(PINS & _BV(PIN))
 
+// SPI
+#define SPI_UNSET SET_HIGH
+#define SPI_SET SET_LOW
+
 #endif

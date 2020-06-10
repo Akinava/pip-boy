@@ -25,9 +25,6 @@
 /** status for card in the idle state */
 #define R1_IDLE_STATE 1
 
-#define SD_UNSET SET_HIGH
-#define SD_SET SET_LOW
-
 uint8_t card_init(void);
 void spi_send_(uint8_t data);
 void card_command_(uint8_t cmd, uint32_t arg, uint8_t crc);

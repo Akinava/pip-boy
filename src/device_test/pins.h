@@ -65,6 +65,16 @@
 #define SD_DDR DDRB
 #define SD_PORT PORTB
 #define SD_CS PB2
+
+// DARIO
+#define RADIO_DDR DDRD
+#define RADIO_PORT PORTD
+#define RADIO_CE PD0
+#define RADIO_CSN PD1
+
+// SPI
+#define SPI_DDR DDRB
+#define SPI_PORT PORTB
 #define MOSI PB3
 #define MISO PB4
 #define SCK PB5
