@@ -2,7 +2,7 @@
 
 # Name of the project
 TARGET = boot
-APP_NAME = BOOT
+APP_NAME = SDBOOT
 
 # tipe of MK
 MCU  = atmega328p
@@ -203,7 +203,7 @@ clean_msg:
 	@echo $(MSG_CLEANING)
 
 clean_all:
-	rm -f *.hex *.elf $(OBJECTS)
+	rm -f *.hex *.elf $(OBJECTS) *.BIN
 
 clean: clean_msg clean_all
 #------------------
