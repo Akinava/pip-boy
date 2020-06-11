@@ -20,11 +20,11 @@ int main(void){
   app_start();
 }
 
-static inline void load_default_app(void){
+void load_default_app(void){
   load_app_by_name(BOOT_APP);
 }
 
-static inline void load_app_by_name(const char* file_path){
+void load_app_by_name(const char* file_path){
   setup_led_();
 
   if (!sd_init()){

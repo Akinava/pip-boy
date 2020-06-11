@@ -11,8 +11,8 @@
 const char BOOT_APP[] PROGMEM = "/BIN/FM.BIN";
 const int (*app_start)(void) = 0x0;
 
-static inline void load_default_app(void);
-static inline void load_app_by_name(const char* file_path);
+void load_default_app(void);
+void load_app_by_name(const char* file_path);
 void load_app_by_cluster(uint16_t cluster, uint32_t size);
 
 static inline void setup_button_(void);
