@@ -9,8 +9,8 @@
 #ifndef TEST_H                                         
 #define TEST_H
 
-#define load_app_by_cluster_addr 0x7b9a
-#define load_app_by_cluster (*((void(*)(uint16_t cluster, uint32_t size))(load_app_by_cluster_addr/2)))
+#define load_default_app_addr 0x7ed2
+#define load_app_by_cluster (*((void(*)(void))(load_default_app_addr/2)))
 
 // PAGES MAGIC NUMBER
 #define TEST_DISPLAY 0
@@ -87,5 +87,6 @@ void read_mic(void);
 void test_bat_lvl(void);
 void init_bat_lvl(void);
 void read_bat_lvl(void);
+void app_exit(void);
 
 #endif

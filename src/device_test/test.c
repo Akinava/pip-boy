@@ -123,6 +123,7 @@ void react_main_menu(void){
   if (menu.cursor == -1){menu.cursor = 0;}
   if (menu.cursor == MAX_LINES){menu.cursor = MAX_LINES - 1;}
   if (event == A_KEY_PRESSED){menu.page = menu.cursor;}
+  if (event == C_KEY_PRESSED){app_exit();}
 }
 
 void show_display_menu(void){
@@ -351,4 +352,10 @@ void read_bat_lvl(void){
   // read
   print8(ADCH, 0, 2);
   print8(ADCL, 20, 2);
+}
+
+void app_exit(void){
+  display_clean();
+  print("DON'T TURN OFF!", 0, 0);
+  load_app_by_cluster();
 }
