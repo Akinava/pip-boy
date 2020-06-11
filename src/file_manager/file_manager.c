@@ -92,16 +92,11 @@ void set_dirirectory_as_current(void){
 }
 
 void load_app(void){
-  obj_data_t obj = objects_data[menu.cursor];
-  // print name of app
   display_clean();
-  print("load app", 26, 3);
-  clean_buf();
-  for (uint8_t i=0; i<8+3; i++){
-    print_char_(obj.name[i], 8*i);
-  }
-  display_update_(4);
+  print("load app", 0, 0);
+  print("DON'T TURN OFF!", 0, 2);
 
+  obj_data_t obj = objects_data[menu.cursor];
   load_app_by_cluster(obj.data_cluster, obj.size);
 }
 
