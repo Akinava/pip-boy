@@ -59,9 +59,10 @@ void load_app_by_cluster(uint16_t cluster, uint32_t size){
     address += 2;
     page_cursor -= 2;
 
-
     // write page
     if (page_cursor == 0){
+      show_status(temp_word);
+
   	  // Perform page erase
       boot_page_erase(address-SPM_PAGESIZE);
 	    // Wait until the memory is erased
@@ -89,6 +90,14 @@ void load_app_by_cluster(uint16_t cluster, uint32_t size){
 static inline void setup_button_(void){
   SET_DDR_IN(BUTTON_C_DDR, BUTTON_C_PIN);
   SET_PULLUP(BUTTON_C_PORT, BUTTON_C_PIN);
+}
+
+static inline void show_status(uint16_t status){
+  if(status&1){
+    SET_HIGH(LED_PORT, LED_PIN);
+  }else{
+    SET_LOW(LED_PORT, LED_PIN);
+  }
 }
 
 static inline void setup_led_(void){

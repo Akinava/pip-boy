@@ -19,6 +19,7 @@ static inline void setup_button_(void);
 static inline void setup_led_(void);
 static inline void error_light_(void);
 void error_blink_(void);
+static inline void show_status(uint16_t status);
 static inline void watchdog_config_(uint8_t x);
 
 // SD card commands
