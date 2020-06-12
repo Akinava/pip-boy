@@ -172,6 +172,8 @@ int16_t   -32768 to +32767
 http://s-engineer.ru/interfejs-spi/
 # NRF24L01
 http://s-engineer.ru/rabota-s-priemoperedatchikom-nrf24l01-24-ggc/
+# ISP via SD
+https://github.com/nickgammon/arduino_sketches/blob/master/Atmega_Board_Programmer/Atmega_Board_Programmer.ino
 
 ===============================================================================
 ### soft
