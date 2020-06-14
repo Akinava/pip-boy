@@ -82,7 +82,6 @@ bytes words pages start_address start_word_address    bytes words pages end_addr
  4096  2048    32        0x7000             0x3800    28672 14336   224      0x6fff          0x37ff     d8
 
 
-
 arduino fuses                LOW=FF HIGH=DE EXTENDED=05
 gamebuino                      0xff    0xda        0x05
 
@@ -104,8 +103,11 @@ avrdude -c usbasp -p atmega328p -U lfuse:w:0xff:m -U hfuse:w:0xff:m -U efuse:w:0
 # write only extended fuse
 avrdude -c usbasp -p atmega328p -U efuse:w:0x05:m
 
-# read fuses
+# read ext fuse
 avrdude -c usbasp -p atmega328p -U efuse:r:-:h
+
+# read all fuses
+avrdude -c usbasp -p atmega328p
 
 # read from flash / hex format
 avrdude -c usbasp -p atmega328p -U flash:r:dump_flash.hex:i
