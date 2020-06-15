@@ -1,8 +1,27 @@
+master - already working console
+slave - disassembled console
+
+!!! IMPORTANT do eject/insert card only on powered off console !!!
+
+# assemble
 1. assemble slave console
-2. to slave console from master console upload bootloader
-3. with master console setup fuses on the slave console
-4. on slave console load sd formatter from master SD
-5. format slave SD card
-6. on slave console load file manager from master SD
-7. transfer all needed files from master console to slave console
-8. DONE
+
+# bootloader
+1. to slave console from master console upload bootloader
+2. with master console setup fuses on the slave console
+
+# test slave console (not necessary)
+1. to slave console from master sd cart load HWTEST.BIN
+2. test slave console
+
+# format slave sd cart (on demand)
+1. on slave console load FDISK.BIN from master SD
+2. insert slave sd card
+3. format slave sd card
+
+# transfer files
+1. on slave console load FM.BIN from master SD
+2. insert slave sd card to slave console
+3. insert master sd card to master console
+4. use FM.BIN transfer required files from master console to slave
+5. move received files from DWNLD directory to required places
