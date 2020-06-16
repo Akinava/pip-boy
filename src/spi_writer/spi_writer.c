@@ -13,12 +13,11 @@ int main(void){
   RADIO_DDR |= _BV(RADIO_CSN)|_BV(SPI_MASTER_PIN);
 
 
-  // Enable SPI, Set as Master
+  // Enable SPI, Set as Master and Prescaler Fosc/4, by default
   SPCR = _BV(SPE)|_BV(MSTR);
-  //Prescaler: Fosc/4, by default
   //SET_LOW(SPI_MASTER_PORT, SPI_MASTER_PIN);
   //Prescaler: Fosc/16
-  SPCR = _BV(SPE)|_BV(MSTR)|_BV(SPR0);
+  //SPCR = _BV(SPE)|_BV(MSTR)|_BV(SPR0);
 
   // off other spi hw
   SPI_UNSET(SD_PORT, SD_CS);
@@ -34,7 +33,7 @@ int main(void){
   program_enable();
   read_signature();
   erise_chip();
-  load_program(); // FIXME doesn't work
+  load_program();
   //write_fuse(WRITE_HIGH_FUSE, 0xda); // def 0xda / 0xdf
   //write_fuse(WRITE_EXT_FUSE, 0xfd);  // def 0xfd / 0xff
   //write_fuse(WRITE_LOW_FUSE, 0xff);  // def 0xff / 0xfe
