@@ -34,7 +34,7 @@ int main(void){
   program_enable();
   read_signature();
   erise_chip();
-  load_program(); 
+  load_program(); // FIXME doesn't work
   //write_fuse(WRITE_HIGH_FUSE, 0xda); // def 0xda / 0xdf
   //write_fuse(WRITE_EXT_FUSE, 0xfd);  // def 0xfd / 0xff
   //write_fuse(WRITE_LOW_FUSE, 0xff);  // def 0xff / 0xfe
@@ -77,6 +77,8 @@ void read_signature(void){
 
 void erise_chip(void){
   isp_command(PROGRAM_ENABLE, CHIP_ERASE, 0, 0);
+  _delay_ms(20);
+  busy_wait();
 }
 
 void write_fuse(uint8_t fuse, uint8_t value){
@@ -84,12 +86,37 @@ void write_fuse(uint8_t fuse, uint8_t value){
 }
 
 void load_program(void){
-  // SPM_PAGESIZE 128
-  //uint32_t address = 0;
-  for (uint8_t i=0; i<128; i++){
-    isp_command(LOAD_PROGRAM_LOW_BYTE, 0, i, i); 
+  // write app
+  // first page
+  for (uint8_t i=0; i<128/2; i++){
+    isp_command(LOAD_PROGRAM_LOW_BYTE, 0, i, 0x12);
+    isp_command(LOAD_PROGRAM_HIGH_BYTE, 0, i, 0x34);
   }
-  isp_command(WRITE_PAGE, 0, 0, 0); 
+  isp_command(WRITE_PAGE, 0, 0, 0);
+  busy_wait();
+  
+  // write second page
+  for (uint8_t i=0; i<128/2; i++){
+    isp_command(LOAD_PROGRAM_LOW_BYTE, 0, i, 0x43);
+    isp_command(LOAD_PROGRAM_HIGH_BYTE, 0, i, 0x21);
+  }
+  isp_command(WRITE_PAGE, 0, 64, 0);
+  busy_wait();
+
+  // write bootloader / ~512 bytes for bootloader
+  // hfuse 0xde, start word 0x3f00 start byte 0x7e00
+  for (uint8_t i=0; i<128/2; i++){
+    isp_command(LOAD_PROGRAM_LOW_BYTE, 0, i, 0xab);
+    isp_command(LOAD_PROGRAM_HIGH_BYTE, 0, i, 0xcd);
+  }
+  isp_command(WRITE_PAGE, 0x3f, 0, 0);
+  busy_wait();
+}
+
+void busy_wait(void){
+  do{
+    isp_command(POOL_READY, 0, 0, 0);
+  }while((SPDR & 1) == 1);
 }
 
 void isp_command(uint8_t cmd0, uint8_t cmd1, uint8_t cmd2, uint8_t cmd3){
