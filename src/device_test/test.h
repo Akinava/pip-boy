@@ -10,7 +10,7 @@
 #define TEST_H
 
 #define load_default_app_addr 0x7ed2
-#define load_app_by_cluster (*((void(*)(void))(load_default_app_addr/2)))
+#define load_default_app (*((void(*)(void))(load_default_app_addr/2)))
 
 // PAGES MAGIC NUMBER
 #define TEST_DISPLAY 0

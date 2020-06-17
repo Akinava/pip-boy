@@ -357,5 +357,5 @@ void read_bat_lvl(void){
 void app_exit(void){
   display_clean();
   print("DON'T TURN OFF!", 0, 0);
-  load_app_by_cluster();
+  load_default_app();
 }
