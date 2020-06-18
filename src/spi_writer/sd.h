@@ -2,7 +2,7 @@
 #include <string.h>
 #include "macro.h"
 #include "pins.h"
-#include "menu.h"
+#include "sd_menu.h"
 
 #ifndef SD_H
 #define SD_H
@@ -93,12 +93,12 @@ typedef struct {
 vol_info_t vol_info;
 
 uint8_t sd_init(void);
-uint8_t read_directory_page(menu_t* menu, obj_data_t* objects_data);
+uint8_t read_directory_page(sd_menu_t* sd_menu, obj_data_t* objects_data);
 
 uint8_t card_init_(void);
 uint8_t vol_init_(void);
 void cp_obj_name_(char* dst, uint16_t buffer_offset);
-uint8_t copy_obj_to_page_(obj_data_t* objects_data, obj_data_t* src_obj, menu_t* menu);
+uint8_t copy_obj_to_page_(obj_data_t* objects_data, obj_data_t* src_obj, sd_menu_t* sd_menu);
 uint8_t next_cluster_by_fat_(obj_data_t* prev_object, obj_data_t* next_object);
 uint32_t get_sector_by_cluster_(obj_data_t* object);
 void spi_send_(uint8_t data);

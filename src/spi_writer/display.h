@@ -8,9 +8,14 @@
 
 // FIXME
 void clean_buf(void);
+void print4(uint8_t n, uint8_t x, uint8_t y);
 void print8(uint8_t n, uint8_t x, uint8_t y);
 void print16(uint16_t n, uint8_t x, uint8_t y);
 void print32(uint32_t n, uint8_t x, uint8_t y);
+void print4inv(uint8_t n, uint8_t x, uint8_t y);
+void print8inv(uint8_t n, uint8_t x, uint8_t y);
+void print16inv(uint16_t n, uint8_t x, uint8_t y);
+void print32inv(uint32_t n, uint8_t x, uint8_t y);
 
 
 void display_begin(void);

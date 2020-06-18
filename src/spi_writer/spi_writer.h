@@ -2,9 +2,13 @@
 #include "macro.h"
 #include "pins.h"
 #include "display.h"
+#include "menu.h"
 
 #ifndef SPI_WRITER_H
 #define SPI_WRITER_H
+
+#define load_default_app_addr 0x7ed2
+#define load_default_app (*((void(*)(void))(load_default_app_addr/2)))
 
 #define PROGRAM_ENABLE         0xac 
 #define PROGRAM_ACKNOWLEDGE    0x53 
@@ -20,13 +24,74 @@
 
 #define NO_INSTRUCTION         0xff
 
+#define ATMEGA328P 0
+#define ATTINY85   1
+
+#define HFUSE_PLACE 2
+#define LFUSE_PLACE 6
+#define EFUSE_PLACE 10
+
+const uint8_t fuses_palce[] = {
+  HFUSE_PLACE,
+  LFUSE_PLACE,
+  EFUSE_PLACE
+};
+
+const uint8_t write_fuses_command[] = {
+  WRITE_HIGH_FUSE, 
+  WRITE_LOW_FUSE, 
+  WRITE_EXT_FUSE
+};
+
+typedef struct {
+   uint8_t sig[3];   // chip signature
+   uint8_t pageSize; // flash programming page size (bytes)
+   uint8_t fuses[3];    // fuses high/low/ext / default
+} signatureType;
+
+signatureType signatures [] = {
+  {{0x1e, 0x95, 0x0f}, 128, {0xda, 0xff, 0xfd}},
+  {{0x1e, 0x93, 0x0b}, 64, {0xdf, 0x62, 0xff}}
+};
+
+void show_menu(void);
+void react_event(void);
+void spi_activate(void);
+void spi_deactivate(void);
 void spi_send(uint8_t data);
-void program_enable(void);
-void read_signature(void);
+uint8_t program_enable(void);
+uint8_t read_signature(uint8_t chip);
 void erise_chip(void);
 void write_fuse(uint8_t fuse, uint8_t value);
 void load_program(void);
 void busy_wait(void);
 void isp_command(uint8_t cmd0, uint8_t cmd1, uint8_t cmd2, uint8_t cmd3);
+void app_exit(void);
+void show_main_menu(void);
+void react_main_menu(void);
+void show_load_fuses_menu(void);
+void react_load_fuses(void);
+void react_write_fuses(void);
+void react_fuses_edit(void);
+void show_fuses_edit(void);
+void react_fuses_edit(void);
+void up_fuse(void);
+void down_fuse(void);
+
+// PAGES MAGIC NUMBER
+#define PAGE_LOAD_APP   0
+#define PAGE_LOAD_FUSES 1
+#define MAX_LINES       2
+#define PAGE_MAIN       MAX_LINES
+
+#define PAGE_FUSES_EDIT  3
+#define PAGE_FUSES_WRITE 4
+
+char* MENU_LIST[] = {
+  "load app    ",
+  "change fuses",
+};
+
+int8_t fuses_coursor;
 
 #endif

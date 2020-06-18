@@ -253,7 +253,6 @@ void print_char_(uint8_t c, uint8_t buff_offset){
   }
 }
 
-
 // FIXME
 void clean_buf(void){
   memset(&display_buff_, 0, sizeof(display_buff_));
@@ -266,7 +265,13 @@ void print_c(uint8_t c, uint8_t x, uint8_t y){
   display_update_(y);
 }
 
+void print4(uint8_t n, uint8_t x, uint8_t y){
+  invert_text_ = 0;
+  print_c(n, x, y);
+}
+
 void print8(uint8_t n, uint8_t x, uint8_t y){
+  invert_text_ = 0;
   print_c(n>>4, x, y);
   print_c(n&0xf, x+8, y);
 }
@@ -280,3 +285,25 @@ void print32(uint32_t n, uint8_t x, uint8_t y){
   print16(n>>16, x, y);
   print16(n&0xFFFF, x+32, y);
 }
+
+void print4inv(uint8_t n, uint8_t x, uint8_t y){
+  invert_text_ = 1;
+  print_c(n, x, y);
+}
+
+void print8inv(uint8_t n, uint8_t x, uint8_t y){
+  invert_text_ = 1;
+  print_c(n>>4, x, y);
+  print_c(n&0xf, x+8, y);
+}
+
+void print16inv(uint16_t n, uint8_t x, uint8_t y){
+  print8inv(n>>8, x, y);
+  print8inv(n&0xFF, x+16, y);
+}
+
+void print32inv(uint32_t n, uint8_t x, uint8_t y){
+  print16inv(n>>16, x, y);
+  print16inv(n&0xFFFF, x+32, y);
+}
+

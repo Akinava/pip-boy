@@ -19,12 +19,14 @@ AVRDUDE_PROGRAMMER = usbasp
 
 LIB_DISPLAY = display
 LIB_SD = sd
+LIB_MENU = menu
 
 #=======================================
 
 OBJECTS = $(TARGET).o
 OBJECTS += $(LIB_DISPLAY).o
-#OBJECTS += $(LIB_SD).o
+OBJECTS += $(LIB_SD).o
+OBJECTS += $(LIB_MENU).o
 
 # Define all object files.                                                      
 #============================================================================

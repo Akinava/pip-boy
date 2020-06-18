@@ -6,13 +6,13 @@ void cp_obj_name_(char* dst, uint16_t buffer_offset){
   }
 }
 
-uint8_t copy_obj_to_page_(obj_data_t* objects_data, obj_data_t* src_obj, menu_t* menu){
+uint8_t copy_obj_to_page_(obj_data_t* objects_data, obj_data_t* src_obj, sd_menu_t* sd_menu){
   if (*(sector_buffer+src_obj->sector_offset) == OBJECT_IS_DELETED){
     return 0;
   }
-  uint8_t src_object_index = menu->lines;
-  if (menu->next_page == ABOVE){
-    src_object_index = menu->max_lines - menu->lines - 1;
+  uint8_t src_object_index = sd_menu->lines;
+  if (sd_menu->next_page == ABOVE){
+    src_object_index = sd_menu->max_lines - sd_menu->lines - 1;
   }
   obj_data_t* dst_obj = objects_data + src_object_index;
   dst_obj->cluster = src_obj->cluster;
@@ -145,17 +145,17 @@ void prev_sector_offset_(obj_data_t* prev_object, obj_data_t* next_object){
   }
 }
 
-void get_prev_obj(obj_data_t* objects_data, obj_data_t* prev_obj, menu_t* menu){
-  if (menu->cursor == menu->max_lines){
-    *prev_obj = objects_data[menu->max_lines-1];
+void get_prev_obj(obj_data_t* objects_data, obj_data_t* prev_obj, sd_menu_t* sd_menu){
+  if (sd_menu->cursor == sd_menu->max_lines){
+    *prev_obj = objects_data[sd_menu->max_lines-1];
     return;
   }
   *prev_obj = objects_data[0];
 }
 
-uint8_t get_next_obj_(obj_data_t* prev_obj, obj_data_t* next_obj, menu_t* menu){
+uint8_t get_next_obj_(obj_data_t* prev_obj, obj_data_t* next_obj, sd_menu_t* sd_menu){
   // ABOVE PAGE
-  if (menu->next_page == ABOVE){
+  if (sd_menu->next_page == ABOVE){
     if (!prev_cluster_(prev_obj, next_obj)){return 0;}
     prev_sector_(prev_obj, next_obj);
     prev_sector_offset_(prev_obj, next_obj);
@@ -181,37 +181,37 @@ uint8_t check_object_exist(obj_data_t obj){
   return 1;
 }
 
-uint8_t read_directory_page(menu_t* menu, obj_data_t* objects_data){
+uint8_t read_directory_page(sd_menu_t* sd_menu, obj_data_t* objects_data){
   obj_data_t prev_obj;
   obj_data_t next_obj;
-  get_prev_obj(objects_data, &prev_obj, menu);
+  get_prev_obj(objects_data, &prev_obj, sd_menu);
 
-  if (menu->cursor == 0){
-    menu->next_page = BELOW;
+  if (sd_menu->cursor == 0){
+    sd_menu->next_page = BELOW;
     // cluster saved in first object
     get_zero_obj_(&next_obj);
   }else{
-    if (!get_next_obj_(&prev_obj, &next_obj, menu)){
+    if (!get_next_obj_(&prev_obj, &next_obj, sd_menu)){
       return 0;  
     }
   }
   if (!read_sector_(next_obj.sector)){return 0;}
 
-  menu->lines = 0;
-  while (menu->lines < menu->max_lines){
+  sd_menu->lines = 0;
+  while (sd_menu->lines < sd_menu->max_lines){
     if (!check_object_exist(next_obj)){break;}
-    if (copy_obj_to_page_(objects_data, &next_obj, menu)){(menu->lines)++;}
+    if (copy_obj_to_page_(objects_data, &next_obj, sd_menu)){(sd_menu->lines)++;}
   
     prev_obj = next_obj;
-    if (!get_next_obj_(&prev_obj, &next_obj, menu)){break;}
+    if (!get_next_obj_(&prev_obj, &next_obj, sd_menu)){break;}
     // if the same secror we do not need read it again
     if (prev_obj.sector != next_obj.sector){
       if (!read_sector_(next_obj.sector)){break;}
     }
   }
 
-  if (menu->cursor != 0 && menu->lines == 0){
-    menu->lines = menu->max_lines;
+  if (sd_menu->cursor != 0 && sd_menu->lines == 0){
+    sd_menu->lines = sd_menu->max_lines;
     return 0;
   }
   return 1;
