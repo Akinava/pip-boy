@@ -2,7 +2,7 @@
 #include <string.h>
 #include "macro.h"
 #include "pins.h"
-#include "sd_menu.h"
+#include "display.h"
 
 #ifndef SD_H
 #define SD_H
@@ -61,6 +61,18 @@
 
 #define ROOT_CLUSTER 0
 
+#define ABOVE 0
+#define BELOW 1
+
+typedef struct {
+  int8_t cursor;
+  uint8_t lines;
+  uint8_t max_lines;
+  uint8_t next_page;
+} sd_menu_t;
+
+sd_menu_t sd_menu;
+
 typedef struct {
   uint8_t dir;
   uint16_t data_cluster;
@@ -92,6 +104,7 @@ typedef struct {
 
 vol_info_t vol_info;
 
+void choose_file_menu(uint16_t* app_file_cluster, char* file_name_buf);
 uint8_t sd_init(void);
 uint8_t read_directory_page(sd_menu_t* sd_menu, obj_data_t* objects_data);
 

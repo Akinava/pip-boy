@@ -1,5 +1,12 @@
 #include "sd.h"
 
+void choose_file_menu(uint16_t* app_file_cluster, char* file_name_buf){
+  display_clean();
+  if (!sd_init()){
+    print("SD read fail", 26, 3);
+  }
+}
+
 void cp_obj_name_(char* dst, uint16_t buffer_offset){
   for (uint8_t i=0; i< OBJECT_NAME_SIZE; i++){
     *(dst+i) = *(sector_buffer+buffer_offset+i);

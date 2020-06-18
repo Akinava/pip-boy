@@ -15,9 +15,11 @@ int main(void){
 }
 
 void show_menu(void){
-  if(menu.page == PAGE_MAIN){show_main_menu();}
-  if(menu.page == PAGE_LOAD_FUSES){show_load_fuses_menu();}
-  if(menu.page == PAGE_FUSES_EDIT){show_fuses_edit();}
+  if (menu.page == PAGE_MAIN){show_main_menu();}
+  if (menu.page == PAGE_LOAD_FUSES){show_load_fuses_menu();}
+  if (menu.page == PAGE_FUSES_EDIT){show_fuses_edit();}
+  if (menu.page == PAGE_LOAD_APP){show_load_app_menu();}
+  if (menu.page == PAGE_APP_ADDR_SET){show_app_addr_set_menu();}
 }
 
 void react_event(void){
@@ -26,7 +28,6 @@ void react_event(void){
     case PAGE_MAIN:
       react_main_menu();
       break;
-
     case PAGE_LOAD_FUSES:
       react_load_fuses();
       break;
@@ -36,8 +37,113 @@ void react_event(void){
     case PAGE_FUSES_WRITE:
       react_write_fuses();
       break;
+    case PAGE_LOAD_APP:
+      react_load_app();
+      break;
+    case PAGE_APP_ADDR_SET:
+      react_app_addr_set();
+      break;
+    case PAGE_APP_WRITE:
+      react_app_write();
+      break;
+    case PAGE_APP_FILE:
+      react_choose_the_file();
+      break;
   }
   menu.event = NOOP;
+}
+
+void react_choose_the_file(void){
+  char file_name_buf[8+1+3];
+  choose_file_menu(&app_file_cluster, file_name_buf);
+  menu.page = PAGE_LOAD_APP;
+}
+
+void react_app_write(void){
+  // write app
+  if (app_file_cluster == 0){
+    print("Error: no file", 0, 2);
+  }else{
+    // write app TODO
+    print("DONE", 0, 2);
+  }
+  _delay_ms(1000);
+  menu.page = PAGE_LOAD_APP;
+}
+
+void show_app_addr_set_menu(void){
+  print("start addr:", 0, 0);
+  // "start addr:   1234"
+  for (uint8_t i=0; i<4; i++){
+    uint8_t half_byte = (app_addr_start>>4*i)&0xf;
+    if (i == 3-sub_coursor){
+      print4inv(half_byte, (APP_ADDR_INDENT+3-i)*8, 0);
+    }else{
+      print4(half_byte, (APP_ADDR_INDENT+3-i)*8, 0);
+    }  
+  }
+}
+
+void react_app_addr_set(void){
+  if (menu.event == C_KEY_PRESSED){menu.page = PAGE_LOAD_APP;}
+
+  if (menu.event == UP_KEY_PRESSED){up_load_addr();}
+  if (menu.event == A_KEY_PRESSED){up_load_addr();}
+
+  if (menu.event == DOWN_KEY_PRESSED){down_load_addr();}
+  if (menu.event == B_KEY_PRESSED){down_load_addr();}
+
+  if (menu.event == RIGHT_KEY_PRESSED){sub_coursor++;}
+  if (menu.event == LEFT_KEY_PRESSED){sub_coursor--;}
+   
+  if (sub_coursor < 0){sub_coursor = 0;}
+  if (sub_coursor > 2){sub_coursor = 2;}
+}
+
+void up_load_addr(void){
+  uint16_t diff = 1<<4*(3-sub_coursor);
+  if (app_addr_start + diff > signatures[ATMEGA328P].ram_size - signatures[ATMEGA328P].page_size){return;}
+  app_addr_start += diff;
+}
+
+void down_load_addr(void){
+  uint16_t diff = 1<<4*(3-sub_coursor);
+  if (app_addr_start < diff){return;}
+  app_addr_start -= diff;
+}
+
+void show_load_app_menu(void){
+  print("start addr:       ", 0, 0);
+  print16(app_addr_start, APP_ADDR_INDENT*8, 0);
+  print(app_name_buf, 0, 1);
+  print("write             ", 0, 2);
+
+  if (menu.cursor == 0){
+    print_invert("start addr:       ", 0, 0);
+    print16inv(app_addr_start, APP_ADDR_INDENT*8, 0);
+  }
+
+  if (menu.cursor == 1){
+    print("start addr:       ", 0, 0);
+    print16(app_addr_start, APP_ADDR_INDENT*8, 0);
+    print_invert(app_name_buf, 0, 1);
+  }
+
+  if (menu.cursor == 2){
+    print_invert("write             ", 0, 2);
+  }
+}
+
+void react_load_app(void){
+  if (menu.event == C_KEY_PRESSED){menu.page = PAGE_MAIN;}
+  if (menu.event == UP_KEY_PRESSED){menu.cursor--;}
+  if (menu.event == DOWN_KEY_PRESSED){menu.cursor++;}
+  if (menu.cursor < 0){menu.cursor = 0;}
+  if (menu.cursor > 2){menu.cursor = 2;}
+  if (menu.event == A_KEY_PRESSED){
+    menu.page = PAGE_APP_ADDR_SET + menu.cursor;
+    sub_coursor = 0;
+  }
 }
 
 void show_load_fuses_menu(void){
@@ -65,7 +171,7 @@ void react_load_fuses(void){
   if (menu.cursor < 0){menu.cursor = 0;}
   if (menu.cursor > 1){menu.cursor = 1;}
   if (menu.event == A_KEY_PRESSED){
-    fuses_coursor = 0;
+    sub_coursor = 0;
     menu.page = PAGE_FUSES_EDIT + menu.cursor;
   }
 }
@@ -126,8 +232,8 @@ void react_write_fuses(void){
 void show_fuses_edit(void){
   print("                ", 0, 1);
   for (uint8_t i=0; i<sizeof(fuses_palce); i++){
-    if (fuses_coursor/2 == i){
-      if (fuses_coursor%2 == 0){
+    if (sub_coursor/2 == i){
+      if (sub_coursor%2 == 0){
         print4inv(signatures[ATMEGA328P].fuses[i]>>4, fuses_palce[i]*8, 1);
         print4(signatures[ATMEGA328P].fuses[i]&0xf, fuses_palce[i]*8+8, 1);
       }else{
@@ -149,35 +255,40 @@ void react_fuses_edit(void){
   if (menu.event == DOWN_KEY_PRESSED){down_fuse();}
   if (menu.event == B_KEY_PRESSED){down_fuse();}
 
-  if (menu.event == RIGHT_KEY_PRESSED){fuses_coursor++;}
-  if (menu.event == LEFT_KEY_PRESSED){fuses_coursor--;}
+  if (menu.event == RIGHT_KEY_PRESSED){sub_coursor++;}
+  if (menu.event == LEFT_KEY_PRESSED){sub_coursor--;}
    
-  if (fuses_coursor < 0){fuses_coursor = 0;}
-  if (fuses_coursor > sizeof(fuses_palce)*2-1){fuses_coursor = sizeof(fuses_palce)*2-1;}
+  if (sub_coursor < 0){sub_coursor = 0;}
+  if (sub_coursor > sizeof(fuses_palce)*2-1){sub_coursor = sizeof(fuses_palce)*2-1;}
 }
 
 void up_fuse(void){
-  uint8_t fuse = signatures[ATMEGA328P].fuses[fuses_coursor/2];
-  if (fuses_coursor%2 == 0){
+  uint8_t fuse = signatures[ATMEGA328P].fuses[sub_coursor/2];
+  if (sub_coursor%2 == 0){
     if (fuse+0x10<=0xff){fuse+=0x10;}
   }else{
     if (fuse+1<=0xff){fuse+=1;}
   }
-  signatures[ATMEGA328P].fuses[fuses_coursor/2] = fuse;
+  signatures[ATMEGA328P].fuses[sub_coursor/2] = fuse;
 }
 
 void down_fuse(void){
-  uint8_t fuse = signatures[ATMEGA328P].fuses[fuses_coursor/2];
-  if (fuses_coursor%2 == 0){
+  uint8_t fuse = signatures[ATMEGA328P].fuses[sub_coursor/2];
+  if (sub_coursor%2 == 0){
     if (fuse>=0x10){fuse-=0x10;}
   }else{
     if (fuse>=1){fuse-=1;}
   }
-  signatures[ATMEGA328P].fuses[fuses_coursor/2] = fuse;
+  signatures[ATMEGA328P].fuses[sub_coursor/2] = fuse;
 }
 
+void app_exit(void){
+  display_clean();
+  print("DON'T TURN OFF!", 0, 0);
+  load_default_app();
+}
 
-
+/********************************* ISP ***************************************/
 
 void spi_activate(void){
   // Set MOSI, SCK, SD_CS as Output B
@@ -289,8 +400,3 @@ void isp_command(uint8_t cmd0, uint8_t cmd1, uint8_t cmd2, uint8_t cmd3){
   spi_send(cmd3);
 }
 
-void app_exit(void){
-  display_clean();
-  print("DON'T TURN OFF!", 0, 0);
-  load_default_app();
-}

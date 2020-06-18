@@ -3,6 +3,7 @@
 #include "pins.h"
 #include "display.h"
 #include "menu.h"
+#include "sd.h"
 
 #ifndef SPI_WRITER_H
 #define SPI_WRITER_H
@@ -44,14 +45,15 @@ const uint8_t write_fuses_command[] = {
 };
 
 typedef struct {
-   uint8_t sig[3];   // chip signature
-   uint8_t pageSize; // flash programming page size (bytes)
-   uint8_t fuses[3];    // fuses high/low/ext / default
+   uint8_t sig[3];    // chip signature
+   uint8_t page_size;  // flash programming page size (bytes)
+   uint8_t fuses[3];  // fuses high/low/ext / default
+   uint16_t ram_size; // chip ram size / bytes
 } signatureType;
 
 signatureType signatures [] = {
-  {{0x1e, 0x95, 0x0f}, 128, {0xda, 0xff, 0xfd}},
-  {{0x1e, 0x93, 0x0b}, 64, {0xdf, 0x62, 0xff}}
+  {{0x1e, 0x95, 0x0f}, 128, {0xda, 0xff, 0xfd}, 0x8000},
+  {{0x1e, 0x93, 0x0b}, 64, {0xdf, 0x62, 0xff}, 0x2000}
 };
 
 void show_menu(void);
@@ -77,6 +79,14 @@ void show_fuses_edit(void);
 void react_fuses_edit(void);
 void up_fuse(void);
 void down_fuse(void);
+void show_load_app_menu(void);
+void react_load_app(void);
+void show_app_addr_set_menu(void);
+void react_app_addr_set(void);
+void up_load_addr(void);
+void down_load_addr(void);
+void react_app_write(void);
+void react_choose_the_file(void);
 
 // PAGES MAGIC NUMBER
 #define PAGE_LOAD_APP   0
@@ -87,11 +97,23 @@ void down_fuse(void);
 #define PAGE_FUSES_EDIT  3
 #define PAGE_FUSES_WRITE 4
 
+#define PAGE_APP_ADDR_SET 5
+#define PAGE_APP_FILE     6
+#define PAGE_APP_WRITE    7
+
 char* MENU_LIST[] = {
   "load app    ",
   "change fuses",
 };
 
-int8_t fuses_coursor;
+int8_t sub_coursor;
+
+#define APP_ADDR_INDENT 10 
+#define CHAR_DOT        0x2e
+#define CHAR_SPACE      0x20
+
+uint16_t app_addr_start = 0;
+char app_name_buf[] = "file:      no file";
+uint16_t app_file_cluster = 0;
 
 #endif
