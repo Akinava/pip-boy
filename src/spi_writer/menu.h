@@ -25,6 +25,6 @@ menu_t menu;
 
 void menu_init(void);
 void setup_keys(void);
-void read_key(void);
+uint8_t read_key(void);
 
 #endif

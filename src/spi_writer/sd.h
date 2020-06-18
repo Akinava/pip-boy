@@ -1,8 +1,10 @@
 //#include <avr/pgmspace.h>
 #include <string.h>
+#include <util/delay.h>
 #include "macro.h"
 #include "pins.h"
 #include "display.h"
+#include "menu.h"
 
 #ifndef SD_H
 #define SD_H
@@ -83,6 +85,9 @@ typedef struct {
   uint32_t size;
 } obj_data_t;
 
+#define LINES 8
+obj_data_t objects_data[LINES];
+
 uint8_t sector_buffer[SECTOR_SIZE];
 
 typedef struct {
@@ -104,6 +109,20 @@ typedef struct {
 
 vol_info_t vol_info;
 
+uint8_t app_chosen;
+
+void select_app(void);
+void set_dirirectory_as_current(void);
+void select_obj(void);
+uint8_t compose_obj_name(obj_data_t obj, char* buff_dst);
+void copy_line_(char* buf, uint8_t y);
+void show_page(void);
+uint8_t read_keyboard(void);
+uint8_t make_list(void);
+void jump_cursor(void);
+void step_cursor_back(void);
+uint8_t check_jump_to_next_page(void);
+uint8_t check_cursor_in_page(void);
 void choose_file_menu(uint16_t* app_file_cluster, char* file_name_buf);
 uint8_t sd_init(void);
 uint8_t read_directory_page(sd_menu_t* sd_menu, obj_data_t* objects_data);

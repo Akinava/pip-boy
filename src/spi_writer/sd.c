@@ -4,8 +4,164 @@ void choose_file_menu(uint16_t* app_file_cluster, char* file_name_buf){
   display_clean();
   if (!sd_init()){
     print("SD read fail", 26, 3);
+    _delay_ms(1000);
+  }
+
+  sd_menu.cursor = 0;
+  sd_menu.max_lines = LINES;
+  app_chosen = 0;
+
+  while(!app_chosen){
+    if (make_list()){
+      jump_cursor();
+    }else{
+      step_cursor_back();
+    }
+
+    while (check_cursor_in_page()){
+      show_page();
+      if (read_keyboard()){
+        break;
+      }
+    }
+  }
+
+  // copy claster
+  obj_data_t obj = objects_data[sd_menu.cursor];
+  *app_file_cluster = obj.data_cluster;
+  // copy name
+  memset(file_name_buf, 0, 1+8+1+3);
+  compose_obj_name(obj, file_name_buf);
+}
+
+void select_app(void){
+  app_chosen = 1;
+}
+
+void show_page(void){
+  display_clean();
+  //       dir_flag  name  dot ext  0x0
+  char buf[1+        8+    1+  3+   1];
+  for (uint8_t y=0; y<sd_menu.lines; y++){
+    copy_line_(buf, y);
+    if (y == sd_menu.cursor){
+      print_invert(buf, 0, y);
+    }else{
+      print(buf, 0, y);
+    }
   }
 }
+
+uint8_t read_keyboard(void){
+  uint8_t event = read_key(); 
+  if (event == UP_KEY_PRESSED){
+      sd_menu.cursor--;
+      return 0;
+  }
+  if (event == DOWN_KEY_PRESSED){
+      sd_menu.cursor++;
+      return 0;
+  }
+  if (event == A_KEY_PRESSED){
+      select_obj();
+  }
+  if (event == C_KEY_PRESSED){
+      menu.cursor = 0;
+  }
+  return 1;
+}
+
+uint8_t make_list(void){
+  return read_directory_page(&sd_menu, objects_data);
+}
+
+void jump_cursor(void){
+  if (sd_menu.cursor == -1){sd_menu.cursor = sd_menu.max_lines -1;}
+  if (sd_menu.cursor == sd_menu.max_lines){sd_menu.cursor = 0;}
+}
+
+void step_cursor_back(){
+  if (sd_menu.cursor == -1){
+    sd_menu.cursor = 0;
+    return;
+  }
+  sd_menu.cursor -= 1;
+}
+
+uint8_t check_cursor_in_page(void){
+  if (check_jump_to_next_page()){
+    return 0;
+  }
+
+  // if lines < max_lines it means this is the last page
+  if (sd_menu.cursor == sd_menu.lines){
+    step_cursor_back();
+  }
+  return 1;
+}
+
+uint8_t check_jump_to_next_page(void){
+  if (sd_menu.cursor == -1){
+    sd_menu.next_page = ABOVE;
+    return 1;
+  }
+  if (sd_menu.cursor == sd_menu.max_lines){
+    sd_menu.next_page = BELOW;
+    return 1;
+  }
+  return 0;
+}
+
+void set_dirirectory_as_current(void){
+  obj_data_t obj = objects_data[sd_menu.cursor];
+  vol_info.primary_dir_cluster = obj.data_cluster;
+  sd_menu.cursor = 0;
+}
+
+void select_obj(void){
+  if (objects_data[sd_menu.cursor].dir == FILE_FLAG){
+    select_app();
+  }else{
+    set_dirirectory_as_current();
+  }
+}
+
+void copy_line_(char* buf, uint8_t y){
+  memset(buf, ' ', 1+8+1+3);
+  *(buf+1+8+1+3) = 0;
+  // add "*" symbol to makr a dir
+  if (objects_data[y].dir){
+    *(buf) = '*';
+  }else{
+    *(buf) = ' ';
+  }
+
+  compose_obj_name(objects_data[y], buf+1);
+}
+
+uint8_t compose_obj_name(obj_data_t obj, char* buff_dst){
+  uint8_t length = 0;
+  // search end of obj name and copy
+  while (obj.name[length] != ' ' && length < 8){
+    buff_dst[length] = obj.name[length];
+    length++;
+  }
+
+  // copy ext
+  if (obj.dir){return length;}
+  // add dot
+  buff_dst[length++] = '.';
+
+  // add ext
+  
+  uint8_t i = 8;
+  while((i < OBJECT_NAME_SIZE) && (obj.name[i] != ' ')){
+    buff_dst[length++] = obj.name[i++];
+  }
+  return length;
+}
+
+/*************************** choose file menu ********************************/
 
 void cp_obj_name_(char* dst, uint16_t buffer_offset){
   for (uint8_t i=0; i< OBJECT_NAME_SIZE; i++){

@@ -9,7 +9,7 @@ int main(void){
   
   while(1){
     show_menu();
-    read_key();
+    menu.event = read_key();
     react_event();
   }
 }
@@ -54,9 +54,27 @@ void react_event(void){
 }
 
 void react_choose_the_file(void){
-  char file_name_buf[8+1+3];
+  char file_name_buf[8+1+3+1];
   choose_file_menu(&app_file_cluster, file_name_buf);
   menu.page = PAGE_LOAD_APP;
+
+  // copy file name
+  int8_t app_name_cur = 17;
+  int8_t file_name_cur = 8+1+3;
+  while(app_name_cur > 5){
+    if (file_name_cur < 0){
+      app_name_buf[app_name_cur] = CHAR_SPACE;
+      app_name_cur--;
+      continue;  
+    }
+    if (file_name_buf[file_name_cur] == 0){
+      file_name_cur--;
+      continue;
+    }
+    app_name_buf[app_name_cur] = file_name_buf[file_name_cur];
+    app_name_cur--;
+    file_name_cur--;
+  }
 }
 
 void react_app_write(void){
@@ -73,7 +91,6 @@ void react_app_write(void){
 
 void show_app_addr_set_menu(void){
   print("start addr:", 0, 0);
-  // "start addr:   1234"
   for (uint8_t i=0; i<4; i++){
     uint8_t half_byte = (app_addr_start>>4*i)&0xf;
     if (i == 3-sub_coursor){
@@ -113,6 +130,7 @@ void down_load_addr(void){
 }
 
 void show_load_app_menu(void){
+  display_clean();
   print("start addr:       ", 0, 0);
   print16(app_addr_start, APP_ADDR_INDENT*8, 0);
   print(app_name_buf, 0, 1);

@@ -21,16 +21,18 @@ void setup_keys(void){
   SET_PULLUP(BUTTON_RIGHT_PORT, BUTTON_RIGHT_PIN);
 }
 
-void read_key(void){
-  while(!menu.event){
-    if(CHECK_PIN(BUTTON_A_PINS, BUTTON_A_PIN)){menu.event = A_KEY_PRESSED;}
-    if(CHECK_PIN(BUTTON_B_PINS, BUTTON_B_PIN)){menu.event = B_KEY_PRESSED;}
-    if(CHECK_PIN(BUTTON_C_PINS, BUTTON_C_PIN)){menu.event = C_KEY_PRESSED;}
-    if(CHECK_PIN(BUTTON_UP_PINS, BUTTON_UP_PIN)){menu.event = UP_KEY_PRESSED;}
-    if(CHECK_PIN(BUTTON_DOWN_PINS, BUTTON_DOWN_PIN)){menu.event = DOWN_KEY_PRESSED;}
-    if(CHECK_PIN(BUTTON_RIGHT_PINS, BUTTON_RIGHT_PIN)){menu.event = RIGHT_KEY_PRESSED;}
-    if(CHECK_PIN(BUTTON_LEFT_PINS, BUTTON_LEFT_PIN)){menu.event = LEFT_KEY_PRESSED;}
+uint8_t read_key(void){
+  uint8_t event = NOOP; 
+  while(!event){
+    if(CHECK_PIN(BUTTON_A_PINS, BUTTON_A_PIN)){event = A_KEY_PRESSED;}
+    if(CHECK_PIN(BUTTON_B_PINS, BUTTON_B_PIN)){event = B_KEY_PRESSED;}
+    if(CHECK_PIN(BUTTON_C_PINS, BUTTON_C_PIN)){event = C_KEY_PRESSED;}
+    if(CHECK_PIN(BUTTON_UP_PINS, BUTTON_UP_PIN)){event = UP_KEY_PRESSED;}
+    if(CHECK_PIN(BUTTON_DOWN_PINS, BUTTON_DOWN_PIN)){event = DOWN_KEY_PRESSED;}
+    if(CHECK_PIN(BUTTON_RIGHT_PINS, BUTTON_RIGHT_PIN)){event = RIGHT_KEY_PRESSED;}
+    if(CHECK_PIN(BUTTON_LEFT_PINS, BUTTON_LEFT_PIN)){event = LEFT_KEY_PRESSED;}
   }
   // for the contact bounce
   _delay_ms(150);
+  return event;
 }
