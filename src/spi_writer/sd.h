@@ -123,10 +123,11 @@ void jump_cursor(void);
 void step_cursor_back(void);
 uint8_t check_jump_to_next_page(void);
 uint8_t check_cursor_in_page(void);
-void choose_file_menu(uint16_t* app_file_cluster, char* file_name_buf);
+uint8_t choose_file_menu(uint16_t* app_file_cluster, char* file_name_buf);
 uint8_t sd_init(void);
 uint8_t read_directory_page(sd_menu_t* sd_menu, obj_data_t* objects_data);
 
+void sd_deactivate(void);
 uint8_t card_init_(void);
 uint8_t vol_init_(void);
 void cp_obj_name_(char* dst, uint16_t buffer_offset);

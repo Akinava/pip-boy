@@ -1,10 +1,11 @@
 #include "sd.h"
 
-void choose_file_menu(uint16_t* app_file_cluster, char* file_name_buf){
+uint8_t choose_file_menu(uint16_t* app_file_cluster, char* file_name_buf){
   display_clean();
   if (!sd_init()){
     print("SD read fail", 26, 3);
     _delay_ms(1000);
+    return 0;
   }
 
   sd_menu.cursor = 0;
@@ -26,12 +27,15 @@ void choose_file_menu(uint16_t* app_file_cluster, char* file_name_buf){
     }
   }
 
+  sd_deactivate();
+
   // copy claster
   obj_data_t obj = objects_data[sd_menu.cursor];
   *app_file_cluster = obj.data_cluster;
   // copy name
   memset(file_name_buf, 0, 1+8+1+3);
   compose_obj_name(obj, file_name_buf);
+  return 1;
 }
 
 void select_app(void){
@@ -410,7 +414,18 @@ uint8_t vol_init_(void){
   return 1;
 }
 
+void sd_deactivate(void){
+  SPI_UNSET(SD_PORT, SD_CS);
+  SET_LOW(SPI_PORT, SCK);
+  SET_LOW(SPI_PORT, MOSI);
+}
+
 uint8_t card_init_(void){
+  // off master PIN and radio
+  RADIO_DDR |= _BV(RADIO_CSN)|_BV(SPI_MASTER_PIN);
+  SPI_UNSET(SPI_MASTER_PORT, SPI_MASTER_PIN);
+  SPI_UNSET(RADIO_PORT, RADIO_CSN);
+
   // Set MOSI, SCK, CS as Output
   SD_DDR |= _BV(MOSI)|_BV(SCK)|_BV(SD_CS);
   // set sd cs off
