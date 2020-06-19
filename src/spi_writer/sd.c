@@ -1,6 +1,6 @@
 #include "sd.h"
 
-uint8_t choose_file_menu(uint16_t* app_file_cluster, char* file_name_buf){
+uint8_t choose_file_menu(uint16_t* app_file_cluster, uint32_t* app_file_size, char* file_name_buf){
   display_clean();
   if (!sd_init()){
     print("SD read fail", 26, 3);
@@ -27,11 +27,10 @@ uint8_t choose_file_menu(uint16_t* app_file_cluster, char* file_name_buf){
     }
   }
 
-  sd_deactivate();
-
-  // copy claster
+  // copy claster and size
   obj_data_t obj = objects_data[sd_menu.cursor];
   *app_file_cluster = obj.data_cluster;
+  *app_file_size = obj.size;
   // copy name
   memset(file_name_buf, 0, 1+8+1+3);
   compose_obj_name(obj, file_name_buf);
@@ -239,7 +238,7 @@ uint8_t next_cluster_(obj_data_t* prev_object, obj_data_t* next_object){
   }else{
     // data cluster
     /* current sector of cluster - first sector of cluster + 1           */
-    if (prev_object->sector-get_sector_by_cluster_(prev_object)+1 < vol_info.sectors_per_cluster){
+    if (prev_object->sector-get_sector_by_cluster_(prev_object->cluster)+1 < vol_info.sectors_per_cluster){
       next_object->cluster = prev_object->cluster + 1;
       return 1;
     }else{
@@ -267,7 +266,7 @@ uint8_t prev_cluster_(obj_data_t* prev_object, obj_data_t* next_object){
   }else{
     // check overflow sectors in data directory
     /*  current sector of cluster | first sector of cluster               */
-    if (prev_object->sector > get_sector_by_cluster_(prev_object)){
+    if (prev_object->sector > get_sector_by_cluster_(prev_object->cluster)){
       next_object->cluster = prev_object->cluster - 1;
       return 1;
     }else{
@@ -337,7 +336,7 @@ uint8_t get_next_obj_(obj_data_t* prev_obj, obj_data_t* next_obj, sd_menu_t* sd_
 
 void get_zero_obj_(obj_data_t* next_obj){
   next_obj->cluster = vol_info.primary_dir_cluster;
-  next_obj->sector = get_sector_by_cluster_(next_obj);
+  next_obj->sector = get_sector_by_cluster_(next_obj->cluster);
   next_obj->sector_offset = 0;
 }
 
@@ -384,11 +383,11 @@ uint8_t read_directory_page(sd_menu_t* sd_menu, obj_data_t* objects_data){
   return 1;
 }
 
-uint32_t get_sector_by_cluster_(obj_data_t* object){
-  if (object->cluster == ROOT_CLUSTER){
+uint32_t get_sector_by_cluster_(uint16_t cluster){
+  if (cluster == ROOT_CLUSTER){
     return vol_info.root_sector;
   }
-  return vol_info.data_sector + ((object->cluster-2) * vol_info.sectors_per_cluster);
+  return vol_info.data_sector + ((cluster-2) * vol_info.sectors_per_cluster);
 }
 
 uint8_t sd_init(void){
@@ -414,12 +413,6 @@ uint8_t vol_init_(void){
   return 1;
 }
 
-void sd_deactivate(void){
-  SPI_UNSET(SD_PORT, SD_CS);
-  SET_LOW(SPI_PORT, SCK);
-  SET_LOW(SPI_PORT, MOSI);
-}
-
 uint8_t card_init_(void){
   // off master PIN and radio
   RADIO_DDR |= _BV(RADIO_CSN)|_BV(SPI_MASTER_PIN);
@@ -432,7 +425,9 @@ uint8_t card_init_(void){
   SD_UNSET(SD_PORT, SD_CS);
   // Enable SPI, Set as Master
   //Prescaler: Fosc/16, Enable Interrupts
-  SPCR = _BV(SPE)|_BV(MSTR)|_BV(SPR0); // | (1 << SPR1)
+  //SPCR = _BV(SPE)|_BV(MSTR)|_BV(SPR0); // | (1 << SPR1)
+  //Prescaler: Fosc/4
+  SPCR = _BV(SPE)|_BV(MSTR);
 
   for (uint8_t i=0; i<10; i++){
     spi_send_(0xFF);
@@ -469,8 +464,8 @@ uint8_t card_init_(void){
   }
   
   //use max SPI frequency
-  SPCR &= ~((1 << SPR1) | (1 << SPR0)); // f_OSC/4
-  SPSR |= (1 << SPI2X); // Doubled Clock Frequency: f_OSC/2
+  //SPCR &= ~((1 << SPR1) | (1 << SPR0)); // f_OSC/4
+  //SPSR |= (1 << SPI2X); // Doubled Clock Frequency: f_OSC/2
   SD_UNSET(SD_PORT, SD_CS);
   return 1;
 }

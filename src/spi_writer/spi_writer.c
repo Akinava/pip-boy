@@ -57,7 +57,7 @@ void react_choose_the_file(void){
   char file_name_buf[8+1+3+1];
   menu.page = PAGE_LOAD_APP;
 
-  if (!choose_file_menu(&app_file_cluster, file_name_buf)){
+  if (!choose_file_menu(&app_file_cluster, &app_file_size, file_name_buf)){
     return;
   }
 
@@ -89,33 +89,13 @@ void react_app_write(void){
     _delay_ms(1000);
     return;
   }
+  */
 
   if (program_firmware()){  
     print("DONE", 0, 2);
-    _delay_ms(1000);
   }
-  */
-  card_init_();
-  sd_deactivate();  
-
-  spi_activate();
-
-  spi_send(PROGRAM_ENABLE);
-  clean_buf();
-  print8(PROGRAM_ENABLE, 0, 4);
-  print8(SPDR, 20, 4);
-  spi_send(PROGRAM_ACKNOWLEDGE);
-  print8(PROGRAM_ACKNOWLEDGE, 0, 5);
-  print8(SPDR, 20, 5);
-  spi_send(0x00);
-  print8(0, 0, 6);
-  print8(SPDR, 20, 6);
-  spi_send(0x00);
-  print8(0, 0, 7);
-  print8(SPDR, 20, 7);
-  _delay_ms(2000);
-
-  spi_deactivate();
+  // delay for display info
+  _delay_ms(1000);
 }
 
 void show_app_addr_set_menu(void){
@@ -254,28 +234,24 @@ void react_main_menu(void){
 }
 
 uint8_t init_program_mode(uint8_t chip){
-  spi_activate();
-
   if(!program_enable()){
     print("no responce from chip", 0, 2);
     _delay_ms(1000);
     spi_deactivate();
     return 0;
   }
-
   if (!read_signature(chip)){
     print("wrong signarure", 0, 2);
     _delay_ms(1000);
     spi_deactivate();
     return 0;
   }
-
   return 1;
 }
 
 void react_write_fuses(void){
   menu.page = PAGE_LOAD_FUSES;
-
+  spi_activate();
   if (!init_program_mode(ATMEGA328P)){
     return;
   }
@@ -283,10 +259,9 @@ void react_write_fuses(void){
   for (uint8_t i=0; i<sizeof(write_fuses_command); i++){
     write_fuse(write_fuses_command[i], signatures[ATMEGA328P].fuses[i]);
   }
-
+  spi_deactivate();
   print("DONE", 0, 2);
   _delay_ms(1000);
-  spi_deactivate();
 }
 
 void show_fuses_edit(void){
@@ -360,6 +335,7 @@ void spi_activate(void){
 
   // Enable SPI, Set as Master and Prescaler Fosc/4, by default
   SPCR = _BV(SPE)|_BV(MSTR);
+  //SET_LOW(SPSR, SPI2X);  
   //SET_LOW(SPI_MASTER_PORT, SPI_MASTER_PIN);
   //Prescaler: Fosc/16
   //SPCR = _BV(SPE)|_BV(MSTR)|_BV(SPR0);
@@ -373,7 +349,7 @@ void spi_activate(void){
   SPI_UNSET(SPI_MASTER_PORT, SPI_MASTER_PIN);
   _delay_ms(10);
   SPI_SET(SPI_MASTER_PORT, SPI_MASTER_PIN);
-  _delay_ms(25);
+  //_delay_ms(25);
 }
 
 void spi_deactivate(void){
@@ -419,15 +395,94 @@ void write_fuse(uint8_t fuse, uint8_t value){
 }
 
 uint8_t program_firmware(void){
+
+
+
+
+  spi_activate();
   if (!init_program_mode(ATMEGA328P)){
     return 0;
   }
+  erise_chip();
+  //SPI_UNSET(SPI_MASTER_PORT, SPI_MASTER_PIN);
+  //SPI_SET(SPI_MASTER_PORT, SPI_MASTER_PIN);
 
+  // the issue with reset blink
+  // it nessesaru onli one time
+  // with set and unset we neet also 
+  // setup a speed
+
+  for (uint8_t i=0; i<64; i++){
+    isp_command(LOAD_PROGRAM_LOW_BYTE, 0, i, 0x00);
+    isp_command(LOAD_PROGRAM_HIGH_BYTE, 0, i, 0x03);
+  }
+  isp_command(WRITE_PAGE, 0, 0, 0);
+  busy_wait();
+ 
+
+
+  spi_deactivate(); 
   // program
   // app_addr_start
   // app_file_cluster
+  // app_file_size
+  /*
+  //uint32_t sector = get_sector_by_cluster_(app_file_cluster);
+  uint16_t address = app_addr_start;
+  uint8_t page_cursor = signatures[ATMEGA328P].page_size;
+  uint16_t sector_offset = SECTOR_SIZE;
 
-  spi_deactivate();
+  while(1){
+    uint8_t low_byte = 0xff;
+    uint8_t high_byte = 0xff;
+
+    if (sector_offset == SECTOR_SIZE){
+      
+      spi_deactivate();
+      
+      if (!read_sector_(sector)){
+        print("Error: can't read file", 0, 2);
+        return 0;
+      }
+      
+      sector++;
+      sector_offset = 0;
+       
+      if (!init_program_mode(ATMEGA328P)){
+        return 0;
+      }
+    }
+    
+    // read bytes
+    if ((address-app_addr_start) < app_file_size){
+      low_byte = sector_buffer[sector_offset];
+      high_byte = sector_buffer[sector_offset+1];
+    }
+    
+    // write bytes
+    isp_command(LOAD_PROGRAM_LOW_BYTE, 0, page_cursor/2, low_byte);
+    isp_command(LOAD_PROGRAM_HIGH_BYTE, 0, page_cursor/2, high_byte);
+
+    address += 2;
+    sector_offset += 2;
+    page_cursor -= 2;
+
+    // write page
+    if (page_cursor == 0){
+      page_cursor = signatures[ATMEGA328P].page_size;
+      isp_command(
+          WRITE_PAGE,
+          0, // FIXME
+          0, // FIXME
+          0);
+      busy_wait();
+      break;
+      // check if it is done
+      if ((address-app_addr_start) >= app_file_size){break;}
+    }
+  }
+  */
+
   return 1;
 }
 

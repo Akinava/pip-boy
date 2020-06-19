@@ -114,8 +114,9 @@ int8_t sub_coursor;
 #define CHAR_DOT        0x2e
 #define CHAR_SPACE      0x20
 
-uint16_t app_addr_start = 0;
+uint16_t app_addr_start = 0x7800;
 char app_name_buf[] = "file:      no file";
 uint16_t app_file_cluster = 0;
+uint32_t app_file_size = 0;
 
 #endif
