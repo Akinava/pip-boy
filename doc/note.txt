@@ -185,8 +185,8 @@ https://github.com/hexanaft/tinyx5usbasp/blob/master/SourceCode/isp.c
 ### soft
 + sd bootloader
 radio bootloader
-! file manager / create copy move delete
-! spi boot writer + fuse writer
++ file manager / ! create copy move delete
++ spi boot writer + fuse writer
 ! radio link / can be part of file manager
 ! sd formater / fdisk
 
