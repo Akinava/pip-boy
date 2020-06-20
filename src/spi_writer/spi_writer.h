@@ -88,7 +88,7 @@ void down_load_addr(void);
 void react_app_write(void);
 void react_choose_the_file(void);
 uint8_t program_firmware(void);
-uint8_t init_program_mode(uint8_t chip);
+uint8_t init_chip(uint8_t chip);
 
 // PAGES MAGIC NUMBER
 #define PAGE_LOAD_APP   0

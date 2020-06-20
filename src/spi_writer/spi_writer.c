@@ -396,14 +396,37 @@ void write_fuse(uint8_t fuse, uint8_t value){
 
 uint8_t program_firmware(void){
 
-
-
-
   spi_activate();
+
   if (!init_program_mode(ATMEGA328P)){
     return 0;
   }
+
   erise_chip();
+
+  // firt page
+  for (uint8_t i=0; i<64; i++){
+    isp_command(LOAD_PROGRAM_LOW_BYTE, 0, i, 1);
+    isp_command(LOAD_PROGRAM_HIGH_BYTE, 0, i, 2);
+  }
+  isp_command(WRITE_PAGE, 0, 0, 0);
+  busy_wait();
+
+  SPI_UNSET(SPI_MASTER_PORT, SPI_MASTER_PIN);
+  _delay_ms(100);
+  SPI_SET(SPI_MASTER_PORT, SPI_MASTER_PIN);
+  program_enable();
+
+  // second page
+  for (uint8_t i=0; i<64; i++){
+    isp_command(LOAD_PROGRAM_LOW_BYTE, 0, i, 3);
+    isp_command(LOAD_PROGRAM_HIGH_BYTE, 0, i, 4);
+  }
+  isp_command(WRITE_PAGE, 0, 64, 0);
+  busy_wait();
+
+  spi_deactivate();
+
   //SPI_UNSET(SPI_MASTER_PORT, SPI_MASTER_PIN);
   //SPI_SET(SPI_MASTER_PORT, SPI_MASTER_PIN);
 
@@ -412,16 +435,6 @@ uint8_t program_firmware(void){
   // with set and unset we neet also 
   // setup a speed
 
-  for (uint8_t i=0; i<64; i++){
-    isp_command(LOAD_PROGRAM_LOW_BYTE, 0, i, 0x00);
-    isp_command(LOAD_PROGRAM_HIGH_BYTE, 0, i, 0x03);
-  }
-  isp_command(WRITE_PAGE, 0, 0, 0);
-  busy_wait();
- 
-
-
-  spi_deactivate(); 
   // program
   // app_addr_start
   // app_file_cluster
@@ -484,34 +497,6 @@ uint8_t program_firmware(void){
   */
 
   return 1;
-}
-
-void load_program(void){
-  // write app
-  // first page
-  for (uint8_t i=0; i<128/2; i++){
-    isp_command(LOAD_PROGRAM_LOW_BYTE, 0, i, 0x12);
-    isp_command(LOAD_PROGRAM_HIGH_BYTE, 0, i, 0x34);
-  }
-  isp_command(WRITE_PAGE, 0, 0, 0);
-  busy_wait();
-  
-  // write second page
-  for (uint8_t i=0; i<128/2; i++){
-    isp_command(LOAD_PROGRAM_LOW_BYTE, 0, i, 0x43);
-    isp_command(LOAD_PROGRAM_HIGH_BYTE, 0, i, 0x21);
-  }
-  isp_command(WRITE_PAGE, 0, 64, 0);
-  busy_wait();
-
-  // write bootloader / ~512 bytes for bootloader
-  // hfuse 0xde, start word 0x3f00 start byte 0x7e00
-  for (uint8_t i=0; i<128/2; i++){
-    isp_command(LOAD_PROGRAM_LOW_BYTE, 0, i, 0xab);
-    isp_command(LOAD_PROGRAM_HIGH_BYTE, 0, i, 0xcd);
-  }
-  isp_command(WRITE_PAGE, 0x3f, 0, 0);
-  busy_wait();
 }
 
 void busy_wait(void){
