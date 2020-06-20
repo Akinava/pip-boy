@@ -83,13 +83,11 @@ void react_choose_the_file(void){
 void react_app_write(void){
   menu.page = PAGE_LOAD_APP;
   // write app
-  /*
   if (app_file_cluster == 0){
     print("Error: no file", 0, 2);
     _delay_ms(1000);
     return;
   }
-  */
 
   if (program_firmware()){  
     print("DONE", 0, 2);
@@ -395,38 +393,83 @@ void write_fuse(uint8_t fuse, uint8_t value){
 }
 
 uint8_t program_firmware(void){
-
   spi_activate();
-
   if (!init_program_mode(ATMEGA328P)){
     return 0;
   }
-
   erise_chip();
 
-  // firt page
+  uint32_t sector = get_sector_by_cluster_(app_file_cluster);
+  uint16_t address = app_addr_start;
+  uint16_t sector_offset = SECTOR_SIZE;
+  uint8_t page_cursor = 0;
+
+  while(1){
+    uint8_t low_byte = 0xff;
+    uint8_t high_byte = 0xff;
+
+    if (sector_offset == SECTOR_SIZE){
+      SPI_UNSET(SPI_MASTER_PORT, SPI_MASTER_PIN);
+      if (!read_sector_(sector)){
+        print("Error: can't read file", 0, 2);
+        return 0;
+      }
+      SPI_SET(SPI_MASTER_PORT, SPI_MASTER_PIN);
+      program_enable();
+      sector++;
+      sector_offset = 0;
+    }
+    if ((address-app_addr_start) < app_file_size){
+      low_byte = sector_buffer[sector_offset];
+      high_byte = sector_buffer[sector_offset+1];
+    }
+    isp_command(LOAD_PROGRAM_LOW_BYTE, 0, page_cursor/2, low_byte);
+    isp_command(LOAD_PROGRAM_HIGH_BYTE, 0, page_cursor/2, high_byte);
+
+    sector_offset += 2;
+    page_cursor += 2;
+
+    if (page_cursor == signatures[ATMEGA328P].page_size){
+      page_cursor = 0;
+      isp_command(
+          WRITE_PAGE,
+          (address/2)>>8,
+          (address/2)&0xff,
+          0);
+      busy_wait();
+      address += signatures[ATMEGA328P].page_size;
+      if ((address-app_addr_start) >= app_file_size){break;}
+    }
+  }
+  spi_deactivate();
+
+
+  /*
   for (uint8_t i=0; i<64; i++){
-    isp_command(LOAD_PROGRAM_LOW_BYTE, 0, i, 1);
-    isp_command(LOAD_PROGRAM_HIGH_BYTE, 0, i, 2);
+    isp_command(LOAD_PROGRAM_LOW_BYTE, 0, i, 0);
+    isp_command(LOAD_PROGRAM_HIGH_BYTE, 0, i, 0);
   }
   isp_command(WRITE_PAGE, 0, 0, 0);
   busy_wait();
 
   SPI_UNSET(SPI_MASTER_PORT, SPI_MASTER_PIN);
-  _delay_ms(100);
+  
+  read_sector_(0);
+  //_delay_ms(100);
+
   SPI_SET(SPI_MASTER_PORT, SPI_MASTER_PIN);
   program_enable();
 
   // second page
   for (uint8_t i=0; i<64; i++){
-    isp_command(LOAD_PROGRAM_LOW_BYTE, 0, i, 3);
-    isp_command(LOAD_PROGRAM_HIGH_BYTE, 0, i, 4);
+    isp_command(LOAD_PROGRAM_LOW_BYTE, 0, i, 0);
+    isp_command(LOAD_PROGRAM_HIGH_BYTE, 0, i, 0);
   }
   isp_command(WRITE_PAGE, 0, 64, 0);
   busy_wait();
 
   spi_deactivate();
-
+  */
   //SPI_UNSET(SPI_MASTER_PORT, SPI_MASTER_PIN);
   //SPI_SET(SPI_MASTER_PORT, SPI_MASTER_PIN);
 
