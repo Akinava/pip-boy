@@ -203,7 +203,7 @@ clean_msg:
 	@echo $(MSG_CLEANING)
 
 clean_all:
-	rm -f *.hex *.elf $(OBJECTS) *.BIN
+	rm -f *.hex *.elf $(OBJECTS)
 
 clean: clean_msg clean_all
 #------------------
@@ -248,4 +248,4 @@ cpp:
 	$(COMPILE) -E $(TARGET).c
 
 bin: $(TARGET).hex
-	$(OBJCOPY) -I ihex -O binary $(TARGET).hex $(APP_NAME).BIN
+	$(OBJCOPY) -I ihex -O binary $(TARGET).hex ../../sd/BOOT/$(APP_NAME).BIN
