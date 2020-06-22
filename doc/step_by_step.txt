@@ -7,7 +7,7 @@ slave - disassembled console
 1. assemble slave console
 
 # bootloader
-1. to slave console from master console upload bootloader
+1. use ISPUP.BIN to slave console from master console upload bootloader
 2. with master console setup fuses on the slave console
 
 # test slave console (not necessary)
