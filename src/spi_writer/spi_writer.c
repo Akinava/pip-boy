@@ -2,6 +2,7 @@
 
 int main(void){
   display_begin();
+  author();
   menu_init();
   menu.event = NOOP;
   menu.cursor = 0;
@@ -442,103 +443,6 @@ uint8_t program_firmware(void){
     }
   }
   spi_deactivate();
-
-
-  /*
-  for (uint8_t i=0; i<64; i++){
-    isp_command(LOAD_PROGRAM_LOW_BYTE, 0, i, 0);
-    isp_command(LOAD_PROGRAM_HIGH_BYTE, 0, i, 0);
-  }
-  isp_command(WRITE_PAGE, 0, 0, 0);
-  busy_wait();
-
-  SPI_UNSET(SPI_MASTER_PORT, SPI_MASTER_PIN);
-  
-  read_sector_(0);
-  //_delay_ms(100);
-
-  SPI_SET(SPI_MASTER_PORT, SPI_MASTER_PIN);
-  program_enable();
-
-  // second page
-  for (uint8_t i=0; i<64; i++){
-    isp_command(LOAD_PROGRAM_LOW_BYTE, 0, i, 0);
-    isp_command(LOAD_PROGRAM_HIGH_BYTE, 0, i, 0);
-  }
-  isp_command(WRITE_PAGE, 0, 64, 0);
-  busy_wait();
-
-  spi_deactivate();
-  */
-  //SPI_UNSET(SPI_MASTER_PORT, SPI_MASTER_PIN);
-  //SPI_SET(SPI_MASTER_PORT, SPI_MASTER_PIN);
-
-  // the issue with reset blink
-  // it nessesaru onli one time
-  // with set and unset we neet also 
-  // setup a speed
-
-  // program
-  // app_addr_start
-  // app_file_cluster
-  // app_file_size
-  /*
-  //uint32_t sector = get_sector_by_cluster_(app_file_cluster);
-  uint16_t address = app_addr_start;
-  uint8_t page_cursor = signatures[ATMEGA328P].page_size;
-  uint16_t sector_offset = SECTOR_SIZE;
-
-  while(1){
-    uint8_t low_byte = 0xff;
-    uint8_t high_byte = 0xff;
-
-    if (sector_offset == SECTOR_SIZE){
-      
-      spi_deactivate();
-      
-      if (!read_sector_(sector)){
-        print("Error: can't read file", 0, 2);
-        return 0;
-      }
-      
-      sector++;
-      sector_offset = 0;
-       
-      if (!init_program_mode(ATMEGA328P)){
-        return 0;
-      }
-    }
-    
-    // read bytes
-    if ((address-app_addr_start) < app_file_size){
-      low_byte = sector_buffer[sector_offset];
-      high_byte = sector_buffer[sector_offset+1];
-    }
-    
-    // write bytes
-    isp_command(LOAD_PROGRAM_LOW_BYTE, 0, page_cursor/2, low_byte);
-    isp_command(LOAD_PROGRAM_HIGH_BYTE, 0, page_cursor/2, high_byte);
-
-    address += 2;
-    sector_offset += 2;
-    page_cursor -= 2;
-
-    // write page
-    if (page_cursor == 0){
-      page_cursor = signatures[ATMEGA328P].page_size;
-      isp_command(
-          WRITE_PAGE,
-          0, // FIXME
-          0, // FIXME
-          0);
-      busy_wait();
-      break;
-      // check if it is done
-      if ((address-app_addr_start) >= app_file_size){break;}
-    }
-  }
-  */
-
   return 1;
 }
 
@@ -555,3 +459,11 @@ void isp_command(uint8_t cmd0, uint8_t cmd1, uint8_t cmd2, uint8_t cmd3){
   spi_send(cmd3);
 }
 
+void author(void){
+  display_clean();
+  print("   Andrei Chernov", 0, 2);
+  print("  akinava@gmail.com", 0, 4);
+  print("        2020", 0, 6);
+  _delay_ms(2000);
+  display_clean();
+}

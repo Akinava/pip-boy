@@ -87,6 +87,7 @@ void read_mic(void);
 void test_bat_lvl(void);
 void init_bat_lvl(void);
 void read_bat_lvl(void);
+void author(void);
 void app_exit(void);
 
 #endif

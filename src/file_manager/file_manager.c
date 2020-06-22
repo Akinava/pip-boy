@@ -2,6 +2,7 @@
 
 int main(void){
   display_begin();
+  author();
   display_clean();
 
   if (!sd_init()){
@@ -178,3 +179,13 @@ uint8_t compose_obj_name(obj_data_t obj, char* buff_dst){
   }
   return length;
 }
+
+void author(void){
+  display_clean();
+  print("   Andrei Chernov", 0, 2);
+  print("  akinava@gmail.com", 0, 4);
+  print("        2020", 0, 6);
+  _delay_ms(2000);
+  display_clean();
+}
+

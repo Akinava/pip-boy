@@ -89,6 +89,7 @@ void react_app_write(void);
 void react_choose_the_file(void);
 uint8_t program_firmware(void);
 uint8_t init_chip(uint8_t chip);
+void author(void);
 
 // PAGES MAGIC NUMBER
 #define PAGE_LOAD_APP   0

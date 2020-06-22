@@ -2,6 +2,7 @@
 
 int main(void){
   display_begin();
+  author();
   setup_keys();
   setup_speaker();
   setup_vibro();
@@ -358,4 +359,13 @@ void app_exit(void){
   display_clean();
   print("DON'T TURN OFF!", 0, 0);
   load_default_app();
+}
+
+void author(void){
+  display_clean();
+  print("   Andrei Chernov", 0, 2);
+  print("  akinava@gmail.com", 0, 4);
+  print("        2020", 0, 6);
+  _delay_ms(2000);
+  display_clean();
 }
