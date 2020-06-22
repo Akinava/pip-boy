@@ -24,11 +24,15 @@ int main(void){
     }
   }
   print("format sd card?", 0, 3);
-  format();
-  print("press A button", 0, 4);
+
+  setup_keys();
+  cursor = 0;
+  event = NOOP;
+
+  format_menu();
 }
 
-void format(void){
+void format_menu(void){
   while(1){
     display_page();
     read_key();
@@ -36,13 +40,49 @@ void format(void){
   }
 }
 
-void display_page(){
+void display_page(void){
   if (cursor == 0){
     print("press A button", 0, 4);
   }
   if (cursor == 1){
     print_invert("press A button", 0, 4);
   }
+}
+
+void react(void){
+  if (event == A_KEY_PRESSED){cursor++;}
+  if (event == C_KEY_PRESSED){cursor--;}
+  if (cursor == 2){
+    if (format()){
+      print("format done", 0, 6);
+    }else{
+      print("format error", 0, 6);
+    }
+    cursor = 0;
+  }
+  if (cursor < 0){cursor = 0;}
+}
+
+
+void setup_keys(void){
+  SET_DDR_IN(BUTTON_A_DDR, BUTTON_A_PIN);
+  SET_PULLUP(BUTTON_A_PORT, BUTTON_A_PIN);
+  SET_DDR_IN(BUTTON_C_DDR, BUTTON_C_PIN);
+  SET_PULLUP(BUTTON_C_PORT, BUTTON_C_PIN);
+}
+
+void read_key(void){
+  event = NOOP; 
+  while(event == NOOP){
+    if(CHECK_PIN(BUTTON_A_PINS, BUTTON_A_PIN)){event = A_KEY_PRESSED;}
+    if(CHECK_PIN(BUTTON_C_PINS, BUTTON_C_PIN)){event = C_KEY_PRESSED;}
+  }
+  // for the contact bounce
+  _delay_ms(150);
+}
+
+uint8_t format(void){
+  return 1; 
 }
 
 void author(void){
