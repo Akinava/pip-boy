@@ -253,9 +253,40 @@ uint8_t get_card_size(uint32_t* size){
    * full size in bytes will be 
    * size in sectors * 512
    */
-
+  // read CSD
   uint8_t csd[16];
   card_command_(CMD9, 0, 0xaf);
+  if (SPDR || !wait_start_block_()){
+    return 0;
+  }
+
+  for (uint16_t i = 0; i < 16; i++) {
+    spi_send_(0xFF);
+	  csd[i] = SPDR;
+  }
+
+  //read 2 bytes CRC (not used)
+  spi_send_(0xFF);
+  spi_send_(0xFF);
+  SD_UNSET(SD_PORT, SD_CS);
+ 
+  // show size
+  *size = csd[7] & 0x3F; // two bits are reserved
+  *size = (*size << 8) | csd[8];
+  *size = (*size << 8) | csd[9];
+  *size = (*size + 1) << 10;
+  return 1;
+}
+
+uint8_t get_card_id(uint32_t* size){
+  /*
+   * return size in sectors
+   * full size in bytes will be 
+   * size in sectors * 512
+   */
+  // read CID
+  uint8_t csd[16];
+  card_command_(CMD10, 0, 0xaf);
   if (SPDR || !wait_start_block_()){
     return 0;
   }
@@ -361,7 +392,7 @@ uint8_t wait_start_block_(void){
   do{
     spi_send_(0xFF);
     if (SPDR == DATA_START_BLOCK) return 1;
-  }while(retry);
+  }while(retry--);
   return 0;
 }
 
@@ -372,7 +403,7 @@ uint8_t read_sector_(uint32_t sector){
   }
 
   // read sector
-  for (uint16_t i = 0; i < 512; i++) {
+  for (uint16_t i = 0; i < SECTOR_SIZE; i++) {
     spi_send_(0xFF);
     sector_buffer[i] = SPDR;
   }
@@ -381,5 +412,31 @@ uint8_t read_sector_(uint32_t sector){
   spi_send_(0xFF);
   spi_send_(0xFF);
   SD_UNSET(SD_PORT, SD_CS);
+  return 1;
+}
+  
+uint8_t write_sector_(uint32_t sector){
+  card_command_(CMD24, sector, 0xFF);
+  
+  spi_send_(DATA_START_BLOCK);
+  // write sector
+  for (uint16_t i = 0; i < SECTOR_SIZE; i++) {
+    spi_send_(sector_buffer[i]);
+  }
+
+  //read 2 bytes CRC (not used)
+  spi_send_(0xFF);
+  spi_send_(0xFF);
+
+  uint16_t retry = 10000;
+  do{
+    spi_send_(0xFF);
+    if (SPDR == 0xFF) break;
+  }while(retry--);
+
+  SD_UNSET(SD_PORT, SD_CS);
+  if (!retry){
+    return 0;
+  }
   return 1;
 }

@@ -61,6 +61,9 @@ void react(void){
     cursor = 0;
   }
   if (cursor < 0){cursor = 0;}
+  if (event == C_KEY_PRESSED && cursor == 0){
+    app_exit();
+  }
 }
 
 
@@ -81,8 +84,10 @@ void read_key(void){
   _delay_ms(150);
 }
 
-uint8_t format(void){
-  return 1; 
+void app_exit(void){
+  display_clean();
+  print("DON'T TURN OFF!", 0, 0);
+  load_default_app();
 }
 
 void author(void){
@@ -93,4 +98,11 @@ void author(void){
   _delay_ms(2000);
   display_clean();
 }
+
+uint8_t format(void){
+  memset(sector_buffer, 0x01, 512);
+  write_sector_(0);
+  return 1; 
+}
+
 

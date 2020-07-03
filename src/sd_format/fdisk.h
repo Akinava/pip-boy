@@ -5,6 +5,12 @@
 #ifndef FDISK_H
 #define FDISK_H
 
+#define load_default_app_addr 0x7ed2
+#define load_default_app (*((void(*)(void))(load_default_app_addr/2)))
+
+
+#define END_MBR 0x55aa
+
 #define NOOP 0
 #define A_KEY_PRESSED 1
 #define C_KEY_PRESSED 2
@@ -28,6 +34,7 @@ void read_key(void);
 void react(void);
 void setup_keys(void);
 uint8_t format(void);
+void app_exit(void);
 void author(void);
 
 #endif

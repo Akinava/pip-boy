@@ -17,6 +17,10 @@
 #define CMD8     8
 /** SEND_CSD - read the Card Specific Data (CSD register) */
 #define CMD9     9
+/** SEND_CID - read the card identification information (CID register) */
+#define CMD10    10
+/** WRITE_BLOCK - write a single data block to the card */
+#define CMD24    24
 /** APP_CMD - escape for application specific command */
 #define CMD55    55 
 /** READ_BLOCK - read a single data block from the card */
@@ -31,6 +35,8 @@
 #define R1_READY_STATE 0
 /** status for card in the idle state */
 #define R1_IDLE_STATE 1
+/** write data accepted token */
+#define DATA_RES_ACCEPTED 0x05
 
 #define SECTOR_SIZE               512
 
@@ -81,7 +87,7 @@ uint8_t sector_buffer[SECTOR_SIZE];
 typedef struct {
   uint16_t bytes_per_sector;       // 0x0200    512
   uint8_t sectors_per_cluster;     // 0x40      64
-  uint16_t reserved_sectors;       // 0x040
+  uint16_t reserved_sectors;       // 0x0040
   uint8_t number_of_FATs;          // 0x02
   uint16_t root_directory_entries; // 0x0400
   uint16_t total_logical_sectors;  
@@ -111,5 +117,6 @@ void spi_send_(uint8_t data);
 void card_command_(uint8_t cmd, uint32_t arg, uint8_t crc);
 uint8_t wait_start_block_(void);
 uint8_t read_sector_(uint32_t sector);
+uint8_t write_sector_(uint32_t sector);
 
 #endif
