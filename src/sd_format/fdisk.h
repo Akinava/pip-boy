@@ -15,23 +15,25 @@
 #define A_KEY_PRESSED 1
 #define C_KEY_PRESSED 2
 
-uint16_t MBR_BOOT_LOADER_CODE_SIZE = 0x1be;
-uint8_t MBR_VOLUME_RECORD_SIZE = 0x10;
+const uint16_t MBR_BOOT_LOADER_CODE_SIZE = 0x1be;
+const uint8_t MBR_VOLUME_RECORD_SIZE = 0x10;
 
-uint16_t END_OF_BLOCK_OFFSET = 0x1fe;
-uint8_t END_OF_BLOCK[] = {0x55, 0xaa};
+const uint16_t END_OF_BLOCK_OFFSET = 0x1fe;
+const uint8_t END_OF_BLOCK[] = {0x55, 0xaa};
 
 
-uint8_t MBR_VOLUME_TYPE_OFFSET = 0x04;
-uint8_t MBR_VOLUME_TYPE_FAT16[] = {0x06};
-uint8_t MBR_VOLUME_TYPE_FAT32[] = {0x0b};
+const uint8_t MBR_VOLUME_TYPE_OFFSET = 0x04;
+const uint8_t MBR_VOLUME_TYPE_FAT16[] = {0x06};
+const uint8_t MBR_VOLUME_TYPE_FAT32[] = {0x0b};
 
-uint8_t MBR_START_SECTOR_OFFSET = 0x08;
-uint8_t MBR_PART1_START_SECTOR[] = {0x00, 0x00, 0x00, 0x01};
-uint8_t MBR_PART2_START_SECTOR[] = {0x00, 0x3f, 0xff, 0x42};
+const uint8_t MBR_START_SECTOR_OFFSET = 0x08;
+const uint8_t MBR_PART1_START_SECTOR[] = {0x00, 0x00, 0x00, 0x01};
+const uint32_t PART1_START_SECTOR = 0x00000001;
+const uint8_t MBR_PART2_START_SECTOR[] = {0x00, 0x3f, 0xff, 0x42};
+const uint32_t PART2_START_SECTOR = 0x003fff42;
 
-uint8_t MBR_PART_SIZE_OFFSET = 0x0c;
-uint8_t MBR_PART1_SIZE[] = {0x00, 0x3f, 0xff, 0x41};
+const uint8_t MBR_PART_SIZE_OFFSET = 0x0c;
+const uint8_t MBR_PART1_SIZE[] = {0x00, 0x3f, 0xff, 0x41};
 
 
 
@@ -61,7 +63,7 @@ void author(void);
 void mbr(void);
 void fat16(void);
 void fat32(void);
-void copy_data(uint8_t* dst, uint8_t* src, uint16_t length);
+void copy_data(uint8_t* dst, const uint8_t* src, uint16_t length);
 void get_part2_size(uint8_t* mbr_part2_size);
 
 #endif

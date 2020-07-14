@@ -166,7 +166,7 @@ void fat32(void){
 
 }
 
-void copy_data(uint8_t* dst, uint8_t* src, uint16_t length){
+void copy_data(uint8_t* dst, const uint8_t* src, uint16_t length){
   for (uint16_t i=0; i<length; i++){
     *(dst+i) = *(src+length-i-1);
   }
@@ -174,12 +174,7 @@ void copy_data(uint8_t* dst, uint8_t* src, uint16_t length){
 
 void get_part2_size(uint8_t* mbr_part2_size){
   
-  uint32_t mbr_part2_start_sector = 0;
-  for(uint8_t i=0; i<4; i++){
-    mbr_part2_start_sector += (uint32_t)MBR_PART2_START_SECTOR[i] << 8*(3-i);
-  }
-  
-  uint32_t part2_size = card_size - mbr_part2_start_sector;
+  uint32_t part2_size = card_size - PART2_START_SECTOR;
   for(uint8_t i=0; i<4; i++){
     mbr_part2_size[i] = part2_size >> 8*(3-i) & 0xff;
   }
