@@ -10,7 +10,6 @@ int main(void){
     while(1);
   }
   
-  uint32_t card_size;
   if (!get_card_size(&card_size)){
     print("can't read sd size", 0, 0);
     while(1);
@@ -51,17 +50,19 @@ void display_page(void){
 
 void react(void){
   if (event == A_KEY_PRESSED){cursor++;}
-  if (event == C_KEY_PRESSED){cursor--;}
+  if (event == C_KEY_PRESSED && cursor < 2){cursor--;}
+
   if (cursor == 2){
+    print("              ", 0, 4);
     if (format()){
-      print("format done", 0, 6);
+      print("format done    ", 0, 3);
     }else{
-      print("format error", 0, 6);
+      print("format error   ", 0, 3);
     }
-    cursor = 0;
+    return;
   }
-  if (cursor < 0){cursor = 0;}
-  if (event == C_KEY_PRESSED && cursor == 0){
+
+  if (event == C_KEY_PRESSED && (cursor < 0 || cursor > 2)){
     app_exit();
   }
 }
@@ -100,9 +101,86 @@ void author(void){
 }
 
 uint8_t format(void){
-  memset(sector_buffer, 0x01, 512);
-  write_sector_(0);
+  memset(sector_buffer, 0, 512);
+  mbr();
+  fat16();
+  fat32();
   return 1; 
 }
 
+void mbr(void){
+  uint16_t buffer_offset = MBR_BOOT_LOADER_CODE_SIZE;
 
+  // FAT16
+  copy_data(
+      sector_buffer+buffer_offset+MBR_VOLUME_TYPE_OFFSET,
+      MBR_VOLUME_TYPE_FAT16,
+      sizeof(MBR_VOLUME_TYPE_FAT16)
+  );
+  copy_data(
+      sector_buffer+buffer_offset+MBR_START_SECTOR_OFFSET,
+      MBR_PART1_START_SECTOR,
+      sizeof(MBR_PART1_START_SECTOR)
+  );
+  copy_data(
+      sector_buffer+buffer_offset+MBR_PART_SIZE_OFFSET,
+      MBR_PART1_SIZE,
+      sizeof(MBR_PART1_SIZE)
+  );
+  buffer_offset += MBR_VOLUME_RECORD_SIZE;
+
+  // FAT32
+  copy_data(
+      sector_buffer+buffer_offset+MBR_VOLUME_TYPE_OFFSET,
+      MBR_VOLUME_TYPE_FAT32,
+      sizeof(MBR_VOLUME_TYPE_FAT32)
+  );
+  copy_data(
+      sector_buffer+buffer_offset+MBR_START_SECTOR_OFFSET,
+      MBR_PART2_START_SECTOR,
+      sizeof(MBR_PART2_START_SECTOR)
+  );
+  uint8_t mbr_part2_size[4];
+  get_part2_size(mbr_part2_size);
+  copy_data(
+      sector_buffer+buffer_offset+MBR_PART_SIZE_OFFSET,
+      mbr_part2_size,
+      sizeof(mbr_part2_size)
+  );
+
+  // END OF BLOCK
+  copy_data(
+      sector_buffer+END_OF_BLOCK_OFFSET,
+      END_OF_BLOCK,
+      sizeof(END_OF_BLOCK)
+  );
+
+  write_sector_(0); 
+}
+
+void fat16(void){
+
+}
+
+void fat32(void){
+
+}
+
+void copy_data(uint8_t* dst, uint8_t* src, uint16_t length){
+  for (uint16_t i=0; i<length; i++){
+    *(dst+i) = *(src+length-i-1);
+  }
+}
+
+void get_part2_size(uint8_t* mbr_part2_size){
+  
+  uint32_t mbr_part2_start_sector = 0;
+  for(uint8_t i=0; i<4; i++){
+    mbr_part2_start_sector += (uint32_t)MBR_PART2_START_SECTOR[i] << 8*(3-i);
+  }
+  
+  uint32_t part2_size = card_size - mbr_part2_start_sector;
+  for(uint8_t i=0; i<4; i++){
+    mbr_part2_size[i] = part2_size >> 8*(3-i) & 0xff;
+  }
+}
