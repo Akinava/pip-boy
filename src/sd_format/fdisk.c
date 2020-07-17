@@ -109,6 +109,7 @@ uint8_t format(void){
 }
 
 void mbr(void){
+  memset(sector_buffer, 0, 512);
   // MBR
   uint16_t MBR_BOOT_LOADER_CODE_SIZE = 0x1be;
   uint8_t MBR_VOLUME_RECORD_SIZE = 0x10;
@@ -124,7 +125,6 @@ void mbr(void){
   uint8_t MBR_PART_SIZE_OFFSET = 0x0c;
   uint8_t MBR_PART1_SIZE[] = {0x00, 0x3f, 0xff, 0x41};
 
-  memset(sector_buffer, 0, 512);
   uint16_t buffer_offset = MBR_BOOT_LOADER_CODE_SIZE;
 
   // FAT16
@@ -175,31 +175,19 @@ void mbr(void){
 }
 
 void fat16(void){
-  uint16_t OEM_NAME_OFFSET = 0x03;
-  uint8_t OEM_NAME[] = {'t', 'a', 'f', '.', 's', 'f', 'k', 'm'};
+  memset(sector_buffer, 0, 512);
 
-  uint16_t BYTE_PER_SECTOR_OFFSET = 0x0b;
-  uint8_t BYTE_PER_SECTOR[] = {0x02, 0x00};
-
-  uint16_t SECTORS_PER_CLUSTER_FAT16_OFFSET = 0x0d;
   uint8_t SECTORS_PER_CLUSTER_FAT16[] = {0x40};
 
   uint16_t RESERVED_SECTORS_FAT16_OFFSET = 0x0e;
   uint8_t RESERVED_SECTORS_FAT16[] = {0x00, 0x01};
 
-  uint16_t FAT16_TABLES_OFFSET = 0x10;
-  uint8_t FAT16_TABLES[] = {0x02};
-
   uint16_t ROOT_DIR_ENTITY_OFFSET = 0x11;
   uint8_t ROOT_DIR_ENTITY[] = {0x04, 0x00};
-
-  uint16_t MEDIA_DESCRIPTOR_OFFSET = 0x15;
-  uint8_t MEDIA_DESCRIPTOR[] = {0xf8};
 
   uint16_t SECTORS_PER_FAT16_OffSET = 0x16;
   uint8_t SECTORS_PER_FAT16[] = {0x01, 0x00};
 
-  uint16_t PARTITION1_SIZE_OFFSET = 0x20;
   uint8_t PARTITION1_SIZE[] = {0x00, 0x3f, 0xff, 0x41};
 
   uint16_t DRIVE_NUMBER_OFFSET = 0x24;
@@ -224,8 +212,6 @@ void fat16(void){
   uint16_t FAT16_SYSTEM_NAME_OFFSET = 0x36;
   uint8_t FAT16_SYSTEM_NAME[] = {' ', ' ', ' ', '6', '1', 'T', 'A', 'F'};
 
-  memset(sector_buffer, 0, 512);
- 
   copy_data(
       sector_buffer+OEM_NAME_OFFSET,
       OEM_NAME,
@@ -237,7 +223,7 @@ void fat16(void){
       sizeof(BYTE_PER_SECTOR)
   );
   copy_data(
-      sector_buffer+SECTORS_PER_CLUSTER_FAT16_OFFSET,
+      sector_buffer+SECTORS_PER_CLUSTER_OFFSET,
       SECTORS_PER_CLUSTER_FAT16,
       sizeof(SECTORS_PER_CLUSTER_FAT16)
   );
@@ -247,9 +233,9 @@ void fat16(void){
       sizeof(RESERVED_SECTORS_FAT16)
   );
   copy_data(
-      sector_buffer+FAT16_TABLES_OFFSET,
-      FAT16_TABLES,
-      sizeof(FAT16_TABLES)
+      sector_buffer+FAT_TABLES_OFFSET,
+      FAT_TABLES,
+      sizeof(FAT_TABLES)
   );
   copy_data(
       sector_buffer+ROOT_DIR_ENTITY_OFFSET,
@@ -267,7 +253,7 @@ void fat16(void){
       sizeof(SECTORS_PER_FAT16)
   );
   copy_data(
-      sector_buffer+PARTITION1_SIZE_OFFSET,
+      sector_buffer+PARTITION_SIZE_OFFSET,
       PARTITION1_SIZE,
       sizeof(PARTITION1_SIZE)
   );
@@ -330,6 +316,7 @@ void fat16(void){
       RESERVED_SECTORS_BEFORE_FAT16_TABLE;
     write_sector_(cluster);
 
+    // clean empty sectors in fat16 tables
     memset(sector_buffer, 0, 512);
     cluster++;
 
@@ -341,7 +328,167 @@ void fat16(void){
 }
 
 void fat32(void){
+  memset(sector_buffer, 0, 512);
+  // FAT32 BRB
+  uint8_t SECTORS_PER_CLUSTER_FAT32[] = {0x01};
 
+  uint16_t RESERVED_SECTORS_FAT32_OFFSET = 0xe;
+  uint8_t RESERVED_SECTORS_FAT32[] = {0x00, 0x20};
+  uint8_t RESERVED_SECTORS_FAT32_VOLUME = 0x20;
+
+  uint16_t SECTORS_PER_FAT32_OffSET = 0x24;
+
+  uint16_t ROOT_DIR_CLUSTER_OFFSET = 0x2C;
+  uint8_t ROOT_DIR_CLUSTER[] = {0x00, 0x00, 0x00, 0x02};
+
+  uint16_t SF_INFO_SECTOR_OFFSET = 0x30;
+  uint8_t SF_INFO_SECTOR[] = {0x00, 0x01};
+
+  uint16_t FAT32_BOOT_COPY_SECTOR_OFFSET = 0x32;
+  uint8_t FAT32_BOOT_COPY_SECTOR[] = {0x00, 0x06};
+  uint8_t FAT32_BOOT_COPY_SECTOR_VOLUME = 6;
+
+  uint16_t VOLUME_FAT32_LABLE_OFFSET = 0x47;
+  uint8_t VOLUME_FAT32_LABLE[] = {
+    ' ', ' ', ' ', ' ', ' ', ' ', ' ', 'A', 'T', 'A', 'D'};
+
+  uint16_t FAT32_SYSTEM_NAME_OFFSET = 0x52;
+  uint8_t FAT32_SYSTEM_NAME[] = {' ', ' ', ' ', '2', '3', 'T', 'A', 'F'};
+
+  copy_data(
+      sector_buffer+OEM_NAME_OFFSET,
+      OEM_NAME,
+      sizeof(OEM_NAME)
+  );
+  copy_data(
+      sector_buffer+BYTE_PER_SECTOR_OFFSET,
+      BYTE_PER_SECTOR,
+      sizeof(BYTE_PER_SECTOR)
+  );
+  copy_data(
+      sector_buffer+SECTORS_PER_CLUSTER_OFFSET,
+      SECTORS_PER_CLUSTER_FAT32,
+      sizeof(SECTORS_PER_CLUSTER_FAT32)
+  );
+  copy_data(
+      sector_buffer+RESERVED_SECTORS_FAT32_OFFSET,
+      RESERVED_SECTORS_FAT32,
+      sizeof(RESERVED_SECTORS_FAT32)
+  );
+  copy_data(
+      sector_buffer+FAT_TABLES_OFFSET,
+      FAT_TABLES,
+      sizeof(FAT_TABLES)
+  );
+  copy_data(
+      sector_buffer+MEDIA_DESCRIPTOR_OFFSET,
+      MEDIA_DESCRIPTOR,
+      sizeof(MEDIA_DESCRIPTOR)
+  );
+  uint8_t part2_size[4];
+  get_part2_size(part2_size);
+  copy_data(
+      sector_buffer+PARTITION_SIZE_OFFSET,
+      part2_size,
+      sizeof(part2_size)
+  );
+  uint8_t sectors_per_fat32[4];
+  get_sectors_per_fat32(sectors_per_fat32);
+  copy_data(
+      sector_buffer+SECTORS_PER_FAT32_OffSET,
+      sectors_per_fat32,
+      sizeof(sectors_per_fat32)
+  );
+  copy_data(
+      sector_buffer+ROOT_DIR_CLUSTER_OFFSET,
+      ROOT_DIR_CLUSTER,
+      sizeof(ROOT_DIR_CLUSTER)
+  );
+  copy_data(
+      sector_buffer+SF_INFO_SECTOR_OFFSET,
+      SF_INFO_SECTOR,
+      sizeof(SF_INFO_SECTOR)
+  );
+  copy_data(
+      sector_buffer+FAT32_BOOT_COPY_SECTOR_OFFSET,
+      FAT32_BOOT_COPY_SECTOR,
+      sizeof(FAT32_BOOT_COPY_SECTOR)
+  );
+  copy_data(
+      sector_buffer+VOLUME_FAT32_LABLE_OFFSET,
+      VOLUME_FAT32_LABLE,
+      sizeof(VOLUME_FAT32_LABLE)
+  );
+  copy_data(
+      sector_buffer+FAT32_SYSTEM_NAME_OFFSET,
+      FAT32_SYSTEM_NAME,
+      sizeof(FAT32_SYSTEM_NAME)
+  );
+      
+  // END OF BLOCK
+  copy_data(
+      sector_buffer+END_OF_BLOCK_OFFSET,
+      END_OF_BLOCK,
+      sizeof(END_OF_BLOCK)
+  );
+
+  // write BPB
+  write_sector_(PART2_START_SECTOR);
+  // write BPB copy
+  write_sector_(PART2_START_SECTOR+FAT32_BOOT_COPY_SECTOR_VOLUME);
+
+  // clean empty sectors between BPB and copy BPB
+  memset(sector_buffer, 0, 512);
+  for (uint8_t empty_sectors=0; empty_sectors<FAT32_BOOT_COPY_SECTOR_VOLUME-1; empty_sectors++){
+    write_sector_(PART2_START_SECTOR+empty_sectors+1);
+  }
+
+  // add empty sectors between copy BPB and FAT table
+  for (uint8_t empty_sectors=1; empty_sectors<RESERVED_SECTORS_FAT32_VOLUME-FAT32_BOOT_COPY_SECTOR_VOLUME-1; empty_sectors++){
+    write_sector_(PART2_START_SECTOR+FAT32_BOOT_COPY_SECTOR_VOLUME+empty_sectors);
+  }
+
+  // FAT32 tables
+  uint8_t FAT32_0[] = {0x0f, 0xff, 0xff, 0xf8};
+  uint8_t FAT32_1[] = {0x0f, 0xff, 0xff, 0xff};
+
+  copy_data(
+      sector_buffer,
+      FAT32_0,
+      sizeof(FAT32_0)
+  );
+  copy_data(
+      sector_buffer+1,
+      FAT32_1,
+      sizeof(FAT32_1)
+  );
+  copy_data(
+      sector_buffer+2,
+      FAT32_0,
+      sizeof(FAT32_0)
+  );
+  write_sector_(
+      PART2_START_SECTOR+
+      RESERVED_SECTORS_FAT32_VOLUME);
+  write_sector_(
+      PART2_START_SECTOR+
+      RESERVED_SECTORS_FAT32_VOLUME+
+      sectors_per_fat32_volue);
+
+  // add empty sectors in FAT32 table and copy FAT32 table
+  memset(sector_buffer, 0, 512);
+  for (uint32_t empty_sectors=1; empty_sectors<sectors_per_fat32_volue; empty_sectors++){
+    write_sector_(
+        PART2_START_SECTOR+
+        RESERVED_SECTORS_FAT32_VOLUME+
+        empty_sectors);
+
+    write_sector_(
+        PART2_START_SECTOR+
+        RESERVED_SECTORS_FAT32_VOLUME+
+        sectors_per_fat32_volue+
+        empty_sectors);
+  }
 }
 
 void copy_data(uint8_t* dst, uint8_t* src, uint16_t length){
@@ -350,10 +497,21 @@ void copy_data(uint8_t* dst, uint8_t* src, uint16_t length){
   }
 }
 
-void get_part2_size(uint8_t* mbr_part2_size){
+void get_part2_size(uint8_t* part2_size){
   
-  uint32_t part2_size = card_size - PART2_START_SECTOR;
+  uint32_t part2_size_volue = card_size - PART2_START_SECTOR;
   for(uint8_t i=0; i<4; i++){
-    mbr_part2_size[i] = part2_size >> 8*(3-i) & 0xff;
+    part2_size[i] = part2_size_volue >> 8*(3-i) & 0xff;
+  }
+}
+
+void get_sectors_per_fat32(uint8_t* sectors_per_fat32){
+  sectors_per_fat32_volue =  (
+      card_size - 
+      PART2_START_SECTOR - 
+      0x18) / 130;
+
+  for(uint8_t i=0; i<4; i++){
+    sectors_per_fat32[i] = sectors_per_fat32_volue >> 8*(3-i) & 0xff;
   }
 }

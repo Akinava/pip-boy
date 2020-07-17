@@ -22,9 +22,24 @@
 #define RESERVED_SECTORS_BEFORE_FAT16_TABLE 1
 #define FAT16_TABLES_DEF 2
 
+uint16_t OEM_NAME_OFFSET = 0x03;
+uint8_t OEM_NAME[] = {'t', 'a', 'f', '.', 's', 'f', 'k', 'm'};
+
+uint16_t BYTE_PER_SECTOR_OFFSET = 0x0b;
+uint8_t BYTE_PER_SECTOR[] = {0x02, 0x00};
+
 uint16_t END_OF_BLOCK_OFFSET = 0x1fe;
 uint8_t END_OF_BLOCK[] = {0xaa, 0x55};
 
+uint16_t SECTORS_PER_CLUSTER_OFFSET = 0x0d;
+uint16_t FAT_TABLES_OFFSET = 0x10;
+uint8_t FAT_TABLES[] = {0x02};
+
+uint16_t MEDIA_DESCRIPTOR_OFFSET = 0x15;
+uint8_t MEDIA_DESCRIPTOR[] = {0xf8};
+
+uint16_t PARTITION_SIZE_OFFSET = 0x20;
+ 
 uint32_t VOLUME_ID;
 
 typedef struct {
@@ -41,6 +56,7 @@ size_ref_t size_ref[] = {
 int8_t cursor;
 uint8_t event;
 uint32_t card_size;
+uint32_t sectors_per_fat32_volue;
 
 void format_menu(void);
 void display_page(void);
@@ -54,6 +70,7 @@ void mbr(void);
 void fat16(void);
 void fat32(void);
 void copy_data(uint8_t* dst, uint8_t* src, uint16_t length);
-void get_part2_size(uint8_t* mbr_part2_size);
+void get_part2_size(uint8_t* part2_size);
+void get_sectors_per_fat32(uint8_t* sectors_per_fat32);
 
 #endif
