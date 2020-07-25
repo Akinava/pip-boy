@@ -22,6 +22,11 @@
 #define RESERVED_SECTORS_BEFORE_FAT16_TABLE 1
 #define FAT16_TABLES_DEF 2
 
+uint16_t ROOT_LABLE_FLAG_OFFSET = 0x0b;
+uint8_t ROOT_LABLE_FLAG[] = {
+    0x50, 0xf9, 0xab, 0x58, 0x00, 0x00, 0x50,0xf9,
+    0x50, 0xf9, 0xab, 0x58, 0x00, 0x00, 0x08};
+
 uint16_t OEM_NAME_OFFSET = 0x03;
 uint8_t OEM_NAME[] = {'t', 'a', 'f', '.', 's', 'f', 'k', 'm'};
 
@@ -72,5 +77,8 @@ void fat32(void);
 void copy_data(uint8_t* dst, uint8_t* src, uint16_t length);
 void get_part2_size(uint8_t* part2_size);
 void get_sectors_per_fat32(uint8_t* sectors_per_fat32);
+void write_blocks(uint32_t start_sector, uint32_t sectors);
+uint32_t int_from_array(uint8_t* arr, uint8_t len);
+uint8_t sector_is_empty(uint32_t sector);
 
 #endif

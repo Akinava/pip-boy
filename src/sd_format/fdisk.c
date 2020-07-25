@@ -49,20 +49,27 @@ void display_page(void){
 }
 
 void react(void){
-  if (event == A_KEY_PRESSED){cursor++;}
-  if (event == C_KEY_PRESSED && cursor < 2){cursor--;}
-
+  if (cursor < 2){
+    if (event == A_KEY_PRESSED){cursor++;}
+    if (event == C_KEY_PRESSED){cursor--;}
+  }
+ 
   if (cursor == 2){
+    print("               ", 0, 3);
     print("              ", 0, 4);
     if (format()){
-      print("format done    ", 0, 3);
+      print("format done", 0, 3);
     }else{
-      print("format error   ", 0, 3);
+      print("format error", 0, 3);
     }
+    cursor = 4;
     return;
   }
-
-  if (event == C_KEY_PRESSED && (cursor < 0 || cursor > 2)){
+  
+  if (event == C_KEY_PRESSED && cursor < 0){
+    app_exit();
+  }
+  if (event == C_KEY_PRESSED && cursor > 2){
     app_exit();
   }
 }
@@ -295,36 +302,67 @@ void fat16(void){
       sizeof(END_OF_BLOCK)
   );
 
+  // write pbp fat16
   write_sector_(PART1_START_SECTOR);
 
   memset(sector_buffer, 0, 512);
   
-  // fat table
+  // fat16 table
   uint16_t FAT16_FIRST_RECORD_OFFSET = 0;
   uint8_t FAT16_FIRST_RECORD[] = {0xff, 0xff, 0xff, 0xf8};
-
+  copy_data(
+    sector_buffer+FAT16_FIRST_RECORD_OFFSET,
+    FAT16_FIRST_RECORD,
+    sizeof(FAT16_FIRST_RECORD)
+  );
   
-  for (uint8_t fat_tab=0; fat_tab<FAT16_TABLES_DEF; fat_tab++){
-    copy_data(
-        sector_buffer+FAT16_FIRST_RECORD_OFFSET,
-        FAT16_FIRST_RECORD,
-        sizeof(FAT16_FIRST_RECORD)
-    );
+  // write fat16 table
+  uint32_t fat16_table_sector = PART1_START_SECTOR + 
+                                RESERVED_SECTORS_BEFORE_FAT16_TABLE;
+  write_sector_(fat16_table_sector);
 
-    uint32_t cluster = fat_tab*SECTORS_PER_FAT16_TABLE +
-      PART1_START_SECTOR +
-      RESERVED_SECTORS_BEFORE_FAT16_TABLE;
-    write_sector_(cluster);
+  // write fat16 table copy
+  uint32_t fat16_table_sector_copy = fat16_table_sector + 
+                                     SECTORS_PER_FAT16_TABLE;
+  write_sector_(fat16_table_sector_copy);
 
-    // clean empty sectors in fat16 tables
-    memset(sector_buffer, 0, 512);
-    cluster++;
+  // write root dir label
+  memset(sector_buffer, 0, 512);
+  copy_data(
+      sector_buffer,
+      VOLUME_FAT16_LABLE,
+      sizeof(VOLUME_FAT16_LABLE)
+  );
+  copy_data(
+      sector_buffer+sizeof(VOLUME_FAT16_LABLE),
+      ROOT_LABLE_FLAG,
+      sizeof(ROOT_LABLE_FLAG)
+  );
 
-    for (uint16_t fat16_epmty_sectors=0; fat16_epmty_sectors<SECTORS_PER_FAT16_TABLE-1; fat16_epmty_sectors++){
-      write_sector_(cluster+fat16_epmty_sectors);    
-    }
-  }
+  uint32_t root_sector = 2 +
+    // fat tables
+    2 * SECTORS_PER_FAT16_TABLE;
+  write_sector_(root_sector);
 
+  // write fat16 tables empty sectors
+  memset(sector_buffer, 0, 512);
+
+  print("step 5-0", 30, 3);
+  write_blocks(
+      fat16_table_sector+1,
+      SECTORS_PER_FAT16_TABLE-1);
+
+  print("step 5-1", 30, 3);
+  write_blocks(fat16_table_sector_copy+1,
+    SECTORS_PER_FAT16_TABLE-1);
+
+  // write root dir
+  uint16_t root_sectors = int_from_array(
+      ROOT_DIR_ENTITY,
+      sizeof(ROOT_DIR_ENTITY)); 
+
+  print("step 5-2", 30, 3);
+  write_blocks(root_sector+1, root_sectors-1);
 }
 
 void fat32(void){
@@ -437,58 +475,79 @@ void fat32(void){
   // write BPB copy
   write_sector_(PART2_START_SECTOR+FAT32_BOOT_COPY_SECTOR_VOLUME);
 
-  // clean empty sectors between BPB and copy BPB
   memset(sector_buffer, 0, 512);
-  for (uint8_t empty_sectors=0; empty_sectors<FAT32_BOOT_COPY_SECTOR_VOLUME-1; empty_sectors++){
-    write_sector_(PART2_START_SECTOR+empty_sectors+1);
-  }
-
-  // add empty sectors between copy BPB and FAT table
-  for (uint8_t empty_sectors=1; empty_sectors<RESERVED_SECTORS_FAT32_VOLUME-FAT32_BOOT_COPY_SECTOR_VOLUME-1; empty_sectors++){
-    write_sector_(PART2_START_SECTOR+FAT32_BOOT_COPY_SECTOR_VOLUME+empty_sectors);
-  }
-
   // FAT32 tables
   uint8_t FAT32_0[] = {0x0f, 0xff, 0xff, 0xf8};
   uint8_t FAT32_1[] = {0x0f, 0xff, 0xff, 0xff};
-
+  uint16_t cluster_offset = 0;
+ 
   copy_data(
       sector_buffer,
       FAT32_0,
       sizeof(FAT32_0)
   );
+  cluster_offset += sizeof(FAT32_0);
+
   copy_data(
-      sector_buffer+1,
+      sector_buffer+cluster_offset,
       FAT32_1,
       sizeof(FAT32_1)
   );
+  cluster_offset += sizeof(FAT32_1);
+
   copy_data(
-      sector_buffer+2,
+      sector_buffer+cluster_offset,
       FAT32_0,
       sizeof(FAT32_0)
   );
-  write_sector_(
-      PART2_START_SECTOR+
-      RESERVED_SECTORS_FAT32_VOLUME);
-  write_sector_(
-      PART2_START_SECTOR+
-      RESERVED_SECTORS_FAT32_VOLUME+
-      sectors_per_fat32_volue);
 
-  // add empty sectors in FAT32 table and copy FAT32 table
+  // write fat table
+  uint32_t fat32_table_sector = PART2_START_SECTOR+
+                                RESERVED_SECTORS_FAT32_VOLUME;
+  write_sector_(fat32_table_sector);
+
+  // write fat copy table
+  uint32_t fat32_table_sector_copy = fat32_table_sector+
+                                     sectors_per_fat32_volue;
+  write_sector_(fat32_table_sector_copy);
+
+  // write root dir lable
   memset(sector_buffer, 0, 512);
-  for (uint32_t empty_sectors=1; empty_sectors<sectors_per_fat32_volue; empty_sectors++){
-    write_sector_(
-        PART2_START_SECTOR+
-        RESERVED_SECTORS_FAT32_VOLUME+
-        empty_sectors);
+  copy_data(
+      sector_buffer,
+      VOLUME_FAT32_LABLE,
+      sizeof(VOLUME_FAT32_LABLE)
+  );
+  copy_data(
+      sector_buffer+sizeof(VOLUME_FAT32_LABLE),
+      ROOT_LABLE_FLAG,
+      sizeof(ROOT_LABLE_FLAG)
+  );
+  uint32_t root_sector = fat32_table_sector_copy+
+    sectors_per_fat32_volue;
+  write_sector_(root_sector);
 
-    write_sector_(
-        PART2_START_SECTOR+
-        RESERVED_SECTORS_FAT32_VOLUME+
-        sectors_per_fat32_volue+
-        empty_sectors);
-  }
+
+  // write fat32 tables empty sectors
+  memset(sector_buffer, 0, 512);
+  print("step 5-3", 30, 3);
+  write_blocks(fat32_table_sector+1,
+    sectors_per_fat32_volue-1);
+
+  print("step 5-4", 30, 3);
+  write_blocks(fat32_table_sector_copy+1,
+    sectors_per_fat32_volue-1);
+
+  // wrire root dir empty sectors
+  uint16_t root_secrors = int_from_array(
+      SECTORS_PER_CLUSTER_FAT32,
+      sizeof(SECTORS_PER_CLUSTER_FAT32));
+
+  print("step 5-5", 30, 3);
+  write_blocks(root_sector+1,
+    root_secrors-1);
+  print("", 0, 5);
+  print("", 0, 6);
 }
 
 void copy_data(uint8_t* dst, uint8_t* src, uint16_t length){
@@ -515,3 +574,46 @@ void get_sectors_per_fat32(uint8_t* sectors_per_fat32){
     sectors_per_fat32[i] = sectors_per_fat32_volue >> 8*(3-i) & 0xff;
   }
 }
+
+void write_blocks(uint32_t start_sector, uint32_t sectors){
+  clean_buf();
+  print32(sectors, 30, 5);
+
+  for (uint32_t i=0; i<sectors; i++){
+    if (i%0xff == 0){print32(i, 30, 6);}
+    if (sector_is_empty(start_sector+i)){continue;}
+    write_sector_(start_sector+i);  
+  }
+}
+
+uint32_t int_from_array(uint8_t* arr, uint8_t len){
+  uint32_t res = 0;
+  for (uint16_t i=0; i<len; i++){
+    res += arr[i] << 8 * (len-i-1);
+  }
+  return res;
+}
+
+uint8_t sector_is_empty(uint32_t sector){
+  uint8_t sector_empty_flag = 1;
+  card_command_(CMD17, sector, 0xFF);
+  if (SPDR || !wait_start_block_()){
+    return 0;
+  }
+
+  // read sector
+  for (uint16_t i = 0; i < SECTOR_SIZE; i++) {
+    spi_send_(0xFF);
+    if (SPDR != 0){
+      sector_empty_flag = 0;
+    }
+  }
+
+  //read 2 bytes CRC (not used)
+  spi_send_(0xFF);
+  spi_send_(0xFF);
+  SD_UNSET(SD_PORT, SD_CS);
+
+  return sector_empty_flag;
+}
+ 
