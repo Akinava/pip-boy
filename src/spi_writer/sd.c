@@ -503,7 +503,7 @@ uint8_t wait_start_block_(void){
   do{
     spi_send_(0xFF);
     if (SPDR == DATA_START_BLOCK) return 1;
-  }while(retry);
+  }while(retry--);
   return 0;
 }
 
