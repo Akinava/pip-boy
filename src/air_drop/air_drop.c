@@ -3,6 +3,10 @@
 int main(void){
   display_begin();
   display_clean();
-  print("HELLO!", 0, 0);
+  if (radio_init()){
+    print("OK", 0, 0);
+  }else{
+    print("FAIL", 0, 0);
+  }
   while(1);
 }

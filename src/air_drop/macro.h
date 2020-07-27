@@ -1,5 +1,5 @@
-#ifndef IO_H                                            
-#define IO_H
+#ifndef MACRO_H
+#define MACRO_H
 
 // DDR Data Direction Register                                                  
 #define SET_DDR_OUT(DDR, PIN) DDR |= _BV(PIN)                                   

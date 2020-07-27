@@ -18,12 +18,14 @@ AVRDUDE_PROGRAMMER = usbasp
 
 LIB_DISPLAY = display
 LIB_RADIO = radio
+LIB_SPI = spi
 
 #=======================================
 
 OBJECTS = $(TARGET).o
 OBJECTS += $(LIB_DISPLAY).o
 OBJECTS += $(LIB_RADIO).o
+OBJECTS += $(LIB_SPI).o
 
 # Define all object files.                                                      
 #============================================================================
