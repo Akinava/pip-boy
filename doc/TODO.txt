@@ -1,0 +1,12 @@
+# soft
+file manager / copy, move, delite a file | create, copy, move a directory | send file via radio link
+text editor / hex, ascii, utf
+grafic editor
+chat
+walkie-talkie
+port games from arduboy
+port games from gamebuino
+
+# hard
+change edge connector on PCB
+create box model for 3d printer
