@@ -15,3 +15,11 @@ It means no PC requared.
 - sd/BIN/ISPUP.BIN - tool to write fuses and to upload bootloader
 - sd/BIN/HWTEST.BIN - tool to test hardware
 - sd/BOOT/SDBOOT.BIN - sd bootloader
+
+## schema ##
+
+https://easyeda.com/editor#id=47b159803b2449d7b4ff084a78797840
+
+## PCB ##
+
+https://easyeda.com/editor#id=392a786439534e91bb10826fc3e2c6a9
