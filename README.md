@@ -4,7 +4,7 @@ Motivation:
 No computer required to make a replica the MicroPC.
 
 Micro personal computer created in game console form factor.
-To reproduce this MicroPC required only required details and another already working MicroPC.
+To reproduce this MicroPC required only details and another already working MicroPC.
 Programming a new MicroCP can be done by the working MicroPC.
 It means no PC required.
 
